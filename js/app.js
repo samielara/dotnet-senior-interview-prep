@@ -18,7 +18,7 @@
     completedChallenges: {},
     userChallengeCode: {},
     mockNotes: {},
-    activeView: 'vault',
+    activeView: 'hub',
     vaultFilters: {
       search: '',
       pillar: 'all',
@@ -27,7 +27,7 @@
       completedOnly: false
     },
     mockSession: null,
-    activeLabId: 'captive-dependency',
+    activeLabId: 'remove-string-duplicates',
     activeArchId: 'distributed-saga',
     flashcardIndex: 0,
     flashcardPillar: 'all',
@@ -218,9 +218,12 @@
       const pillarLabel = {
         csharp: 'C# Internals',
         aspnet: 'ASP.NET Core',
-        sql: 'SQL & EF Core',
-        frontend: 'React & TS',
-        cloud: 'Azure & Cloud'
+        sql: 'SQL Server',
+        efcore: 'EF Core',
+        linq: 'LINQ',
+        ui: 'React 19 & TS',
+        frontend: 'React 19 & TS',
+        cloud: 'Azure & DevOps'
       }[q.pillar] || q.pillar;
 
       return `
@@ -270,7 +273,7 @@
                   📋 Copy Code
                 </button>
               </div>
-              <pre class="code-pre" id="snippet-${q.id}">${escapeHtml(q.codeSnippet)}</pre>
+              <pre class="code-pre" id="snippet-${q.id}">${highlightSyntax(q.codeSnippet)}</pre>
             </div>
 
             <!-- Junior Red Flags -->
@@ -445,7 +448,7 @@
     // Populate model answer sections
     document.getElementById('mockModelPitch').textContent = q.pitch;
     document.getElementById('mockModelDeepDive').textContent = q.deepDive;
-    document.getElementById('mockModelCode').textContent = q.codeSnippet;
+    document.getElementById('mockModelCode').innerHTML = highlightSyntax(q.codeSnippet);
 
     const redFlagsEl = document.getElementById('mockModelRedFlags');
     if (redFlagsEl) {
@@ -605,7 +608,7 @@
           onclick="window.AppController.selectChallenge('${c.id}')">
           <span class="challenge-item-title">${c.title}</span>
           <div class="challenge-item-meta">
-            <span class="pillar-badge pillar-${c.pillar}">${c.pillar}</span>
+            <span class="pillar-badge ${c.category === 'Top 10 Coding' ? 'pillar-coding' : 'pillar-' + c.pillar}">${c.category || c.pillar}</span>
             <span>${isCompleted ? '✅ Passed (+100 XP)' : '⏳ Incomplete'}</span>
           </div>
         </button>
@@ -617,8 +620,9 @@
 
     document.getElementById('labTitle').textContent = currentChallenge.title;
     const badge = document.getElementById('labPillarBadge');
-    badge.textContent = currentChallenge.pillar.toUpperCase();
-    badge.className = `pillar-badge pillar-${currentChallenge.pillar}`;
+    const isTopCoding = currentChallenge.category === 'Top 10 Coding';
+    badge.textContent = (currentChallenge.category || currentChallenge.pillar).toUpperCase();
+    badge.className = `pillar-badge ${isTopCoding ? 'pillar-coding' : 'pillar-' + currentChallenge.pillar}`;
 
     document.getElementById('labScenario').textContent = currentChallenge.scenario;
 
@@ -808,8 +812,50 @@
       .replace(/'/g, '&#039;');
   }
 
+  function highlightSyntax(code) {
+    if (!code) return '';
+    let html = escapeHtml(code);
+
+    // Comments (//, /* */, --)
+    html = html.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/|--.*$)/gm, '<span class="kw-comm">$1</span>');
+
+    // String literals ("..." or '...')
+    html = html.replace(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, '<span class="kw-str">$1</span>');
+
+    // Numbers
+    html = html.replace(/\b(\d+(?:\.\d+)?(?:m|f|d|L)?)\b/g, '<span class="kw-num">$1</span>');
+
+    // C# & TS Keywords
+    const keywords = /\b(abstract|as|async|await|base|bool|break|byte|case|catch|char|checked|class|const|continue|decimal|default|delegate|do|double|else|enum|event|explicit|extern|false|finally|fixed|float|for|foreach|goto|if|implicit|in|int|interface|internal|is|lock|long|namespace|new|null|object|operator|out|override|params|private|protected|public|readonly|record|ref|return|sbyte|sealed|short|sizeof|stackalloc|static|string|struct|switch|this|throw|true|try|typeof|uint|ulong|unchecked|unsafe|ushort|using|var|virtual|void|volatile|while|yield|function|let|import|export|type)\b/g;
+    html = html.replace(keywords, '<span class="kw-kw">$1</span>');
+
+    // Common Types
+    const types = /\b(Task|ValueTask|Span|ReadOnlySpan|Memory|ReadOnlyMemory|CancellationToken|HttpClient|AppDbContext|ILogger|IServiceScopeFactory|SemaphoreSlim|Channel|Dictionary|HashSet|List|Stack|PriorityQueue|LinkedList|LinkedListNode|StringBuilder|DateTime|TimeSpan|Exception|Action|Func|IQueryable|IEnumerable|IList|ICollection|Tuple|ProblemDetails|Activity|HttpContext)\b/g;
+    html = html.replace(types, '<span class="kw-type">$1</span>');
+
+    // SQL Keywords
+    const sql = /\b(SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|CROSS|APPLY|GROUP|BY|ORDER|HAVING|INSERT|INTO|UPDATE|SET|DELETE|CREATE|TABLE|INDEX|CLUSTERED|NONCLUSTERED|INCLUDE|VIEW|WITH|SCHEMABINDING|ALTER|DROP|AS|AND|OR|NOT|IN|LIKE|IS|NULL|COUNT|SUM|AVG|MIN|MAX|TOP|ROW_NUMBER|OVER|PARTITION)\b/g;
+    html = html.replace(sql, '<span class="kw-sql">$1</span>');
+
+    return html;
+  }
+
   // --- GLOBAL EXPOSED CONTROLLER ---
   window.AppController = {
+    switchView: function (viewName) {
+      switchView(viewName);
+    },
+
+    openModuleVault: function (pillar) {
+      state.vaultFilters.pillar = pillar;
+      switchView('vault');
+      document.querySelectorAll('#pillarFiltersRow .filter-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.pillar === pillar);
+      });
+      renderQuestionVault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
     toggleQuestion: function (qId) {
       const card = document.getElementById(`card-${qId}`);
       if (card) {
@@ -1210,10 +1256,10 @@
 
     // Initial View Routing from URL Hash
     const hash = window.location.hash.replace('#', '');
-    if (['vault', 'mock', 'lab', 'whiteboards', 'flashcards'].includes(hash)) {
+    if (['hub', 'vault', 'mock', 'lab', 'diagrams', 'whiteboards', 'flashcards'].includes(hash)) {
       switchView(hash);
     } else {
-      switchView('vault');
+      switchView('hub');
     }
   });
 

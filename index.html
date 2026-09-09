@@ -3,49 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>.NET Senior Full-Stack Interview Mastery (3-8+ YOE)</title>
-  <meta name="description" content="Production-grade interactive learning and interview preparation platform for Mid-to-Senior Full-Stack .NET Developers covering C# Internals, ASP.NET Core, SQL Server & EF Core, React 19 & TypeScript, and Azure DevOps & Cloud CI/CD.">
+  <title>.NET Senior Full-Stack Interview Preparation Platform</title>
+  <meta name="description" content="Production-grade interactive learning platform for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE), covering C#, ASP.NET Core, SQL Server, EF Core, React 19, Azure DevOps, and Top 10 Coding Challenges.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
   <!-- ========================================================================
-       SITE HEADER & CAREER HUD
+       TOP HUD BAR (Sticky Global Navigation & Career XP)
        ======================================================================== -->
   <header class="site-header">
     <div class="nav-container">
-      <a href="#vault" class="brand-section">
-        <div class="brand-logo">⚡</div>
-        <div class="brand-title-wrap">
-          <div class="brand-title">
-            .NET Senior Mastery
-            <span class="brand-badge">3–8+ YOE</span>
-          </div>
-          <span class="brand-subtitle">Full-Stack Architect Interview Prep</span>
+      <a href="#hub" class="brand-section" onclick="window.AppController.switchView('hub')">
+        <div class="brand-logo">
+          <span>⚡</span>
+        </div>
+        <div>
+          <span class="brand-title">.NET Senior Interview Prep</span>
+          <span class="brand-subtitle">Curriculum &amp; Top 10 Coding Arena</span>
         </div>
       </a>
 
-      <!-- Gamification Career XP Bar -->
+      <!-- Gamification HUD Stats -->
       <div class="hud-section">
-        <div class="xp-container">
+        <div class="hud-stat-item">
           <span class="rank-badge" id="hudRankBadge">Junior Dev</span>
-          <div class="xp-bar-wrap">
-            <div class="xp-text">
-              <span id="hudXpTotal">0 XP</span>
-              <span id="hudXpNext">500 XP</span>
-            </div>
-            <div class="xp-progress-bg">
-              <div class="xp-progress-fill" id="hudXpFill" style="width: 0%;"></div>
-            </div>
+        </div>
+
+        <div class="hud-stat-item xp-meter-container">
+          <div class="xp-meta">
+            <span class="xp-label">Career XP</span>
+            <span class="xp-counter"><strong id="hudXpTotal">0</strong> / <span id="hudXpNext">500</span> XP</span>
+          </div>
+          <div class="xp-progress-bg">
+            <div class="xp-progress-fill" id="hudXpFill" style="width: 0%;"></div>
           </div>
         </div>
 
-        <!-- Audio Mute & Utilities -->
-        <div class="header-actions">
-          <button class="icon-btn" id="soundToggleBtn" title="Toggle Sound Feedback">
+        <div class="hud-stat-item">
+          <span class="stat-icon">📚</span>
+          <span class="stat-text"><strong id="hudCompletedCount">0</strong> / 66</span>
+        </div>
+
+        <div class="hud-stat-item">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-text"><strong id="hudMasteredCount">0</strong> / 44</span>
+        </div>
+
+        <div class="hud-stat-item">
+          <span class="stat-icon">🔥</span>
+          <span class="stat-text"><strong id="hudStreakDays">1</strong> Day</span>
+        </div>
+
+        <!-- Global Action Controls -->
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="icon-btn" id="soundToggleBtn" title="Toggle Sound Synthesizer">
             <span id="soundIcon">🔊</span>
           </button>
           <button class="icon-btn" id="resetProgressBtn" title="Reset All Local Progress">
@@ -61,20 +76,23 @@
        ======================================================================== -->
   <div class="tabs-nav-wrapper">
     <nav class="tabs-nav">
-      <button class="tab-btn active" data-view="vault">
+      <button class="tab-btn active" data-view="hub">
+        <span>🏛️</span>
+        <span>Curriculum Hub</span>
+      </button>
+      <button class="tab-btn" data-view="vault">
         <span>📚</span>
         <span>Question Vault</span>
-        <span class="tab-badge" id="badgeVaultCount">53</span>
-      </button>
-      <button class="tab-btn" data-view="mock">
-        <span>⏱️</span>
-        <span>Timed Mock Simulator</span>
-        <span class="tab-badge">Active</span>
+        <span class="tab-badge" id="badgeVaultCount">66</span>
       </button>
       <button class="tab-btn" data-view="lab">
-        <span>🧪</span>
-        <span>Code & Bug Lab</span>
-        <span class="tab-badge">5 Labs</span>
+        <span>💻</span>
+        <span>Top 10 Coding Lab</span>
+        <span class="tab-badge" id="badgeLabCount">15 Challenges</span>
+      </button>
+      <button class="tab-btn" data-view="diagrams">
+        <span>📊</span>
+        <span>Visual Architecture</span>
       </button>
       <button class="tab-btn" data-view="whiteboards">
         <span>📐</span>
@@ -84,7 +102,11 @@
       <button class="tab-btn" data-view="flashcards">
         <span>⚡</span>
         <span>Rapid Flashcards</span>
-        <span class="tab-badge" id="badgeCardsCount">40</span>
+        <span class="tab-badge" id="badgeCardsCount">44</span>
+      </button>
+      <button class="tab-btn" data-view="mock">
+        <span>⏱️</span>
+        <span>Timed Mock Simulator</span>
       </button>
     </nav>
   </div>
@@ -95,33 +117,263 @@
   <main class="main-content">
 
     <!-- ----------------------------------------------------------------------
+         VIEW 0: SIMPLIFIED CURRICULUM HUB (LANDING PAGE)
+         ---------------------------------------------------------------------- -->
+    <section id="view-hub" class="view-panel active">
+      <div class="curriculum-hero">
+        <h1>Full-Stack .NET Senior Interview Mastery</h1>
+        <p>
+          The definitive study guide engineered for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE). Real-world technical screens sourced from top GitHub .NET repositories and Reddit interview loops.
+        </p>
+        <div class="curriculum-stats-strip">
+          <div class="curriculum-stat-item"><span>🎓</span> <strong>66</strong> Senior Architecture Questions</div>
+          <div class="curriculum-stat-item"><span>💻</span> <strong>Top 10</strong> Live Coding Challenges</div>
+          <div class="curriculum-stat-item"><span>📊</span> <strong>4</strong> Visual Memory Diagrams</div>
+          <div class="curriculum-stat-item"><span>📐</span> <strong>4</strong> System Design Whiteboards</div>
+          <div class="curriculum-stat-item"><span>⚡</span> <strong>44</strong> Spaced Repetition Cards</div>
+          <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Interview Simulator</div>
+        </div>
+      </div>
+
+      <!-- 8 Core Module Cards Grid -->
+      <div class="module-grid">
+        <!-- Module 1: UI & Frontend -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('ui')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.3);">
+              <span>⚛️</span>
+            </div>
+            <span class="pillar-badge pillar-ui">UI &amp; Frontend</span>
+          </div>
+          <h2 class="module-card-title">React 19 &amp; TypeScript</h2>
+          <p class="module-card-desc">
+            Master Fiber architecture, Lane scheduling, non-blocking concurrent transitions (useTransition), stale closure traps, list virtualization (100k rows), discriminated unions, and Server Actions.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Fiber Reconciler</span>
+            <span class="module-topic-tag">Concurrent Mode</span>
+            <span class="module-topic-tag">Zustand vs Redux</span>
+            <span class="module-topic-tag">Discriminated Unions</span>
+          </div>
+          <div class="module-card-footer">
+            <span>10 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 2: C# Language & CLR -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('csharp')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.3);">
+              <span>⚡</span>
+            </div>
+            <span class="pillar-badge pillar-csharp">C# Internals</span>
+          </div>
+          <h2 class="module-card-title">C# Language &amp; CLR Mechanics</h2>
+          <p class="module-card-desc">
+            Deep dive into Task vs ValueTask state machines, Roslyn lowering, GC Generations (Gen 0/1/2, LOH 85KB threshold, POH), Span&lt;T&gt; stack-only ref structs, records, and SemaphoreSlim synchronization.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Task vs ValueTask</span>
+            <span class="module-topic-tag">IAsyncStateMachine</span>
+            <span class="module-topic-tag">Span&lt;T&gt; vs Memory</span>
+            <span class="module-topic-tag">Channels Concurrency</span>
+          </div>
+          <div class="module-card-footer">
+            <span>11 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 3: LINQ -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('linq')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.3);">
+              <span>🔍</span>
+            </div>
+            <span class="pillar-badge pillar-linq">LINQ Mastery</span>
+          </div>
+          <h2 class="module-card-title">LINQ &amp; Expression Trees</h2>
+          <p class="module-card-desc">
+            Conquer IEnumerable vs IQueryable client-side evaluation traps, multiple enumeration bugs, SelectMany flattening, GroupBy vs ToLookup memory mechanics, and runtime Expression Tree visitors.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">IEnumerable vs IQueryable</span>
+            <span class="module-topic-tag">Deferred Execution</span>
+            <span class="module-topic-tag">SelectMany Cross Joins</span>
+            <span class="module-topic-tag">Expression Trees</span>
+          </div>
+          <div class="module-card-footer">
+            <span>11 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 4: Entity Framework Core -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('efcore')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.3);">
+              <span>🗄️</span>
+            </div>
+            <span class="pillar-badge pillar-efcore">EF Core ORM</span>
+          </div>
+          <h2 class="module-card-title">Entity Framework Core 8</h2>
+          <p class="module-card-desc">
+            Eliminate Change Tracker memory overhead with .AsNoTracking(), prevent Cartesian explosion with .AsSplitQuery(), resolve N+1 queries, manage RowVersion optimistic locking, and automate CI/CD migration bundles.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Change Tracker Snapshot</span>
+            <span class="module-topic-tag">Split Queries</span>
+            <span class="module-topic-tag">Optimistic Concurrency</span>
+            <span class="module-topic-tag">Dapper Hybrid CQRS</span>
+          </div>
+          <div class="module-card-footer">
+            <span>7 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 5: SQL Server & Relational DB -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('sql')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+              <span>💾</span>
+            </div>
+            <span class="pillar-badge pillar-sql">SQL Server &amp; RDBMS</span>
+          </div>
+          <h2 class="module-card-title">SQL Server &amp; Relational DB</h2>
+          <p class="module-card-desc">
+            Understand B-Tree Clustered vs Non-Clustered index layout, eliminate Key Lookups with Covering INCLUDE indexes, refactor non-SARGable queries, enable RCSI row versioning, and resolve deadlocks.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">B-Tree Physical Storage</span>
+            <span class="module-topic-tag">Covering Indexes &amp; INCLUDE</span>
+            <span class="module-topic-tag">SARGable Index Seeks</span>
+            <span class="module-topic-tag">RCSI Lock Elimination</span>
+          </div>
+          <div class="module-card-footer">
+            <span>6 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 6: ASP.NET Core & Web APIs -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('aspnet')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
+              <span>🌐</span>
+            </div>
+            <span class="pillar-badge pillar-aspnet">ASP.NET Core</span>
+          </div>
+          <h2 class="module-card-title">ASP.NET Core &amp; Web APIs</h2>
+          <p class="module-card-desc">
+            Master the Russian Doll middleware pipeline, eliminate captive dependency DI bugs, prevent socket exhaustion via IHttpClientFactory, implement JWT refresh token rotation, and scale with Polly v8.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Middleware Pipeline</span>
+            <span class="module-topic-tag">Captive Dependencies</span>
+            <span class="module-topic-tag">JWT Token Rotation</span>
+            <span class="module-topic-tag">Polly v8 Resilience</span>
+          </div>
+          <div class="module-card-footer">
+            <span>11 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 7: Azure DevOps & Cloud CI/CD -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('cloud')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3);">
+              <span>☁️</span>
+            </div>
+            <span class="pillar-badge pillar-cloud">Azure &amp; DevOps</span>
+          </div>
+          <h2 class="module-card-title">Azure DevOps &amp; Cloud CI/CD</h2>
+          <p class="module-card-desc">
+            Deploy multi-stage YAML pipelines, configure App Service deployment slots with zero-downtime warmup probes, implement passwordless Managed Identities, and build distroless chiseled Docker images.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">YAML Build/Release</span>
+            <span class="module-topic-tag">App Service Slots</span>
+            <span class="module-topic-tag">Managed Identities</span>
+            <span class="module-topic-tag">Transactional Outbox</span>
+          </div>
+          <div class="module-card-footer">
+            <span>10 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 8: Top 10 Coding Questions Arena -->
+        <div class="module-card" onclick="window.AppController.switchView('lab')" style="border-color: rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(18, 26, 43, 0.9) 0%, rgba(249, 115, 22, 0.08) 100%);">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.4);">
+              <span>💻</span>
+            </div>
+            <span class="pillar-badge pillar-coding">Live Code Editor</span>
+          </div>
+          <h2 class="module-card-title">Top 10 Coding Questions Arena</h2>
+          <p class="module-card-desc">
+            Crack the most asked C# coding interview problems: Remove String Duplicates, Palindrome Two-Pointers, Reverse Words In-Place, Two Sum, Balanced Brackets Stack, LRU Cache, and Top K Frequent Elements.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">String Duplicates</span>
+            <span class="module-topic-tag">Two Pointers</span>
+            <span class="module-topic-tag">LRU Cache</span>
+            <span class="module-topic-tag">PriorityQueue Heap</span>
+          </div>
+          <div class="module-card-footer">
+            <span style="color: #fb923c;">15 Challenges (10 Code + 5 Bug Labs)</span>
+            <span style="color: #fb923c;">Open Coding Arena →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fast Action Study Strip -->
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+        <button class="btn-primary" onclick="window.AppController.switchView('mock')" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+          ⏱️ Start Timed Mock Interview Screen
+        </button>
+        <button class="btn-primary" onclick="window.AppController.switchView('diagrams')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
+          📊 Explore Visual Architecture Diagrams
+        </button>
+        <button class="btn-primary" onclick="window.AppController.switchView('flashcards')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
+          ⚡ Drill 44 Spaced Flashcards
+        </button>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
          VIEW 1: QUESTION VAULT
          ---------------------------------------------------------------------- -->
-    <section id="view-vault" class="view-panel active">
+    <section id="view-vault" class="view-panel">
       <div class="view-header">
         <h1 class="view-title">
           <span>📚</span>
           <span>Question Vault</span>
         </h1>
         <p class="view-desc">
-          50+ production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
+          66 production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
         </p>
       </div>
 
       <!-- Vault Filters & Search -->
       <div class="vault-controls">
         <div class="search-bar-wrap">
-          <input type="text" id="vaultSearchInput" class="search-input" placeholder="Search questions by keyword, topic, API, or algorithm (e.g. ValueTask, SARGable, Fiber, RCSI, Outbox)...">
+          <input type="text" id="vaultSearchInput" class="search-input" placeholder="Search questions by keyword, topic, API, or algorithm (e.g. ValueTask, SARGable, Fiber, RCSI, Outbox, SelectMany)...">
         </div>
 
         <!-- Pillar Filters -->
         <div class="filter-pills-row" id="pillarFiltersRow">
-          <button class="filter-pill active" data-pillar="all">All Pillars</button>
-          <button class="filter-pill" data-pillar="csharp">C# Internals & Concurrency</button>
-          <button class="filter-pill" data-pillar="aspnet">ASP.NET Core & Web APIs</button>
-          <button class="filter-pill" data-pillar="sql">SQL Server & EF Core</button>
-          <button class="filter-pill" data-pillar="frontend">React 19 & TypeScript</button>
-          <button class="filter-pill" data-pillar="cloud">Azure DevOps & Cloud CI/CD</button>
+          <button class="filter-pill active" data-pillar="all">All Modules (66)</button>
+          <button class="filter-pill" data-pillar="ui">⚛️ React 19 &amp; TS (10)</button>
+          <button class="filter-pill" data-pillar="csharp">⚡ C# Internals (11)</button>
+          <button class="filter-pill" data-pillar="linq">🔍 LINQ (11)</button>
+          <button class="filter-pill" data-pillar="efcore">🗄️ EF Core (7)</button>
+          <button class="filter-pill" data-pillar="sql">💾 SQL Server (6)</button>
+          <button class="filter-pill" data-pillar="aspnet">🌐 ASP.NET Core (11)</button>
+          <button class="filter-pill" data-pillar="cloud">☁️ Azure &amp; DevOps (10)</button>
         </div>
 
         <!-- Seniority & Flags Filters -->
@@ -134,7 +386,7 @@
         </div>
 
         <div class="vault-stats-bar">
-          <span id="vaultFilteredCount">Showing 53 of 53 questions</span>
+          <span id="vaultFilteredCount">Showing 66 of 66 questions</span>
           <span id="vaultCompletionRatio">0% Studied</span>
         </div>
       </div>
@@ -146,7 +398,426 @@
     </section>
 
     <!-- ----------------------------------------------------------------------
-         VIEW 2: TIMED MOCK SIMULATOR
+         VIEW 2: TOP 10 CODING LAB & ARCHITECTURAL BUG LAB
+         ---------------------------------------------------------------------- -->
+    <section id="view-lab" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>💻</span>
+          <span>Top 10 Coding Questions &amp; Architectural Labs</span>
+        </h1>
+        <p class="view-desc">
+          Hands-on coding arena. Solve the top 10 most frequently asked C# interview problems (string duplicates, valid palindrome, two sum, balanced brackets, LRU cache) and 5 senior architectural bug labs with live automated validation tests.
+        </p>
+      </div>
+
+      <div class="lab-container">
+        <!-- Challenges Sidebar -->
+        <aside class="challenges-sidebar" id="labSidebar">
+          <!-- Rendered dynamically from INTERVIEW_CHALLENGES -->
+        </aside>
+
+        <!-- Editor & Test Runner -->
+        <div class="editor-workspace">
+          <div class="editor-header-bar">
+            <div>
+              <h2 id="labTitle" style="font-size: 1.1rem;">Challenge Title</h2>
+              <span id="labPillarBadge" class="pillar-badge" style="margin-top: 0.25rem; display: inline-block;">Category</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="copy-code-btn" id="labHintBtn">💡 Hint</button>
+              <button class="copy-code-btn" id="labSolutionBtn">🗝️ Solution</button>
+              <button class="copy-code-btn" id="labResetBtn">🔄 Reset</button>
+            </div>
+          </div>
+
+          <!-- Scenario Statement -->
+          <div class="scenario-panel" id="labScenario">
+            Scenario text...
+          </div>
+
+          <!-- Code Editor Area -->
+          <textarea id="labCodeEditor" class="code-editor-textarea" spellcheck="false"></textarea>
+
+          <!-- Test Cases Panel -->
+          <div class="tests-panel">
+            <span class="option-label">Automated Validation Suite</span>
+            <div id="labTestsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Test rows rendered here -->
+            </div>
+          </div>
+
+          <!-- Footer Action Bar -->
+          <div class="editor-footer-bar">
+            <span id="labValidationStatus" style="font-size: 0.85rem; color: var(--text-muted);">
+              Edit the code above and click Run Tests.
+            </span>
+            <button class="btn-primary" id="labRunTestsBtn">▶️ Run Validation Tests</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 3: VISUAL ARCHITECTURE & MEMORY DIAGRAMS
+         ---------------------------------------------------------------------- -->
+    <section id="view-diagrams" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>📊</span>
+          <span>Visual Architecture &amp; Memory Learning</span>
+        </h1>
+        <p class="view-desc">
+          Visual learning blueprints illustrating low-level CLR memory models, B-Tree index lookups, ASP.NET Core middleware pipelines, and React Fiber double-buffering.
+        </p>
+      </div>
+
+      <div class="diagrams-container">
+        <!-- Diagram 1: CLR Memory Layout -->
+        <div class="diagram-card">
+          <div class="diagram-header">
+            <div>
+              <span class="pillar-badge pillar-csharp">CLR Internals</span>
+              <h2 class="diagram-title" style="margin-top: 0.35rem;">1. .NET Memory Architecture: Stack vs. Gen 0/1/2 Ephemeral Heaps vs. LOH &amp; POH</h2>
+            </div>
+          </div>
+          <p class="diagram-desc">
+            Visual breakdown of memory allocation in the CLR. Local variables and <span class="term-highlight">Span&lt;T&gt;</span> (ref structs) live strictly on the execution thread stack with zero GC cost. Managed objects live on the Ephemeral GC Heaps (Gen 0, 1, 2) where compaction relocates memory, while large arrays (&ge;85KB) allocate directly on the <span class="term-warn">LOH</span> (not compacted by default) and pinned buffers allocate on the <span class="term-perf">POH</span>.
+          </p>
+          <div class="diagram-svg-wrap">
+            <svg viewBox="0 0 920 300" width="100%" height="300" xmlns="http://www.w3.org/2000/svg">
+              <!-- Stack Column -->
+              <rect x="20" y="30" width="200" height="240" rx="10" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"/>
+              <text x="120" y="60" text-anchor="middle" fill="#c7d2fe" font-weight="700" font-size="14">THREAD EXECUTION STACK</text>
+              <text x="120" y="80" text-anchor="middle" fill="#a5b4fc" font-size="11">Fast O(1) Allocation &amp; Pop</text>
+              <rect x="35" y="100" width="170" height="36" rx="6" fill="#312e81" stroke="#818cf8"/>
+              <text x="120" y="123" text-anchor="middle" fill="#f8fafc" font-size="12">Local Primitives (int, bool)</text>
+              <rect x="35" y="145" width="170" height="36" rx="6" fill="#312e81" stroke="#818cf8"/>
+              <text x="120" y="168" text-anchor="middle" fill="#f8fafc" font-size="12">Span&lt;T&gt; (ref struct)</text>
+              <rect x="35" y="190" width="170" height="36" rx="6" fill="#312e81" stroke="#818cf8"/>
+              <text x="120" y="213" text-anchor="middle" fill="#f8fafc" font-size="12">Object Reference Pointers</text>
+
+              <!-- Arrow Pointer -->
+              <path d="M 205 208 L 270 120" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+
+              <!-- Managed Heap Column -->
+              <rect x="280" y="30" width="370" height="240" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+              <text x="465" y="60" text-anchor="middle" fill="#6ee7b7" font-weight="700" font-size="14">MANAGED EPHEMERAL HEAPS (SOH)</text>
+              <!-- Gen 0 -->
+              <rect x="300" y="85" width="100" height="165" rx="8" fill="#064e3b" stroke="#34d399"/>
+              <text x="350" y="110" text-anchor="middle" fill="#a7f3d0" font-weight="700" font-size="13">GEN 0</text>
+              <text x="350" y="130" text-anchor="middle" fill="#d1fae5" font-size="10">Short-lived</text>
+              <text x="350" y="150" text-anchor="middle" fill="#d1fae5" font-size="10">(DTOs, Tasks)</text>
+              <text x="350" y="180" text-anchor="middle" fill="#34d399" font-size="11">Frequent GC</text>
+              <text x="350" y="200" text-anchor="middle" fill="#34d399" font-size="11">Fast &lt;1ms</text>
+              <!-- Gen 1 -->
+              <rect x="415" y="85" width="100" height="165" rx="8" fill="#065f46" stroke="#10b981"/>
+              <text x="465" y="110" text-anchor="middle" fill="#a7f3d0" font-weight="700" font-size="13">GEN 1</text>
+              <text x="465" y="130" text-anchor="middle" fill="#d1fae5" font-size="10">Buffer Zone</text>
+              <text x="465" y="150" text-anchor="middle" fill="#d1fae5" font-size="10">Survived Gen 0</text>
+              <text x="465" y="180" text-anchor="middle" fill="#10b981" font-size="11">Intermediate</text>
+              <!-- Gen 2 -->
+              <rect x="530" y="85" width="105" height="165" rx="8" fill="#047857" stroke="#059669"/>
+              <text x="582" y="110" text-anchor="middle" fill="#a7f3d0" font-weight="700" font-size="13">GEN 2</text>
+              <text x="582" y="130" text-anchor="middle" fill="#d1fae5" font-size="10">Long-lived</text>
+              <text x="582" y="150" text-anchor="middle" fill="#d1fae5" font-size="10">(Singletons, Cache)</text>
+              <text x="582" y="180" text-anchor="middle" fill="#f87171" font-size="11">Full Blocking GC</text>
+
+              <!-- LOH and POH Column -->
+              <rect x="670" y="30" width="230" height="240" rx="10" fill="#1c1917" stroke="#f59e0b" stroke-width="2"/>
+              <text x="785" y="60" text-anchor="middle" fill="#fde68a" font-weight="700" font-size="14">SPECIALIZED HEAPS</text>
+              <!-- LOH -->
+              <rect x="685" y="85" width="200" height="75" rx="8" fill="#451a03" stroke="#f59e0b"/>
+              <text x="785" y="110" text-anchor="middle" fill="#fde68a" font-weight="700" font-size="12">LOH (Large Object Heap)</text>
+              <text x="785" y="130" text-anchor="middle" fill="#fed7aa" font-size="11">&ge; 85,000 Bytes (85 KB)</text>
+              <text x="785" y="148" text-anchor="middle" fill="#f87171" font-size="10">Not compacted by default</text>
+              <!-- POH -->
+              <rect x="685" y="175" width="200" height="75" rx="8" fill="#365314" stroke="#84cc16"/>
+              <text x="785" y="200" text-anchor="middle" fill="#bef264" font-weight="700" font-size="12">POH (Pinned Object Heap)</text>
+              <text x="785" y="220" text-anchor="middle" fill="#d9f99d" font-size="11">.NET 5+ Dedicated Pinned Buffers</text>
+              <text x="785" y="238" text-anchor="middle" fill="#bef264" font-size="10">Eliminates heap fragmentation</text>
+            </svg>
+          </div>
+          <div class="diagram-legend">
+            <div class="diagram-legend-item"><span class="legend-dot" style="background: #818cf8;"></span> <span>Stack: Fast thread-local, ref struct zero allocation</span></div>
+            <div class="diagram-legend-item"><span class="legend-dot" style="background: #34d399;"></span> <span>Gen 0/1/2: Ephemeral segmented generational collection</span></div>
+            <div class="diagram-legend-item"><span class="legend-dot" style="background: #f59e0b;"></span> <span>LOH: &ge;85KB large objects avoiding compaction overhead</span></div>
+            <div class="diagram-legend-item"><span class="legend-dot" style="background: #84cc16;"></span> <span>POH: Pinned socket/native memory buffers</span></div>
+          </div>
+        </div>
+
+        <!-- Diagram 2: B-Tree Index Architecture -->
+        <div class="diagram-card">
+          <div class="diagram-header">
+            <div>
+              <span class="pillar-badge pillar-sql">SQL Server</span>
+              <h2 class="diagram-title" style="margin-top: 0.35rem;">2. SQL Server B-Tree Index Seek vs. Key Lookup vs. Covering Index (INCLUDE)</h2>
+            </div>
+          </div>
+          <p class="diagram-desc">
+            Physical layout of SQL Server indexes. When a query filters on an indexed column, SQL Server navigates the B-Tree from the Root Node down to Leaf pages (<span class="term-perf">Index Seek: O(log N)</span>). If the query selects columns not present in the index leaf, it performs expensive nested loop <span class="term-warn">Key Lookups</span>. Adding leaf-level payload columns with <span class="term-highlight">INCLUDE</span> creates a Covering Index, completely bypassing base table roundtrips.
+          </p>
+          <div class="diagram-svg-wrap">
+            <svg viewBox="0 0 920 300" width="100%" height="300" xmlns="http://www.w3.org/2000/svg">
+              <!-- Root Node -->
+              <rect x="360" y="20" width="200" height="50" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+              <text x="460" y="45" text-anchor="middle" fill="#bae6fd" font-weight="700" font-size="13">B-TREE ROOT NODE</text>
+              <text x="460" y="60" text-anchor="middle" fill="#7dd3fc" font-size="10">Keys: [100 | 500 | 1000]</text>
+
+              <!-- Intermediate Branches -->
+              <line x1="410" y1="70" x2="250" y2="110" stroke="#38bdf8" stroke-width="2"/>
+              <line x1="460" y1="70" x2="460" y2="110" stroke="#38bdf8" stroke-width="2"/>
+              <line x1="510" y1="70" x2="670" y2="110" stroke="#38bdf8" stroke-width="2"/>
+
+              <rect x="160" y="110" width="180" height="45" rx="6" fill="#0f172a" stroke="#0ea5e9"/>
+              <text x="250" y="135" text-anchor="middle" fill="#e0f2fe" font-size="11">Branch Node (1 - 99)</text>
+
+              <rect x="370" y="110" width="180" height="45" rx="6" fill="#0f172a" stroke="#0ea5e9"/>
+              <text x="460" y="135" text-anchor="middle" fill="#e0f2fe" font-size="11">Branch Node (100 - 499)</text>
+
+              <rect x="580" y="110" width="180" height="45" rx="6" fill="#0f172a" stroke="#0ea5e9"/>
+              <text x="670" y="135" text-anchor="middle" fill="#e0f2fe" font-size="11">Branch Node (500 - 999)</text>
+
+              <!-- Leaf Level Pages -->
+              <line x1="250" y1="155" x2="160" y2="195" stroke="#0ea5e9" stroke-width="2"/>
+              <line x1="460" y1="155" x2="460" y2="195" stroke="#0ea5e9" stroke-width="2"/>
+              <line x1="670" y1="155" x2="760" y2="195" stroke="#0ea5e9" stroke-width="2"/>
+
+              <rect x="60" y="195" width="220" height="85" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="2"/>
+              <text x="170" y="218" text-anchor="middle" fill="#6ee7b7" font-weight="700" font-size="12">COVERING INDEX LEAF</text>
+              <text x="170" y="235" text-anchor="middle" fill="#a7f3d0" font-size="10">Key: OrderDate</text>
+              <text x="170" y="252" text-anchor="middle" fill="#d1fae5" font-size="10">INCLUDE (CustomerId, Total)</text>
+              <text x="170" y="270" text-anchor="middle" fill="#34d399" font-weight="700" font-size="11">✅ 100% SATISFIED HERE</text>
+
+              <rect x="360" y="195" width="200" height="85" rx="8" fill="#451a03" stroke="#f59e0b" stroke-width="2"/>
+              <text x="460" y="218" text-anchor="middle" fill="#fde68a" font-weight="700" font-size="12">NON-COVERING LEAF</text>
+              <text x="460" y="235" text-anchor="middle" fill="#fed7aa" font-size="10">Key: OrderDate</text>
+              <text x="460" y="252" text-anchor="middle" fill="#fed7aa" font-size="10">Pointer: Clustered Key ID</text>
+              <text x="460" y="270" text-anchor="middle" fill="#f87171" font-weight="700" font-size="11">⚠️ REQUIRES KEY LOOKUP</text>
+
+              <!-- Base Table Box -->
+              <line x1="560" y1="237" x2="640" y2="237" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,4"/>
+              <rect x="640" y="195" width="220" height="85" rx="8" fill="#3f1212" stroke="#ef4444" stroke-width="2"/>
+              <text x="750" y="218" text-anchor="middle" fill="#fecaca" font-weight="700" font-size="12">CLUSTERED TABLE DATA</text>
+              <text x="750" y="238" text-anchor="middle" fill="#fca5a5" font-size="10">Random I/O Bookmark Lookup</text>
+              <text x="750" y="256" text-anchor="middle" fill="#fca5a5" font-size="10">Slow under concurrency</text>
+              <text x="750" y="272" text-anchor="middle" fill="#f87171" font-weight="700" font-size="11">❌ High CPU &amp; Disk IOPS</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Diagram 3: Middleware Pipeline -->
+        <div class="diagram-card">
+          <div class="diagram-header">
+            <div>
+              <span class="pillar-badge pillar-aspnet">ASP.NET Core</span>
+              <h2 class="diagram-title" style="margin-top: 0.35rem;">3. ASP.NET Core Russian Doll Middleware Pipeline</h2>
+            </div>
+          </div>
+          <p class="diagram-desc">
+            Execution flow of an HTTP request through ASP.NET Core middleware. Middleware wraps subsequent components like Russian nesting dolls (<span class="term-highlight">RequestDelegate next</span>). Requests travel inward through Exception Handling, HSTS, Routing, Rate Limiting, Authentication, and Authorization to the Endpoint Handler, then unwind outward in reverse order.
+          </p>
+          <div class="diagram-svg-wrap">
+            <svg viewBox="0 0 920 220" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
+              <!-- Nesting Boxes -->
+              <rect x="20" y="20" width="880" height="180" rx="10" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"/>
+              <text x="40" y="45" fill="#a5b4fc" font-weight="700" font-size="12">1. Global Exception Handler (RFC 7807 / Try-Catch)</text>
+
+              <rect x="60" y="55" width="800" height="135" rx="8" fill="#172554" stroke="#3b82f6" stroke-width="2"/>
+              <text x="80" y="80" fill="#93c5fd" font-weight="700" font-size="12">2. Routing &amp; Rate Limiter (.NET 8 Partitioned Limits)</text>
+
+              <rect x="100" y="90" width="720" height="90" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="2"/>
+              <text x="120" y="115" fill="#6ee7b7" font-weight="700" font-size="12">3. Authentication &amp; Authorization (JWT Claims / Token Family)</text>
+
+              <rect x="140" y="125" width="640" height="45" rx="6" fill="#312e81" stroke="#c084fc" stroke-width="2"/>
+              <text x="460" y="152" text-anchor="middle" fill="#f8fafc" font-weight="800" font-size="13">4. ENDPOINT HANDLER (Minimal API / Controller Action / Filters)</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Diagram 4: React Fiber Double Buffering -->
+        <div class="diagram-card">
+          <div class="diagram-header">
+            <div>
+              <span class="pillar-badge pillar-ui">React 19 &amp; TS</span>
+              <h2 class="diagram-title" style="margin-top: 0.35rem;">4. React Fiber Architecture: Double Buffering &amp; Lane Scheduler</h2>
+            </div>
+          </div>
+          <p class="diagram-desc">
+            React's reconciler manages two fiber trees simultaneously: the <span class="term-highlight">current</span> tree (mounted on screen) and the <span class="term-perf">workInProgress</span> tree (built asynchronously offscreen in the interruptible render phase). When reconciliation completes, React flips a single root pointer in the synchronous commit phase for flicker-free UI rendering.
+          </p>
+          <div class="diagram-svg-wrap">
+            <svg viewBox="0 0 920 220" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
+              <!-- Current Tree -->
+              <rect x="40" y="30" width="380" height="160" rx="10" fill="#0f172a" stroke="#0ea5e9" stroke-width="2"/>
+              <text x="230" y="60" text-anchor="middle" fill="#38bdf8" font-weight="700" font-size="14">CURRENT FIBER TREE (Mounted DOM)</text>
+              <rect x="70" y="80" width="140" height="40" rx="6" fill="#1e293b" stroke="#7dd3fc"/>
+              <text x="140" y="105" text-anchor="middle" fill="#f8fafc" font-size="12">App Fiber (HostRoot)</text>
+              <rect x="240" y="80" width="150" height="40" rx="6" fill="#1e293b" stroke="#7dd3fc"/>
+              <text x="315" y="105" text-anchor="middle" fill="#f8fafc" font-size="12">NavBar &amp; ProductList</text>
+              <text x="230" y="165" text-anchor="middle" fill="#94a3b8" font-size="11">Renders currently visible user interface</text>
+
+              <!-- Alternate Double-Buffering Arrow -->
+              <path d="M 430 110 L 490 110" stroke="#f59e0b" stroke-width="3" marker-end="url(#arrow)"/>
+              <text x="460" y="95" text-anchor="middle" fill="#fbbf24" font-weight="700" font-size="11">alternate</text>
+
+              <!-- WorkInProgress Tree -->
+              <rect x="500" y="30" width="380" height="160" rx="10" fill="#14261c" stroke="#10b981" stroke-width="2"/>
+              <text x="690" y="60" text-anchor="middle" fill="#34d399" font-weight="700" font-size="14">WORK-IN-PROGRESS TREE (Offscreen)</text>
+              <rect x="530" y="80" width="150" height="40" rx="6" fill="#064e3b" stroke="#34d399"/>
+              <text x="605" y="105" text-anchor="middle" fill="#f8fafc" font-size="12">App (Work Loop)</text>
+              <rect x="705" y="80" width="150" height="40" rx="6" fill="#064e3b" stroke="#34d399"/>
+              <text x="780" y="105" text-anchor="middle" fill="#f8fafc" font-size="12">Diffed Virtual Nodes</text>
+              <text x="690" y="165" text-anchor="middle" fill="#a7f3d0" font-size="11">Interruptible by high-priority user input (Lanes)</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 4: SYSTEM DESIGN WHITEBOARDS
+         ---------------------------------------------------------------------- -->
+    <section id="view-whiteboards" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>📐</span>
+          <span>System Design Whiteboards</span>
+        </h1>
+        <p class="view-desc">
+          Interactive architectural blueprints for senior and lead system design rounds. Inspect individual nodes to review protocol choices, latency SLIs, failure modes, and senior talking points.
+        </p>
+      </div>
+
+      <div class="whiteboards-container">
+        <!-- Blueprint Switcher Tabs -->
+        <div class="arch-selector-row" id="archSelectorRow">
+          <!-- Rendered dynamically from SYSTEM_ARCHITECTURES -->
+        </div>
+
+        <div class="arch-canvas-card">
+          <div>
+            <h2 id="archTitle" style="font-size: 1.4rem;">Architecture Title</h2>
+            <p id="archSummary" style="color: var(--text-secondary); margin-top: 0.35rem;"></p>
+          </div>
+
+          <!-- Interactive Node Cards Grid -->
+          <div class="diagram-nodes-grid" id="archNodesGrid">
+            <!-- Nodes rendered dynamically -->
+          </div>
+
+          <!-- Flow Sequence -->
+          <div class="section-box deepdive-box">
+            <span class="section-box-title">🔄 End-to-End Execution Flow</span>
+            <div id="archFlowSteps" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: #cbd5e1;"></div>
+          </div>
+
+          <!-- Selected Node Deep-Dive Inspector -->
+          <div class="node-inspector-drawer" id="nodeInspectorDrawer">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="node-category" id="inspectNodeCategory">CATEGORY</span>
+              <span class="node-metrics" id="inspectNodeLatency">Latency</span>
+            </div>
+            <h3 id="inspectNodeName" style="color: var(--text-primary); font-size: 1.25rem;">Select any node above to inspect architecture specifications</h3>
+            <p id="inspectNodeRole" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;"></p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+              <div class="section-box redflags-box">
+                <span class="section-box-title">⚠️ Failure Modes</span>
+                <p id="inspectNodeFailures" style="font-size: 0.85rem; color: #fca5a5;"></p>
+              </div>
+              <div class="section-box protips-box">
+                <span class="section-box-title">🛡️ Resiliency Mitigation</span>
+                <p id="inspectNodeMitigation" style="font-size: 0.85rem; color: #6ee7b7;"></p>
+              </div>
+            </div>
+
+            <div class="section-box pitch-box" style="margin-top: 0.5rem;">
+              <span class="section-box-title">🎙️ Senior Interview Talking Points &amp; Trade-Offs</span>
+              <ul id="inspectNodeTalkingPoints" class="protips-list" style="margin-top: 0.4rem;"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 5: RAPID FLASHCARDS
+         ---------------------------------------------------------------------- -->
+    <section id="view-flashcards" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>⚡</span>
+          <span>Rapid Flashcards</span>
+        </h1>
+        <p class="view-desc">
+          Spaced-repetition drills for rapid recall. Press <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">Space</kbd> to flip the card, and <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">←</kbd> / <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">→</kbd> arrow keys to navigate.
+        </p>
+      </div>
+
+      <div class="flashcards-wrapper">
+        <!-- Pillar Filter for Flashcards -->
+        <div class="filter-pills-row" id="fcPillarFiltersRow">
+          <button class="filter-pill active" data-fcpillar="all">All Modules (44)</button>
+          <button class="filter-pill" data-fcpillar="ui">⚛️ React 19 &amp; TS (8)</button>
+          <button class="filter-pill" data-fcpillar="csharp">⚡ C# Internals (8)</button>
+          <button class="filter-pill" data-fcpillar="linq">🔍 LINQ (4)</button>
+          <button class="filter-pill" data-fcpillar="efcore">🗄️ EF Core (4)</button>
+          <button class="filter-pill" data-fcpillar="sql">💾 SQL Server (4)</button>
+          <button class="filter-pill" data-fcpillar="aspnet">🌐 ASP.NET Core (8)</button>
+          <button class="filter-pill" data-fcpillar="cloud">☁️ Azure &amp; DevOps (8)</button>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          Card <span id="fcCurrentIndex">1</span> of <span id="fcTotalCount">44</span>
+        </div>
+
+        <!-- 3D Flip Card Container -->
+        <div class="flashcard-stage" id="flashcardStage">
+          <div class="flashcard-inner" id="flashcardInner">
+            <!-- Front Face -->
+            <div class="flashcard-face flashcard-front">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="fc-topic-tag" id="fcTopicFront">TOPIC</span>
+                <span class="pillar-badge" id="fcPillarBadge">PILLAR</span>
+              </div>
+              <div class="fc-question" id="fcQuestionFront">
+                Loading flashcard question...
+              </div>
+              <div class="fc-hint">
+                <span>🔄 Click card or press [Space] to flip</span>
+              </div>
+            </div>
+
+            <!-- Back Face -->
+            <div class="flashcard-face flashcard-back">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="fc-topic-tag" style="color: var(--accent-emerald-light);">SENIOR MASTERY ANSWER</span>
+                <span class="fc-hint">Press [Space] to flip back</span>
+              </div>
+              <div class="fc-answer" id="fcAnswerBack">
+                Answer content...
+              </div>
+              <div class="section-box protips-box" style="margin-top: 1rem; padding: 0.6rem 0.8rem;">
+                <span class="section-box-title" style="font-size: 0.72rem;">💡 Senior Interview Edge</span>
+                <p id="fcTipBack" style="font-size: 0.82rem; color: #6ee7b7;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcard Controls -->
+        <div class="flashcard-controls">
+          <button class="fc-btn" id="fcPrevBtn">← Prev</button>
+          <button class="fc-btn fc-btn-review" id="fcReviewBtn">⚠️ Review Later</button>
+          <button class="fc-btn fc-btn-mastered" id="fcMasterBtn">✅ Mastered (+50 XP)</button>
+          <button class="fc-btn" id="fcNextBtn">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 6: TIMED MOCK SIMULATOR
          ---------------------------------------------------------------------- -->
     <section id="view-mock" class="view-panel">
       <div class="view-header">
@@ -171,11 +842,13 @@
             <div class="option-group">
               <label class="option-label">Pillar Domain Focus</label>
               <div class="radio-tiles-row" id="mockPillarTiles" style="flex-wrap: wrap;">
-                <div class="radio-tile selected" data-pillar="all">All Pillars (Full-Stack Loop)</div>
+                <div class="radio-tile selected" data-pillar="all">All Modules (Full-Stack Loop)</div>
                 <div class="radio-tile" data-pillar="csharp">C# Internals</div>
+                <div class="radio-tile" data-pillar="linq">LINQ</div>
+                <div class="radio-tile" data-pillar="efcore">EF Core</div>
+                <div class="radio-tile" data-pillar="sql">SQL Server</div>
                 <div class="radio-tile" data-pillar="aspnet">ASP.NET Core</div>
-                <div class="radio-tile" data-pillar="sql">SQL &amp; EF Core</div>
-                <div class="radio-tile" data-pillar="frontend">React 19 &amp; TS</div>
+                <div class="radio-tile" data-pillar="ui">React 19 &amp; TS</div>
                 <div class="radio-tile" data-pillar="cloud">Azure Cloud &amp; CI/CD</div>
               </div>
             </div>
@@ -328,206 +1001,6 @@
           <button class="btn-primary" id="btnRestartMock" style="align-self: center; margin-top: 1.5rem;">
             🔄 Start New Mock Simulator
           </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ----------------------------------------------------------------------
-         VIEW 3: CODE & BUG LAB
-         ---------------------------------------------------------------------- -->
-    <section id="view-lab" class="view-panel">
-      <div class="view-header">
-        <h1 class="view-title">
-          <span>🧪</span>
-          <span>Code & Bug Lab</span>
-        </h1>
-        <p class="view-desc">
-          Hands-on refactoring and debugging challenges. Fix captive dependencies, eliminate N+1 queries, resolve async deadlocks, optimize SARGable SQL, and build lock-free Channel pipelines with live regex test validation.
-        </p>
-      </div>
-
-      <div class="lab-container">
-        <!-- Challenges Sidebar -->
-        <aside class="challenges-sidebar" id="labSidebar">
-          <!-- Rendered dynamically from INTERVIEW_CHALLENGES -->
-        </aside>
-
-        <!-- Editor & Test Runner -->
-        <div class="editor-workspace">
-          <div class="editor-header-bar">
-            <div>
-              <h2 id="labTitle" style="font-size: 1.1rem;">Challenge Title</h2>
-              <span id="labPillarBadge" class="pillar-badge" style="margin-top: 0.25rem; display: inline-block;">Pillar</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="copy-code-btn" id="labHintBtn">💡 Hint</button>
-              <button class="copy-code-btn" id="labSolutionBtn">🗝️ Solution</button>
-              <button class="copy-code-btn" id="labResetBtn">🔄 Reset</button>
-            </div>
-          </div>
-
-          <!-- Scenario Statement -->
-          <div class="scenario-panel" id="labScenario">
-            Scenario text...
-          </div>
-
-          <!-- Code Editor Area -->
-          <textarea id="labCodeEditor" class="code-editor-textarea" spellcheck="false"></textarea>
-
-          <!-- Test Cases Panel -->
-          <div class="tests-panel">
-            <span class="option-label">Automated Validation Suite</span>
-            <div id="labTestsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <!-- Test rows rendered here -->
-            </div>
-          </div>
-
-          <!-- Footer Action Bar -->
-          <div class="editor-footer-bar">
-            <span id="labValidationStatus" style="font-size: 0.85rem; color: var(--text-muted);">
-              Edit the code above and click Run Tests.
-            </span>
-            <button class="btn-primary" id="labRunTestsBtn">▶️ Run Validation Tests</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ----------------------------------------------------------------------
-         VIEW 4: SYSTEM DESIGN WHITEBOARDS
-         ---------------------------------------------------------------------- -->
-    <section id="view-whiteboards" class="view-panel">
-      <div class="view-header">
-        <h1 class="view-title">
-          <span>📐</span>
-          <span>System Design Whiteboards</span>
-        </h1>
-        <p class="view-desc">
-          Interactive architectural blueprints for senior and lead system design rounds. Inspect individual nodes to review protocol choices, latency SLIs, failure modes, and senior talking points.
-        </p>
-      </div>
-
-      <div class="whiteboards-container">
-        <!-- Blueprint Switcher Tabs -->
-        <div class="arch-selector-row" id="archSelectorRow">
-          <!-- Rendered dynamically from SYSTEM_ARCHITECTURES -->
-        </div>
-
-        <div class="arch-canvas-card">
-          <div>
-            <h2 id="archTitle" style="font-size: 1.4rem;">Architecture Title</h2>
-            <p id="archSummary" style="color: var(--text-secondary); margin-top: 0.35rem;"></p>
-          </div>
-
-          <!-- Interactive Node Cards Grid -->
-          <div class="diagram-nodes-grid" id="archNodesGrid">
-            <!-- Nodes rendered dynamically -->
-          </div>
-
-          <!-- Flow Sequence -->
-          <div class="section-box deepdive-box">
-            <span class="section-box-title">🔄 End-to-End Execution Flow</span>
-            <div id="archFlowSteps" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: #cbd5e1;"></div>
-          </div>
-
-          <!-- Selected Node Deep-Dive Inspector -->
-          <div class="node-inspector-drawer" id="nodeInspectorDrawer">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span class="node-category" id="inspectNodeCategory">CATEGORY</span>
-              <span class="node-metrics" id="inspectNodeLatency">Latency</span>
-            </div>
-            <h3 id="inspectNodeName" style="color: var(--text-primary); font-size: 1.25rem;">Select any node above to inspect architecture specifications</h3>
-            <p id="inspectNodeRole" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;"></p>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
-              <div class="section-box redflags-box">
-                <span class="section-box-title">⚠️ Failure Modes</span>
-                <p id="inspectNodeFailures" style="font-size: 0.85rem; color: #fca5a5;"></p>
-              </div>
-              <div class="section-box protips-box">
-                <span class="section-box-title">🛡️ Resiliency Mitigation</span>
-                <p id="inspectNodeMitigation" style="font-size: 0.85rem; color: #6ee7b7;"></p>
-              </div>
-            </div>
-
-            <div class="section-box pitch-box" style="margin-top: 0.5rem;">
-              <span class="section-box-title">🎙️ Senior Interview Talking Points & Trade-Offs</span>
-              <ul id="inspectNodeTalkingPoints" class="protips-list" style="margin-top: 0.4rem;"></ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ----------------------------------------------------------------------
-         VIEW 5: RAPID FLASHCARDS
-         ---------------------------------------------------------------------- -->
-    <section id="view-flashcards" class="view-panel">
-      <div class="view-header">
-        <h1 class="view-title">
-          <span>⚡</span>
-          <span>Rapid Flashcards</span>
-        </h1>
-        <p class="view-desc">
-          Spaced-repetition drills for rapid recall. Press <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">Space</kbd> to flip the card, and <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">←</kbd> / <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">→</kbd> arrow keys to navigate.
-        </p>
-      </div>
-
-      <div class="flashcards-wrapper">
-        <!-- Pillar Filter for Flashcards -->
-        <div class="filter-pills-row" id="fcPillarFiltersRow">
-          <button class="filter-pill active" data-fcpillar="all">All Pillars</button>
-          <button class="filter-pill" data-fcpillar="csharp">C# Internals</button>
-          <button class="filter-pill" data-fcpillar="aspnet">ASP.NET Core</button>
-          <button class="filter-pill" data-fcpillar="sql">SQL Server & EF</button>
-          <button class="filter-pill" data-fcpillar="frontend">React 19 & TS</button>
-          <button class="filter-pill" data-fcpillar="cloud">Azure & DevOps</button>
-        </div>
-
-        <div style="font-size: 0.85rem; color: var(--text-muted);">
-          Card <span id="fcCurrentIndex">1</span> of <span id="fcTotalCount">40</span>
-        </div>
-
-        <!-- 3D Flip Card Container -->
-        <div class="flashcard-stage" id="flashcardStage">
-          <div class="flashcard-inner" id="flashcardInner">
-            <!-- Front Face -->
-            <div class="flashcard-face flashcard-front">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="fc-topic-tag" id="fcTopicFront">TOPIC</span>
-                <span class="pillar-badge" id="fcPillarBadge">PILLAR</span>
-              </div>
-              <div class="fc-question" id="fcQuestionFront">
-                Loading flashcard question...
-              </div>
-              <div class="fc-hint">
-                <span>🔄 Click card or press [Space] to flip</span>
-              </div>
-            </div>
-
-            <!-- Back Face -->
-            <div class="flashcard-face flashcard-back">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="fc-topic-tag" style="color: var(--accent-emerald-light);">SENIOR MASTERY ANSWER</span>
-                <span class="fc-hint">Press [Space] to flip back</span>
-              </div>
-              <div class="fc-answer" id="fcAnswerBack">
-                Answer content...
-              </div>
-              <div class="section-box protips-box" style="margin-top: 1rem; padding: 0.6rem 0.8rem;">
-                <span class="section-box-title" style="font-size: 0.72rem;">💡 Senior Interview Edge</span>
-                <p id="fcTipBack" style="font-size: 0.82rem; color: #6ee7b7;"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Flashcard Controls -->
-        <div class="flashcard-controls">
-          <button class="fc-btn" id="fcPrevBtn">← Prev</button>
-          <button class="fc-btn fc-btn-review" id="fcReviewBtn">⚠️ Review Later</button>
-          <button class="fc-btn fc-btn-mastered" id="fcMasterBtn">✅ Mastered (+50 XP)</button>
-          <button class="fc-btn" id="fcNextBtn">Next →</button>
         </div>
       </div>
     </section>

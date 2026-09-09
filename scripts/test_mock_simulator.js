@@ -38,7 +38,7 @@ if (badQuestions > 0) {
   console.error(`FAIL: ${badQuestions} questions have missing fields!`);
   process.exit(1);
 } else {
-  console.log('PASS: All 53 questions have complete 5-part architecture schema!');
+  console.log(`PASS: All ${questions.length} questions have complete 5-part architecture schema!`);
 }
 
 // Test Mock Session simulation
