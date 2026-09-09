@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>.NET Senior Full-Stack Interview Mastery (3-8+ YOE)</title>
+  <meta name="description" content="Production-grade interactive learning and interview preparation platform for Mid-to-Senior Full-Stack .NET Developers covering C# Internals, ASP.NET Core, SQL Server & EF Core, React 19 & TypeScript, and Azure DevOps & Cloud CI/CD.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       SITE HEADER & CAREER HUD
+       ======================================================================== -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="#vault" class="brand-section">
+        <div class="brand-logo">⚡</div>
+        <div class="brand-title-wrap">
+          <div class="brand-title">
+            .NET Senior Mastery
+            <span class="brand-badge">3–8+ YOE</span>
+          </div>
+          <span class="brand-subtitle">Full-Stack Architect Interview Prep</span>
+        </div>
+      </a>
+
+      <!-- Gamification Career XP Bar -->
+      <div class="hud-section">
+        <div class="xp-container">
+          <span class="rank-badge" id="hudRankBadge">Junior Dev</span>
+          <div class="xp-bar-wrap">
+            <div class="xp-text">
+              <span id="hudXpTotal">0 XP</span>
+              <span id="hudXpNext">500 XP</span>
+            </div>
+            <div class="xp-progress-bg">
+              <div class="xp-progress-fill" id="hudXpFill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Mute & Utilities -->
+        <div class="header-actions">
+          <button class="icon-btn" id="soundToggleBtn" title="Toggle Sound Feedback">
+            <span id="soundIcon">🔊</span>
+          </button>
+          <button class="icon-btn" id="resetProgressBtn" title="Reset All Local Progress">
+            <span>🔄</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       TOP NAVIGATION TABS
+       ======================================================================== -->
+  <div class="tabs-nav-wrapper">
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-view="vault">
+        <span>📚</span>
+        <span>Question Vault</span>
+        <span class="tab-badge" id="badgeVaultCount">53</span>
+      </button>
+      <button class="tab-btn" data-view="mock">
+        <span>⏱️</span>
+        <span>Timed Mock Simulator</span>
+        <span class="tab-badge">Active</span>
+      </button>
+      <button class="tab-btn" data-view="lab">
+        <span>🧪</span>
+        <span>Code & Bug Lab</span>
+        <span class="tab-badge">5 Labs</span>
+      </button>
+      <button class="tab-btn" data-view="whiteboards">
+        <span>📐</span>
+        <span>System Design</span>
+        <span class="tab-badge">4 Blueprints</span>
+      </button>
+      <button class="tab-btn" data-view="flashcards">
+        <span>⚡</span>
+        <span>Rapid Flashcards</span>
+        <span class="tab-badge" id="badgeCardsCount">40</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========================================================================
+       MAIN APPLICATION VIEWS
+       ======================================================================== -->
+  <main class="main-content">
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 1: QUESTION VAULT
+         ---------------------------------------------------------------------- -->
+    <section id="view-vault" class="view-panel active">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>📚</span>
+          <span>Question Vault</span>
+        </h1>
+        <p class="view-desc">
+          50+ production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
+        </p>
+      </div>
+
+      <!-- Vault Filters & Search -->
+      <div class="vault-controls">
+        <div class="search-bar-wrap">
+          <input type="text" id="vaultSearchInput" class="search-input" placeholder="Search questions by keyword, topic, API, or algorithm (e.g. ValueTask, SARGable, Fiber, RCSI, Outbox)...">
+        </div>
+
+        <!-- Pillar Filters -->
+        <div class="filter-pills-row" id="pillarFiltersRow">
+          <button class="filter-pill active" data-pillar="all">All Pillars</button>
+          <button class="filter-pill" data-pillar="csharp">C# Internals & Concurrency</button>
+          <button class="filter-pill" data-pillar="aspnet">ASP.NET Core & Web APIs</button>
+          <button class="filter-pill" data-pillar="sql">SQL Server & EF Core</button>
+          <button class="filter-pill" data-pillar="frontend">React 19 & TypeScript</button>
+          <button class="filter-pill" data-pillar="cloud">Azure DevOps & Cloud CI/CD</button>
+        </div>
+
+        <!-- Seniority & Flags Filters -->
+        <div class="filter-pills-row">
+          <button class="filter-pill seniority-pill active" data-seniority="all">All Seniorities</button>
+          <button class="filter-pill seniority-pill" data-seniority="Senior">Senior Only</button>
+          <button class="filter-pill seniority-pill" data-seniority="Mid">Mid-Level</button>
+          <button class="filter-pill" id="filterBookmarkedBtn">⭐ Bookmarked Only</button>
+          <button class="filter-pill" id="filterCompletedBtn">✅ Completed Only</button>
+        </div>
+
+        <div class="vault-stats-bar">
+          <span id="vaultFilteredCount">Showing 53 of 53 questions</span>
+          <span id="vaultCompletionRatio">0% Studied</span>
+        </div>
+      </div>
+
+      <!-- Accordion Questions List -->
+      <div class="questions-list" id="questionsContainer">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 2: TIMED MOCK SIMULATOR
+         ---------------------------------------------------------------------- -->
+    <section id="view-mock" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>⏱️</span>
+          <span>Timed Mock Simulator</span>
+        </h1>
+        <p class="view-desc">
+          Simulate a real-world technical screen. Answer questions under strict countdown conditions, capture candidate notes, review senior model rubrics, and score yourself on a 5-star rubric to generate your readiness percentage scorecard.
+        </p>
+      </div>
+
+      <div class="mock-container">
+        <!-- Mock Setup Screen -->
+        <div class="mock-setup-card" id="mockSetupCard">
+          <h2>Select Interview Format</h2>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Test your ability to articulate technical answers crisply without hesitating.
+          </p>
+
+          <div class="mock-setup-options">
+            <div class="option-group">
+              <label class="option-label">Question Set Size</label>
+              <div class="radio-tiles-row" id="mockCountTiles">
+                <div class="radio-tile selected" data-count="5">5 Questions (Express)</div>
+                <div class="radio-tile" data-count="10">10 Questions (Standard)</div>
+                <div class="radio-tile" data-count="15">15 Questions (Full Loop)</div>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <label class="option-label">Timer Duration</label>
+              <div class="radio-tiles-row" id="mockTimerTiles">
+                <div class="radio-tile" data-time="15">15 Minutes</div>
+                <div class="radio-tile selected" data-time="30">30 Minutes</div>
+                <div class="radio-tile" data-time="45">45 Minutes</div>
+                <div class="radio-tile" data-time="0">Untimed</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="btnStartMock">🚀 Start Mock Interview</button>
+        </div>
+
+        <!-- Mock Active Exam Interface -->
+        <div class="mock-active-session" id="mockActiveSession">
+          <div class="mock-hud-bar">
+            <div class="mock-question-counter" id="mockQuestionProgress">
+              Question 1 of 5
+            </div>
+            <div class="mock-timer" id="mockTimerDisplay">
+              <span>⏳</span>
+              <span id="mockTimerText">30:00</span>
+            </div>
+            <button class="icon-btn" id="mockEndEarlyBtn" title="End Session Early">
+              <span>⏹️</span>
+            </button>
+          </div>
+
+          <div class="mock-main-card">
+            <div class="q-badges" id="mockCardBadges"></div>
+            <h2 class="q-title" id="mockCardTitle">Loading Question...</h2>
+
+            <div class="option-group">
+              <label class="option-label">Candidate Scratchpad (Notes, Architecture bullet points, or Code drafts)</label>
+              <textarea id="mockNotesInput" class="mock-scratchpad" placeholder="Draft your answer bullet points or elevator pitch here before revealing the model answer..."></textarea>
+            </div>
+
+            <!-- Reveal Answer Button -->
+            <button class="btn-primary" id="mockRevealAnswerBtn" style="align-self: flex-start; background: #334155;">
+              👁️ Reveal Senior Model Answer & Rubric
+            </button>
+
+            <!-- Revealed Answer Panel -->
+            <div id="mockModelAnswerPanel" style="display: none; flex-direction: column; gap: 1rem;">
+              <div class="section-box pitch-box">
+                <span class="section-box-title">🎯 60-Second Senior Elevator Pitch</span>
+                <p class="pitch-content" id="mockModelPitch"></p>
+              </div>
+
+              <div class="section-box deepdive-box">
+                <span class="section-box-title">🔬 Technical Deep Dive & Under the Hood</span>
+                <p class="deepdive-content" id="mockModelDeepDive"></p>
+              </div>
+
+              <div class="code-box">
+                <div class="code-header">
+                  <span>PRODUCTION REFERENCE SNIPPET</span>
+                </div>
+                <pre class="code-pre" id="mockModelCode"></pre>
+              </div>
+
+              <!-- 5-Star Rubric Evaluation -->
+              <div class="rubric-section">
+                <span class="option-label">Self-Scoring Rubric (Select your performance)</span>
+                <div class="star-rating-row" id="mockRubricStars">
+                  <button class="star-score-btn" data-rating="1" title="1 Star: Conceptually incorrect or junior gaps">1★</button>
+                  <button class="star-score-btn" data-rating="2" title="2 Stars: Surface level, missed core mechanics">2★</button>
+                  <button class="star-score-btn" data-rating="3" title="3 Stars: Solid Mid-level explanation">3★</button>
+                  <button class="star-score-btn" data-rating="4" title="4 Stars: Strong Senior answer with trade-offs">4★</button>
+                  <button class="star-score-btn" data-rating="5" title="5 Stars: Staff Architect mastery with edge cases">5★</button>
+                </div>
+                <span class="rubric-label" id="mockRubricLabel">Click a star to grade your response.</span>
+              </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+              <button class="btn-primary" id="mockPrevBtn" style="background: #1e293b;">← Previous</button>
+              <button class="btn-primary" id="mockNextBtn">Next Question →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mock Final Scorecard -->
+        <div class="mock-scorecard" id="mockScorecard">
+          <div class="scorecard-hero">
+            <div class="score-circle">
+              <span class="score-number" id="scorecardOverallPercent">85%</span>
+              <span class="score-label">Readiness</span>
+            </div>
+            <h2 id="scorecardVerdict">Senior Full-Stack Ready</h2>
+            <p style="color: var(--text-secondary); max-width: 500px;" id="scorecardSummary">
+              Outstanding technical breadth across all 5 core pillars.
+            </p>
+          </div>
+
+          <h3>Domain Performance Breakdown</h3>
+          <div class="pillar-breakdown-grid" id="scorecardPillarGrid">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <button class="btn-primary" id="btnRestartMock" style="align-self: center; margin-top: 1rem;">
+            🔄 Start New Mock Simulator
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 3: CODE & BUG LAB
+         ---------------------------------------------------------------------- -->
+    <section id="view-lab" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>🧪</span>
+          <span>Code & Bug Lab</span>
+        </h1>
+        <p class="view-desc">
+          Hands-on refactoring and debugging challenges. Fix captive dependencies, eliminate N+1 queries, resolve async deadlocks, optimize SARGable SQL, and build lock-free Channel pipelines with live regex test validation.
+        </p>
+      </div>
+
+      <div class="lab-container">
+        <!-- Challenges Sidebar -->
+        <aside class="challenges-sidebar" id="labSidebar">
+          <!-- Rendered dynamically from INTERVIEW_CHALLENGES -->
+        </aside>
+
+        <!-- Editor & Test Runner -->
+        <div class="editor-workspace">
+          <div class="editor-header-bar">
+            <div>
+              <h2 id="labTitle" style="font-size: 1.1rem;">Challenge Title</h2>
+              <span id="labPillarBadge" class="pillar-badge" style="margin-top: 0.25rem; display: inline-block;">Pillar</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="copy-code-btn" id="labHintBtn">💡 Hint</button>
+              <button class="copy-code-btn" id="labSolutionBtn">🗝️ Solution</button>
+              <button class="copy-code-btn" id="labResetBtn">🔄 Reset</button>
+            </div>
+          </div>
+
+          <!-- Scenario Statement -->
+          <div class="scenario-panel" id="labScenario">
+            Scenario text...
+          </div>
+
+          <!-- Code Editor Area -->
+          <textarea id="labCodeEditor" class="code-editor-textarea" spellcheck="false"></textarea>
+
+          <!-- Test Cases Panel -->
+          <div class="tests-panel">
+            <span class="option-label">Automated Validation Suite</span>
+            <div id="labTestsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Test rows rendered here -->
+            </div>
+          </div>
+
+          <!-- Footer Action Bar -->
+          <div class="editor-footer-bar">
+            <span id="labValidationStatus" style="font-size: 0.85rem; color: var(--text-muted);">
+              Edit the code above and click Run Tests.
+            </span>
+            <button class="btn-primary" id="labRunTestsBtn">▶️ Run Validation Tests</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 4: SYSTEM DESIGN WHITEBOARDS
+         ---------------------------------------------------------------------- -->
+    <section id="view-whiteboards" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>📐</span>
+          <span>System Design Whiteboards</span>
+        </h1>
+        <p class="view-desc">
+          Interactive architectural blueprints for senior and lead system design rounds. Inspect individual nodes to review protocol choices, latency SLIs, failure modes, and senior talking points.
+        </p>
+      </div>
+
+      <div class="whiteboards-container">
+        <!-- Blueprint Switcher Tabs -->
+        <div class="arch-selector-row" id="archSelectorRow">
+          <!-- Rendered dynamically from SYSTEM_ARCHITECTURES -->
+        </div>
+
+        <div class="arch-canvas-card">
+          <div>
+            <h2 id="archTitle" style="font-size: 1.4rem;">Architecture Title</h2>
+            <p id="archSummary" style="color: var(--text-secondary); margin-top: 0.35rem;"></p>
+          </div>
+
+          <!-- Interactive Node Cards Grid -->
+          <div class="diagram-nodes-grid" id="archNodesGrid">
+            <!-- Nodes rendered dynamically -->
+          </div>
+
+          <!-- Flow Sequence -->
+          <div class="section-box deepdive-box">
+            <span class="section-box-title">🔄 End-to-End Execution Flow</span>
+            <div id="archFlowSteps" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: #cbd5e1;"></div>
+          </div>
+
+          <!-- Selected Node Deep-Dive Inspector -->
+          <div class="node-inspector-drawer" id="nodeInspectorDrawer">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="node-category" id="inspectNodeCategory">CATEGORY</span>
+              <span class="node-metrics" id="inspectNodeLatency">Latency</span>
+            </div>
+            <h3 id="inspectNodeName" style="color: var(--text-primary); font-size: 1.25rem;">Select any node above to inspect architecture specifications</h3>
+            <p id="inspectNodeRole" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;"></p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+              <div class="section-box redflags-box">
+                <span class="section-box-title">⚠️ Failure Modes</span>
+                <p id="inspectNodeFailures" style="font-size: 0.85rem; color: #fca5a5;"></p>
+              </div>
+              <div class="section-box protips-box">
+                <span class="section-box-title">🛡️ Resiliency Mitigation</span>
+                <p id="inspectNodeMitigation" style="font-size: 0.85rem; color: #6ee7b7;"></p>
+              </div>
+            </div>
+
+            <div class="section-box pitch-box" style="margin-top: 0.5rem;">
+              <span class="section-box-title">🎙️ Senior Interview Talking Points & Trade-Offs</span>
+              <ul id="inspectNodeTalkingPoints" class="protips-list" style="margin-top: 0.4rem;"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------------------
+         VIEW 5: RAPID FLASHCARDS
+         ---------------------------------------------------------------------- -->
+    <section id="view-flashcards" class="view-panel">
+      <div class="view-header">
+        <h1 class="view-title">
+          <span>⚡</span>
+          <span>Rapid Flashcards</span>
+        </h1>
+        <p class="view-desc">
+          Spaced-repetition drills for rapid recall. Press <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">Space</kbd> to flip the card, and <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">←</kbd> / <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px;">→</kbd> arrow keys to navigate.
+        </p>
+      </div>
+
+      <div class="flashcards-wrapper">
+        <!-- Pillar Filter for Flashcards -->
+        <div class="filter-pills-row" id="fcPillarFiltersRow">
+          <button class="filter-pill active" data-fcpillar="all">All Pillars</button>
+          <button class="filter-pill" data-fcpillar="csharp">C# Internals</button>
+          <button class="filter-pill" data-fcpillar="aspnet">ASP.NET Core</button>
+          <button class="filter-pill" data-fcpillar="sql">SQL Server & EF</button>
+          <button class="filter-pill" data-fcpillar="frontend">React 19 & TS</button>
+          <button class="filter-pill" data-fcpillar="cloud">Azure & DevOps</button>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          Card <span id="fcCurrentIndex">1</span> of <span id="fcTotalCount">40</span>
+        </div>
+
+        <!-- 3D Flip Card Container -->
+        <div class="flashcard-stage" id="flashcardStage">
+          <div class="flashcard-inner" id="flashcardInner">
+            <!-- Front Face -->
+            <div class="flashcard-face flashcard-front">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="fc-topic-tag" id="fcTopicFront">TOPIC</span>
+                <span class="pillar-badge" id="fcPillarBadge">PILLAR</span>
+              </div>
+              <div class="fc-question" id="fcQuestionFront">
+                Loading flashcard question...
+              </div>
+              <div class="fc-hint">
+                <span>🔄 Click card or press [Space] to flip</span>
+              </div>
+            </div>
+
+            <!-- Back Face -->
+            <div class="flashcard-face flashcard-back">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="fc-topic-tag" style="color: var(--accent-emerald-light);">SENIOR MASTERY ANSWER</span>
+                <span class="fc-hint">Press [Space] to flip back</span>
+              </div>
+              <div class="fc-answer" id="fcAnswerBack">
+                Answer content...
+              </div>
+              <div class="section-box protips-box" style="margin-top: 1rem; padding: 0.6rem 0.8rem;">
+                <span class="section-box-title" style="font-size: 0.72rem;">💡 Senior Interview Edge</span>
+                <p id="fcTipBack" style="font-size: 0.82rem; color: #6ee7b7;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcard Controls -->
+        <div class="flashcard-controls">
+          <button class="fc-btn" id="fcPrevBtn">← Prev</button>
+          <button class="fc-btn fc-btn-review" id="fcReviewBtn">⚠️ Review Later</button>
+          <button class="fc-btn fc-btn-mastered" id="fcMasterBtn">✅ Mastered (+50 XP)</button>
+          <button class="fc-btn" id="fcNextBtn">Next →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       APPLICATION SCRIPTS
+       ======================================================================== -->
+  <script src="js/data/questions.js"></script>
+  <script src="js/data/challenges.js"></script>
+  <script src="js/data/architectures.js"></script>
+  <script src="js/data/flashcards.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
