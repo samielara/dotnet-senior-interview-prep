@@ -1,0 +1,9 @@
+{
+  "name": "dotnet-senior-interview-prep",
+  "version": "1.0.0",
+  "private": true,
+  "description": ".NET Senior Full-Stack (3-8+ YOE) Technical & Coding Interview Preparation Platform",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
