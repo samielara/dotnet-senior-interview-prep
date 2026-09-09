@@ -4,6 +4,7 @@
   "private": true,
   "description": ".NET Senior Full-Stack (3-8+ YOE) Technical & Coding Interview Preparation Platform",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node scripts/test_all_modules.js && node scripts/test_mock_simulator.js && node scripts/test_challenges.js && node scripts/verify_dom.js"
   }
 }

@@ -169,6 +169,18 @@
 
           <div class="mock-setup-options">
             <div class="option-group">
+              <label class="option-label">Pillar Domain Focus</label>
+              <div class="radio-tiles-row" id="mockPillarTiles" style="flex-wrap: wrap;">
+                <div class="radio-tile selected" data-pillar="all">All Pillars (Full-Stack Loop)</div>
+                <div class="radio-tile" data-pillar="csharp">C# Internals</div>
+                <div class="radio-tile" data-pillar="aspnet">ASP.NET Core</div>
+                <div class="radio-tile" data-pillar="sql">SQL &amp; EF Core</div>
+                <div class="radio-tile" data-pillar="frontend">React 19 &amp; TS</div>
+                <div class="radio-tile" data-pillar="cloud">Azure Cloud &amp; CI/CD</div>
+              </div>
+            </div>
+
+            <div class="option-group">
               <label class="option-label">Question Set Size</label>
               <div class="radio-tiles-row" id="mockCountTiles">
                 <div class="radio-tile selected" data-count="5">5 Questions (Express)</div>
@@ -194,15 +206,20 @@
         <!-- Mock Active Exam Interface -->
         <div class="mock-active-session" id="mockActiveSession">
           <div class="mock-hud-bar">
-            <div class="mock-question-counter" id="mockQuestionProgress">
-              Question 1 of 5
+            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+              <div class="mock-question-counter" id="mockQuestionProgress">
+                Question 1 of 5
+              </div>
+              <div class="xp-progress-bg" style="width: 140px; height: 5px;">
+                <div class="xp-progress-fill" id="mockProgressBarFill" style="width: 20%;"></div>
+              </div>
             </div>
             <div class="mock-timer" id="mockTimerDisplay">
               <span>⏳</span>
               <span id="mockTimerText">30:00</span>
             </div>
             <button class="icon-btn" id="mockEndEarlyBtn" title="End Session Early">
-              <span>⏹️</span>
+              <span>⏹️ End Early</span>
             </button>
           </div>
 
@@ -210,15 +227,29 @@
             <div class="q-badges" id="mockCardBadges"></div>
             <h2 class="q-title" id="mockCardTitle">Loading Question...</h2>
 
+            <!-- Interviewer Prompt -->
+            <div class="section-box pitch-box" style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid var(--accent-indigo);">
+              <span class="section-box-title" style="color: #a5b4fc;">🎙️ Senior Interviewer Prompt</span>
+              <p id="mockInterviewerPrompt" style="font-size: 1rem; color: #f1f5f9; line-height: 1.5; font-weight: 500;"></p>
+            </div>
+
             <div class="option-group">
-              <label class="option-label">Candidate Scratchpad (Notes, Architecture bullet points, or Code drafts)</label>
-              <textarea id="mockNotesInput" class="mock-scratchpad" placeholder="Draft your answer bullet points or elevator pitch here before revealing the model answer..."></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="option-label">Candidate Notes &amp; Answer Scratchpad</label>
+                <span id="mockSaveIndicator" style="font-size: 0.75rem; color: var(--accent-emerald);">Auto-saved</span>
+              </div>
+              <textarea id="mockNotesInput" class="mock-scratchpad" placeholder="Draft your answer bullet points, elevator pitch, or architecture thoughts here before revealing the model answer..."></textarea>
             </div>
 
             <!-- Reveal Answer Button -->
-            <button class="btn-primary" id="mockRevealAnswerBtn" style="align-self: flex-start; background: #334155;">
-              👁️ Reveal Senior Model Answer & Rubric
-            </button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <button class="btn-primary" id="mockRevealAnswerBtn" style="background: #334155;">
+                👁️ Reveal Senior Model Answer &amp; Rubric
+              </button>
+              <span id="mockRatingPromptNote" style="font-size: 0.85rem; color: var(--accent-amber); display: none;">
+                ⚠️ Please select a 1–5★ rating below
+              </span>
+            </div>
 
             <!-- Revealed Answer Panel -->
             <div id="mockModelAnswerPanel" style="display: none; flex-direction: column; gap: 1rem;">
@@ -228,7 +259,7 @@
               </div>
 
               <div class="section-box deepdive-box">
-                <span class="section-box-title">🔬 Technical Deep Dive & Under the Hood</span>
+                <span class="section-box-title">🔬 Technical Deep Dive &amp; Under the Hood</span>
                 <p class="deepdive-content" id="mockModelDeepDive"></p>
               </div>
 
@@ -239,9 +270,19 @@
                 <pre class="code-pre" id="mockModelCode"></pre>
               </div>
 
+              <div class="section-box redflags-box">
+                <span class="section-box-title">⚠️ Junior Red Flags</span>
+                <ul class="bullet-list" id="mockModelRedFlags"></ul>
+              </div>
+
+              <div class="section-box protips-box">
+                <span class="section-box-title">💡 Senior Pro-Tips &amp; Architectural Nuances</span>
+                <ul class="protips-list" id="mockModelProTips"></ul>
+              </div>
+
               <!-- 5-Star Rubric Evaluation -->
-              <div class="rubric-section">
-                <span class="option-label">Self-Scoring Rubric (Select your performance)</span>
+              <div class="rubric-section" id="mockRubricContainer">
+                <span class="option-label">Self-Scoring Rubric (How well did your answer align?)</span>
                 <div class="star-rating-row" id="mockRubricStars">
                   <button class="star-score-btn" data-rating="1" title="1 Star: Conceptually incorrect or junior gaps">1★</button>
                   <button class="star-score-btn" data-rating="2" title="2 Stars: Surface level, missed core mechanics">2★</button>
@@ -270,7 +311,7 @@
             </div>
             <h2 id="scorecardVerdict">Senior Full-Stack Ready</h2>
             <p style="color: var(--text-secondary); max-width: 500px;" id="scorecardSummary">
-              Outstanding technical breadth across all 5 core pillars.
+              Outstanding technical breadth across all core pillars.
             </p>
           </div>
 
@@ -279,7 +320,12 @@
             <!-- Rendered dynamically -->
           </div>
 
-          <button class="btn-primary" id="btnRestartMock" style="align-self: center; margin-top: 1rem;">
+          <h3 style="margin-top: 1.5rem; text-align: left;">Session Questions Review</h3>
+          <div class="mock-questions-review-list" id="scorecardQuestionsReview" style="display: flex; flex-direction: column; gap: 0.75rem; text-align: left;">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <button class="btn-primary" id="btnRestartMock" style="align-self: center; margin-top: 1.5rem;">
             🔄 Start New Mock Simulator
           </button>
         </div>

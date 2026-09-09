@@ -1624,7 +1624,7 @@ export const useCartStore = create<CartState>()(
 // Component only re-renders when 'total' changes; ignores 'items' changes!
 export function CartSummary() {
   const total = useCartStore((s) => s.total);
-  return <div className="cart-total">Total: ${total.toFixed(2)}</div>;
+  return <div className="cart-total">Total: \${total.toFixed(2)}</div>;
 }`,
     redFlags: [
       "Using React Context for global real-time WebSocket or stock ticker state updates (causes massive UI lag).",

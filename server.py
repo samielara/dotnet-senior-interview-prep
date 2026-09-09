@@ -23,8 +23,16 @@ if sys.platform == 'win32':
 PORT = 5050
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-class DualStackServer(socketserver.TCPServer):
+class DualStackServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        # Gracefully handle Windows client disconnects (ConnectionResetError WinError 10054)
+        exc_type, exc_val, _ = sys.exc_info()
+        if exc_type is ConnectionResetError or (isinstance(exc_val, OSError) and getattr(exc_val, 'winerror', None) == 10054):
+            return
+        super().handle_error(request, client_address)
 
 class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

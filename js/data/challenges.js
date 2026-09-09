@@ -285,21 +285,21 @@ Refactor the code into pure non-blocking \`async/await\`, replace \`lock\` with 
         name: "Uses await semaphore.WaitAsync(ct) in try/finally",
         validate: (code) => {
           return /await\s+[\w_]+\.WaitAsync\s*\([^\)]*\)/.test(code) &&
-                 /finally\s*\{\s*[\w_]+\.Release\(\);\s*\}/.test(code);
+                 /finally\s*\{[\s\S]*?[\w_]+\.Release\(\);[\s\S]*?\}/.test(code);
         },
         failureMessage: "Must acquire semaphore with 'await _semaphore.WaitAsync(ct);' and release in a 'finally' block."
       },
       {
         name: "Eliminates all .Result and .GetResult() calls",
         validate: (code) => {
-          return !/\.Result/.test(code) && !/\.GetResult\(\)/.test(code);
+          return !/\.Result\b/.test(code) && !/\.GetResult\(\)/.test(code);
         },
         failureMessage: "Eliminate all '.Result' and '.GetResult()' sync-over-async blockers."
       },
       {
         name: "Awaits HTTP calls asynchronously with CancellationToken",
         validate: (code) => {
-          return /await\s+[\w_]+\.PostAsJsonAsync\s*\(/.test(code);
+          return /await\s+[\w_]+(?:\s*\.\s*|\.)PostAsJsonAsync\s*\(/.test(code);
         },
         failureMessage: "Use 'await _httpClient.PostAsJsonAsync(..., ct);' for asynchronous I/O."
       }

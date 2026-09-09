@@ -5,7 +5,12 @@
 
 (function () {
   let audioCtx = null;
-  let isMuted = localStorage.getItem('dotnet_prep_muted') === 'true';
+  let isMuted = false;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      isMuted = localStorage.getItem('dotnet_prep_muted') === 'true';
+    }
+  } catch (e) {}
 
   function getAudioContext() {
     if (!audioCtx) {

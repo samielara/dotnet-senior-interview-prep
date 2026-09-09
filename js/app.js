@@ -156,6 +156,7 @@
     window.SoundEngine.playFlip();
 
     if (viewName === 'vault') renderQuestionVault();
+    if (viewName === 'mock') renderMockView();
     if (viewName === 'lab') renderCodeLab();
     if (viewName === 'whiteboards') renderWhiteboards();
     if (viewName === 'flashcards') renderFlashcards();
@@ -296,25 +297,53 @@
   // --- VIEW 2: TIMED MOCK SIMULATOR ---
   let mockTimerInterval = null;
 
+  function renderMockView() {
+    const setupCard = document.getElementById('mockSetupCard');
+    const activeSession = document.getElementById('mockActiveSession');
+    const scorecard = document.getElementById('mockScorecard');
+
+    if (!setupCard || !activeSession || !scorecard) return;
+
+    if (state.mockSession && state.mockSession.questions && state.mockSession.questions.length > 0) {
+      setupCard.style.display = 'none';
+      scorecard.style.display = 'none';
+      activeSession.style.display = 'flex';
+      renderMockCurrentQuestion();
+    } else {
+      setupCard.style.display = 'flex';
+      activeSession.style.display = 'none';
+      scorecard.style.display = 'none';
+    }
+  }
+
   function startMockSimulator() {
     const questions = window.INTERVIEW_QUESTIONS || [];
     if (!questions.length) return;
 
-    // Read selected count & timer
+    // Read selected pillar, count & timer
     const countTile = document.querySelector('#mockCountTiles .radio-tile.selected');
     const timerTile = document.querySelector('#mockTimerTiles .radio-tile.selected');
+    const pillarTile = document.querySelector('#mockPillarTiles .radio-tile.selected');
 
     const count = countTile ? parseInt(countTile.dataset.count, 10) : 5;
     const minutes = timerTile ? parseInt(timerTile.dataset.time, 10) : 30;
+    const pillar = pillarTile ? pillarTile.dataset.pillar : 'all';
 
-    // Shuffle and pick questions across pillars
-    const shuffled = [...questions].sort(() => 0.5 - Math.random());
-    const selectedQuestions = shuffled.slice(0, count);
+    let pool = questions;
+    if (pillar && pillar !== 'all') {
+      pool = questions.filter(q => q.pillar === pillar);
+      if (pool.length === 0) pool = questions;
+    }
+
+    // Shuffle and pick questions
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const selectedQuestions = shuffled.slice(0, Math.min(count, shuffled.length));
 
     state.mockSession = {
       questions: selectedQuestions,
       currentIndex: 0,
       scores: {},
+      notes: {},
       durationMinutes: minutes,
       secondsRemaining: minutes * 60,
       isModelRevealed: false
@@ -362,7 +391,7 @@
     const textEl = document.getElementById('mockTimerText');
     if (!textEl || !timerEl || !state.mockSession) return;
 
-    const totalSecs = state.mockSession.secondsRemaining;
+    const totalSecs = Math.max(0, state.mockSession.secondsRemaining);
     const m = Math.floor(totalSecs / 60);
     const s = totalSecs % 60;
     textEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -373,14 +402,17 @@
 
   function renderMockCurrentQuestion() {
     const session = state.mockSession;
-    if (!session) return;
+    if (!session || !session.questions || !session.questions[session.currentIndex]) return;
 
     const q = session.questions[session.currentIndex];
     session.isModelRevealed = false;
 
-    // Update counter
+    // Progress counter & progress bar
     document.getElementById('mockQuestionProgress').textContent = 
       `Question ${session.currentIndex + 1} of ${session.questions.length}`;
+    const pct = Math.round(((session.currentIndex + 1) / session.questions.length) * 100);
+    const barEl = document.getElementById('mockProgressBarFill');
+    if (barEl) barEl.style.width = `${pct}%`;
 
     // Badges & Title
     const badgesEl = document.getElementById('mockCardBadges');
@@ -391,23 +423,51 @@
     `;
     document.getElementById('mockCardTitle').textContent = q.title;
 
+    // Interviewer Prompt
+    const promptEl = document.getElementById('mockInterviewerPrompt');
+    if (promptEl) {
+      promptEl.textContent = `Scenario / Interviewer Prompt: "Can you explain how ${q.title} works in production? What are the key internal mechanics, memory/performance trade-offs, and failure scenarios you consider when designing senior-level architectures?"`;
+    }
+
     // Restore candidate notes
     const notesInput = document.getElementById('mockNotesInput');
-    notesInput.value = state.mockNotes[q.id] || '';
+    notesInput.value = (session.notes && session.notes[q.id]) || state.mockNotes[q.id] || '';
 
-    // Hide revealed model answer
+    // Hide revealed model answer panel initially for each question
     const modelPanel = document.getElementById('mockModelAnswerPanel');
     modelPanel.style.display = 'none';
-    document.getElementById('mockRevealAnswerBtn').textContent = '👁️ Reveal Senior Model Answer & Rubric';
+    const revealBtn = document.getElementById('mockRevealAnswerBtn');
+    if (revealBtn) {
+      revealBtn.textContent = '👁️ Reveal Senior Model Answer & Rubric';
+      revealBtn.style.background = '#334155';
+    }
+
+    // Populate model answer sections
+    document.getElementById('mockModelPitch').textContent = q.pitch;
+    document.getElementById('mockModelDeepDive').textContent = q.deepDive;
+    document.getElementById('mockModelCode').textContent = q.codeSnippet;
+
+    const redFlagsEl = document.getElementById('mockModelRedFlags');
+    if (redFlagsEl) {
+      redFlagsEl.innerHTML = q.redFlags.map(rf => `<li>${escapeHtml(rf)}</li>`).join('');
+    }
+
+    const proTipsEl = document.getElementById('mockModelProTips');
+    if (proTipsEl) {
+      proTipsEl.innerHTML = q.proTips.map(pt => `<li>${escapeHtml(pt)}</li>`).join('');
+    }
 
     // Reset rubric stars
     renderMockRubricStars(session.scores[q.id] || 0);
+
+    const promptNote = document.getElementById('mockRatingPromptNote');
+    if (promptNote) promptNote.style.display = 'none';
 
     // Update Nav buttons
     const prevBtn = document.getElementById('mockPrevBtn');
     const nextBtn = document.getElementById('mockNextBtn');
     prevBtn.style.visibility = session.currentIndex > 0 ? 'visible' : 'hidden';
-    nextBtn.textContent = session.currentIndex === session.questions.length - 1 ? '🏁 Finish Mock' : 'Next Question →';
+    nextBtn.textContent = session.currentIndex === session.questions.length - 1 ? '🏁 Finish & View Scorecard' : 'Next Question →';
   }
 
   function renderMockRubricStars(score) {
@@ -433,7 +493,6 @@
     const session = state.mockSession;
     if (!session) return;
 
-    // Calculate score
     let totalScore = 0;
     const maxScore = session.questions.length * 5;
     const pillarScores = {};
@@ -451,22 +510,20 @@
 
     const readinessPct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
-    // Award XP
     addXp(150, 'Completed Mock Interview');
     window.SoundEngine.playSuccess();
 
-    // Display Scorecard
     document.getElementById('mockActiveSession').style.display = 'none';
     const scorecard = document.getElementById('mockScorecard');
     scorecard.style.display = 'flex';
 
     document.getElementById('scorecardOverallPercent').textContent = `${readinessPct}%`;
 
-    let verdict = 'Needs Foundation Review';
+    let verdict = 'Needs Foundation Review ⚠️';
     let summary = 'Review core C# internals, memory management, and SQL indexing before senior interview loops.';
 
     if (readinessPct >= 85) {
-      verdict = 'Staff / Principal Ready 🚀';
+      verdict = 'Staff / Principal Architect Ready 🚀';
       summary = 'Elite mastery across low-level CLR concurrency, clean architecture, and cloud resiliency.';
     } else if (readinessPct >= 70) {
       verdict = 'Senior Full-Stack Ready 💼';
@@ -497,6 +554,40 @@
         </div>
       `;
     }).join('');
+
+    // Question-by-Question Review List
+    const reviewList = document.getElementById('scorecardQuestionsReview');
+    if (reviewList) {
+      reviewList.innerHTML = session.questions.map((q, idx) => {
+        const score = session.scores[q.id] || 0;
+        const notes = (session.notes && session.notes[q.id]) || state.mockNotes[q.id] || 'No notes taken during question.';
+        const starsText = '★'.repeat(score) + '☆'.repeat(5 - score);
+
+        return `
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <span class="pillar-badge pillar-${q.pillar}">${q.pillar}</span>
+                <span class="seniority-badge ${q.seniority}">${q.seniority}</span>
+                <strong style="margin-left: 0.5rem; color: var(--text-primary); font-size: 1rem;">Q${idx + 1}: ${q.title}</strong>
+              </div>
+              <span style="color: #fbbf24; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; white-space: nowrap;">${starsText} (${score}/5★)</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); background: #090d16; padding: 0.6rem 0.85rem; border-radius: 6px; font-family: var(--font-mono); line-height: 1.5;">
+              <strong style="color: #94a3b8;">Your Scratchpad Notes:</strong>
+              <div style="margin-top: 0.25rem; color: #e2e8f0; white-space: pre-line;">${escapeHtml(notes)}</div>
+            </div>
+            <details style="margin-top: 0.25rem; cursor: pointer;">
+              <summary style="font-size: 0.85rem; color: var(--accent-indigo-light); font-weight: 600;">🔍 View 60s Senior Pitch &amp; Production Solution</summary>
+              <div style="margin-top: 0.75rem; font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; border-left: 3px solid var(--accent-indigo); padding-left: 1rem;">
+                <p><strong>Senior Elevator Pitch:</strong> ${escapeHtml(q.pitch)}</p>
+                <p style="margin-top: 0.5rem;"><strong>Senior Pro-Tip:</strong> ${escapeHtml(q.proTips[0] || '')}</p>
+              </div>
+            </details>
+          </div>
+        `;
+      }).join('');
+    }
   }
 
   // --- VIEW 3: CODE & BUG LAB ---
@@ -878,6 +969,14 @@
     }
 
     // Mock Setup Options (Tiles)
+    document.querySelectorAll('#mockPillarTiles .radio-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        document.querySelectorAll('#mockPillarTiles .radio-tile').forEach(t => t.classList.remove('selected'));
+        tile.classList.add('selected');
+        window.SoundEngine.playFlip();
+      });
+    });
+
     document.querySelectorAll('#mockCountTiles .radio-tile').forEach(tile => {
       tile.addEventListener('click', () => {
         document.querySelectorAll('#mockCountTiles .radio-tile').forEach(t => t.classList.remove('selected'));
@@ -899,38 +998,77 @@
     // Mock Exam Navigation
     document.getElementById('mockRevealAnswerBtn').addEventListener('click', () => {
       const panel = document.getElementById('mockModelAnswerPanel');
-      const q = state.mockSession.questions[state.mockSession.currentIndex];
+      const btn = document.getElementById('mockRevealAnswerBtn');
+      const isCurrentlyHidden = panel.style.display === 'none' || !panel.style.display;
 
-      document.getElementById('mockModelPitch').textContent = q.pitch;
-      document.getElementById('mockModelDeepDive').textContent = q.deepDive;
-      document.getElementById('mockModelCode').textContent = q.codeSnippet;
-
-      panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+      if (isCurrentlyHidden) {
+        panel.style.display = 'flex';
+        btn.textContent = '👁️ Hide Model Answer';
+        btn.style.background = '#475569';
+      } else {
+        panel.style.display = 'none';
+        btn.textContent = '👁️ Reveal Senior Model Answer & Rubric';
+        btn.style.background = '#334155';
+      }
       window.SoundEngine.playFlip();
     });
 
     // Mock Scratchpad auto-save
+    let saveTimeout = null;
     document.getElementById('mockNotesInput').addEventListener('input', (e) => {
-      if (state.mockSession) {
+      if (state.mockSession && state.mockSession.questions) {
         const q = state.mockSession.questions[state.mockSession.currentIndex];
         state.mockNotes[q.id] = e.target.value;
+        if (!state.mockSession.notes) state.mockSession.notes = {};
+        state.mockSession.notes[q.id] = e.target.value;
         saveState();
+
+        const indicator = document.getElementById('mockSaveIndicator');
+        if (indicator) {
+          indicator.textContent = 'Saving...';
+          indicator.style.color = 'var(--accent-amber)';
+          clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(() => {
+            indicator.textContent = 'Saved ✓';
+            indicator.style.color = 'var(--accent-emerald)';
+          }, 350);
+        }
       }
     });
 
     // Mock Rubric Stars
     document.querySelectorAll('#mockRubricStars .star-score-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (!state.mockSession) return;
         const rating = parseInt(btn.dataset.rating, 10);
         const q = state.mockSession.questions[state.mockSession.currentIndex];
         state.mockSession.scores[q.id] = rating;
         renderMockRubricStars(rating);
+
+        const promptNote = document.getElementById('mockRatingPromptNote');
+        if (promptNote) promptNote.style.display = 'none';
+
         window.SoundEngine.playChime();
       });
     });
 
     document.getElementById('mockNextBtn').addEventListener('click', () => {
       const session = state.mockSession;
+      if (!session || !session.questions) return;
+
+      const currentQ = session.questions[session.currentIndex];
+      const hasRating = session.scores[currentQ.id] !== undefined && session.scores[currentQ.id] > 0;
+      const promptNote = document.getElementById('mockRatingPromptNote');
+
+      // If user hasn't scored themselves yet, prompt once softly
+      if (!hasRating && promptNote && promptNote.style.display === 'none') {
+        promptNote.style.display = 'inline-block';
+        promptNote.textContent = '⚠️ Self-score 1–5★ before proceeding (or click Next again to skip).';
+        window.SoundEngine.playWarning();
+        return;
+      }
+      if (promptNote) promptNote.style.display = 'none';
+
       if (session.currentIndex === session.questions.length - 1) {
         finishMockExam();
       } else {
@@ -942,6 +1080,7 @@
 
     document.getElementById('mockPrevBtn').addEventListener('click', () => {
       const session = state.mockSession;
+      if (!session) return;
       if (session.currentIndex > 0) {
         session.currentIndex--;
         renderMockCurrentQuestion();
@@ -950,13 +1089,15 @@
     });
 
     document.getElementById('mockEndEarlyBtn').addEventListener('click', () => {
-      if (confirm('Are you sure you want to finish the mock interview now?')) {
+      if (confirm('Are you sure you want to finish the mock interview now and view your scorecard?')) {
         finishMockExam();
       }
     });
 
     document.getElementById('btnRestartMock').addEventListener('click', () => {
+      state.mockSession = null;
       document.getElementById('mockScorecard').style.display = 'none';
+      document.getElementById('mockActiveSession').style.display = 'none';
       document.getElementById('mockSetupCard').style.display = 'flex';
       window.SoundEngine.playFlip();
     });
