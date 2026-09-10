@@ -232,13 +232,13 @@
 
       const pillarClass = `pillar-${q.pillar}`;
       const pillarLabel = {
-        csharp: 'C# Internals',
+        csharp: 'C# & OOP',
         aspnet: 'ASP.NET Core',
-        sql: 'SQL Server',
-        efcore: 'EF Core',
-        linq: 'LINQ',
-        ui: 'React 19 & TS',
-        frontend: 'React 19 & TS',
+        sql: 'SQL Server & DB',
+        efcore: 'EF Core & LINQ',
+        linq: 'EF Core & LINQ',
+        ui: 'React & TS',
+        frontend: 'React & TS',
         cloud: 'Azure & DevOps'
       }[q.pillar] || q.pillar;
 
@@ -269,11 +269,19 @@
           </div>
 
           <div class="q-card-body">
-            <!-- 60-Second Senior Elevator Pitch -->
+            <!-- 20-Second Direct Answer ("Say It") -->
             <div class="section-box pitch-box">
-              <span class="section-box-title">🎯 60-Second Senior Elevator Pitch</span>
+              <span class="section-box-title">🎯 20-Second Direct Answer ("Say It")</span>
               <p class="pitch-content">${escapeHtml(q.pitch)}</p>
             </div>
+
+            ${q.analogy ? `
+            <!-- The Teenager Analogy -->
+            <div class="section-box analogy-box">
+              <span class="section-box-title">💡 The Teenager Analogy (Mental Model)</span>
+              <p class="analogy-content">${escapeHtml(q.analogy)}</p>
+            </div>
+            ` : ''}
 
             <!-- Technical Deep Dive -->
             <div class="section-box deepdive-box">
@@ -463,6 +471,18 @@
 
     // Populate model answer sections
     document.getElementById('mockModelPitch').textContent = q.pitch;
+
+    const analogyEl = document.getElementById('mockModelAnalogy');
+    const analogyBox = document.getElementById('mockModelAnalogyBox');
+    if (analogyEl && analogyBox) {
+      if (q.analogy) {
+        analogyEl.textContent = q.analogy;
+        analogyBox.style.display = 'flex';
+      } else {
+        analogyBox.style.display = 'none';
+      }
+    }
+
     document.getElementById('mockModelDeepDive').textContent = q.deepDive;
     document.getElementById('mockModelCode').innerHTML = highlightSyntax(q.codeSnippet);
 

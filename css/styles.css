@@ -612,6 +612,24 @@ body {
   line-height: 1.6;
 }
 
+/* Teenager Analogy Box */
+.analogy-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-left: 4px solid #f59e0b;
+}
+
+.analogy-box .section-box-title {
+  color: #fbbf24;
+}
+
+.analogy-content {
+  font-size: 0.92rem;
+  color: #fef3c7;
+  line-height: 1.6;
+  font-style: italic;
+}
+
 /* Technical Deep Dive */
 .deepdive-box {
   background: rgba(15, 23, 42, 0.6);

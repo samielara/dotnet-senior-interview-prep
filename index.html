@@ -45,12 +45,12 @@
 
         <div class="hud-stat-item">
           <span class="stat-icon">📚</span>
-          <span class="stat-text"><strong id="hudCompletedCount">0</strong> / <span id="hudTotalQuestionsCount">85</span></span>
+          <span class="stat-text"><strong id="hudCompletedCount">0</strong> / <span id="hudTotalQuestionsCount">96</span></span>
         </div>
 
         <div class="hud-stat-item">
           <span class="stat-icon">⚡</span>
-          <span class="stat-text"><strong id="hudMasteredCount">0</strong> / <span id="hudTotalFlashcardsCount">56</span></span>
+          <span class="stat-text"><strong id="hudMasteredCount">0</strong> / <span id="hudTotalFlashcardsCount">96</span></span>
         </div>
 
         <div class="hud-stat-item">
@@ -83,7 +83,7 @@
       <button class="tab-btn" data-view="vault">
         <span>📚</span>
         <span>Question Vault</span>
-        <span class="tab-badge" id="badgeVaultCount">85</span>
+        <span class="tab-badge" id="badgeVaultCount">96</span>
       </button>
       <button class="tab-btn" data-view="lab">
         <span>💻</span>
@@ -102,7 +102,7 @@
       <button class="tab-btn" data-view="flashcards">
         <span>⚡</span>
         <span>Rapid Flashcards</span>
-        <span class="tab-badge" id="badgeCardsCount">56</span>
+        <span class="tab-badge" id="badgeCardsCount">96</span>
       </button>
       <button class="tab-btn" data-view="mock">
         <span>⏱️</span>
@@ -123,141 +123,60 @@
       <div class="curriculum-hero">
         <h1>Full-Stack .NET Senior Interview Mastery</h1>
         <p>
-          The definitive study guide engineered for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE). Real-world technical screens sourced from top GitHub .NET repositories and Reddit interview loops.
+          The definitive study guide engineered for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE). Real-world technical screens sourced directly from top GitHub .NET interview repositories, Reddit interview loops, and core OOP fundamentals.
         </p>
         <div class="curriculum-stats-strip">
-          <div class="curriculum-stat-item"><span>🎓</span> <strong>85</strong> Senior Architecture Questions</div>
+          <div class="curriculum-stat-item"><span>🎓</span> <strong>96</strong> High-Frequency Questions</div>
+          <div class="curriculum-stat-item"><span>💡</span> <strong>Teenager Analogies</strong> in Every Card</div>
           <div class="curriculum-stat-item"><span>💻</span> <strong>Top 10</strong> Live Coding Challenges</div>
-          <div class="curriculum-stat-item"><span>📊</span> <strong>4</strong> Visual Memory Diagrams</div>
-          <div class="curriculum-stat-item"><span>📐</span> <strong>4</strong> System Design Whiteboards</div>
-          <div class="curriculum-stat-item"><span>⚡</span> <strong>56</strong> Spaced Repetition Cards</div>
+          <div class="curriculum-stat-item"><span>⚡</span> <strong>96</strong> Spaced Flashcards</div>
           <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Interview Simulator</div>
+        </div>
+
+        <!-- Fast Action CTA Strip -->
+        <div style="display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem;">
+          <button class="btn-primary" onclick="window.AppController.switchView('vault')" style="background: linear-gradient(135deg, #6366f1, #4f46e5); font-weight: 700;">
+            📚 Browse All 96 Questions
+          </button>
+          <button class="btn-primary" onclick="window.AppController.switchView('lab')" style="background: linear-gradient(135deg, #ea580c, #c2410c); font-weight: 700;">
+            💻 Top 10 Coding Arena
+          </button>
+          <button class="btn-primary" onclick="window.AppController.switchView('mock')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
+            ⏱️ Timed Mock Simulator
+          </button>
+          <button class="btn-primary" onclick="window.AppController.switchView('flashcards')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
+            ⚡ Rapid Flashcards
+          </button>
         </div>
       </div>
 
-      <!-- 8 Core Module Cards Grid -->
+      <!-- 6 Core Modular Curriculum Cards + Featured Coding Arena -->
       <div class="module-grid">
-        <!-- Module 1: UI & Frontend -->
-        <div class="module-card" onclick="window.AppController.openModuleVault('ui')">
-          <div class="module-card-top">
-            <div class="module-icon-wrap" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.3);">
-              <span>⚛️</span>
-            </div>
-            <span class="pillar-badge pillar-ui">UI &amp; Frontend</span>
-          </div>
-          <h2 class="module-card-title">React 19 &amp; TypeScript</h2>
-          <p class="module-card-desc">
-            Master Fiber architecture, Lane scheduling, non-blocking concurrent transitions (useTransition), stale closure traps, list virtualization (100k rows), discriminated unions, and Server Actions.
-          </p>
-          <div class="module-topics-list">
-            <span class="module-topic-tag">Fiber Reconciler</span>
-            <span class="module-topic-tag">Concurrent Mode</span>
-            <span class="module-topic-tag">Zustand vs Redux</span>
-            <span class="module-topic-tag">Discriminated Unions</span>
-          </div>
-          <div class="module-card-footer">
-            <span>13 High-Yield Questions</span>
-            <span>Study Module →</span>
-          </div>
-        </div>
-
-        <!-- Module 2: C# Language & CLR -->
+        <!-- Module 1: C# & OOP Fundamentals -->
         <div class="module-card" onclick="window.AppController.openModuleVault('csharp')">
           <div class="module-card-top">
             <div class="module-icon-wrap" style="background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.3);">
               <span>⚡</span>
             </div>
-            <span class="pillar-badge pillar-csharp">C# Internals</span>
+            <span class="pillar-badge pillar-csharp">C# &amp; OOP</span>
           </div>
-          <h2 class="module-card-title">C# Language &amp; CLR Mechanics</h2>
+          <h2 class="module-card-title">C# &amp; OOP Fundamentals</h2>
           <p class="module-card-desc">
-            Deep dive into Task vs ValueTask state machines, Roslyn lowering, GC Generations (Gen 0/1/2, LOH 85KB threshold, POH), Span&lt;T&gt; stack-only ref structs, records, and SemaphoreSlim synchronization.
+            The 4 OOP Pillars, Overloading vs Overriding, Interface vs Abstract Class, SOLID Principles, Class vs Struct (Stack vs Heap), Access Modifiers, Static Classes, Task vs ValueTask, and CLR Garbage Collection.
           </p>
           <div class="module-topics-list">
+            <span class="module-topic-tag">4 OOP Pillars</span>
+            <span class="module-topic-tag">SOLID Principles</span>
+            <span class="module-topic-tag">Class vs Struct</span>
             <span class="module-topic-tag">Task vs ValueTask</span>
-            <span class="module-topic-tag">IAsyncStateMachine</span>
-            <span class="module-topic-tag">Span&lt;T&gt; vs Memory</span>
-            <span class="module-topic-tag">Channels Concurrency</span>
           </div>
           <div class="module-card-footer">
-            <span>16 High-Yield Questions</span>
+            <span>18 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
 
-        <!-- Module 3: LINQ -->
-        <div class="module-card" onclick="window.AppController.openModuleVault('linq')">
-          <div class="module-card-top">
-            <div class="module-icon-wrap" style="background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.3);">
-              <span>🔍</span>
-            </div>
-            <span class="pillar-badge pillar-linq">LINQ Mastery</span>
-          </div>
-          <h2 class="module-card-title">LINQ &amp; Expression Trees</h2>
-          <p class="module-card-desc">
-            Conquer IEnumerable vs IQueryable client-side evaluation traps, multiple enumeration bugs, SelectMany flattening, GroupBy vs ToLookup memory mechanics, and runtime Expression Tree visitors.
-          </p>
-          <div class="module-topics-list">
-            <span class="module-topic-tag">IEnumerable vs IQueryable</span>
-            <span class="module-topic-tag">Deferred Execution</span>
-            <span class="module-topic-tag">SelectMany Cross Joins</span>
-            <span class="module-topic-tag">Expression Trees</span>
-          </div>
-          <div class="module-card-footer">
-            <span>10 High-Yield Questions</span>
-            <span>Study Module →</span>
-          </div>
-        </div>
-
-        <!-- Module 4: Entity Framework Core -->
-        <div class="module-card" onclick="window.AppController.openModuleVault('efcore')">
-          <div class="module-card-top">
-            <div class="module-icon-wrap" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.3);">
-              <span>🗄️</span>
-            </div>
-            <span class="pillar-badge pillar-efcore">EF Core ORM</span>
-          </div>
-          <h2 class="module-card-title">Entity Framework Core 8</h2>
-          <p class="module-card-desc">
-            Eliminate Change Tracker memory overhead with .AsNoTracking(), prevent Cartesian explosion with .AsSplitQuery(), resolve N+1 queries, manage RowVersion optimistic locking, and automate CI/CD migration bundles.
-          </p>
-          <div class="module-topics-list">
-            <span class="module-topic-tag">Change Tracker Snapshot</span>
-            <span class="module-topic-tag">Split Queries</span>
-            <span class="module-topic-tag">Optimistic Concurrency</span>
-            <span class="module-topic-tag">Dapper Hybrid CQRS</span>
-          </div>
-          <div class="module-card-footer">
-            <span>10 High-Yield Questions</span>
-            <span>Study Module →</span>
-          </div>
-        </div>
-
-        <!-- Module 5: SQL Server & Relational DB -->
-        <div class="module-card" onclick="window.AppController.openModuleVault('sql')">
-          <div class="module-card-top">
-            <div class="module-icon-wrap" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
-              <span>💾</span>
-            </div>
-            <span class="pillar-badge pillar-sql">SQL Server &amp; RDBMS</span>
-          </div>
-          <h2 class="module-card-title">SQL Server &amp; Relational DB</h2>
-          <p class="module-card-desc">
-            Understand B-Tree Clustered vs Non-Clustered index layout, eliminate Key Lookups with Covering INCLUDE indexes, refactor non-SARGable queries, enable RCSI row versioning, and resolve deadlocks.
-          </p>
-          <div class="module-topics-list">
-            <span class="module-topic-tag">B-Tree Physical Storage</span>
-            <span class="module-topic-tag">Covering Indexes &amp; INCLUDE</span>
-            <span class="module-topic-tag">SARGable Index Seeks</span>
-            <span class="module-topic-tag">RCSI Lock Elimination</span>
-          </div>
-          <div class="module-card-footer">
-            <span>11 High-Yield Questions</span>
-            <span>Study Module →</span>
-          </div>
-        </div>
-
-        <!-- Module 6: ASP.NET Core & Web APIs -->
+        <!-- Module 2: ASP.NET Core & Web APIs -->
         <div class="module-card" onclick="window.AppController.openModuleVault('aspnet')">
           <div class="module-card-top">
             <div class="module-icon-wrap" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
@@ -267,13 +186,13 @@
           </div>
           <h2 class="module-card-title">ASP.NET Core &amp; Web APIs</h2>
           <p class="module-card-desc">
-            Master the Russian Doll middleware pipeline, eliminate captive dependency DI bugs, prevent socket exhaustion via IHttpClientFactory, implement JWT refresh token rotation, and scale with Polly v8.
+            Thin Controllers &amp; Separation of Concerns, DI Lifetimes (Transient, Scoped, Singleton), Middleware vs Filters, Idempotency-Key pattern, RFC 7807 ProblemDetails, and JWT Refresh Token Rotation.
           </p>
           <div class="module-topics-list">
+            <span class="module-topic-tag">Thin Controllers</span>
+            <span class="module-topic-tag">DI Lifetimes</span>
             <span class="module-topic-tag">Middleware Pipeline</span>
-            <span class="module-topic-tag">Captive Dependencies</span>
             <span class="module-topic-tag">JWT Token Rotation</span>
-            <span class="module-topic-tag">Polly v8 Resilience</span>
           </div>
           <div class="module-card-footer">
             <span>14 High-Yield Questions</span>
@@ -281,7 +200,79 @@
           </div>
         </div>
 
-        <!-- Module 7: Azure DevOps & Cloud CI/CD -->
+        <!-- Module 3: LINQ & Entity Framework Core -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('efcore')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.3);">
+              <span>🗄️</span>
+            </div>
+            <span class="pillar-badge pillar-efcore">EF Core &amp; LINQ</span>
+          </div>
+          <h2 class="module-card-title">LINQ &amp; Entity Framework Core</h2>
+          <p class="module-card-desc">
+            IEnumerable vs IQueryable SQL translation, AsNoTracking memory performance, eliminating N+1 queries with projection, DbContext Unit of Work, Optimistic RowVersion concurrency, and Split Queries.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">IEnumerable vs IQueryable</span>
+            <span class="module-topic-tag">AsNoTracking</span>
+            <span class="module-topic-tag">N+1 Queries</span>
+            <span class="module-topic-tag">Optimistic Locking</span>
+          </div>
+          <div class="module-card-footer">
+            <span>12 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 4: SQL Server & Relational DB -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('sql')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+              <span>💾</span>
+            </div>
+            <span class="pillar-badge pillar-sql">SQL Server &amp; DB</span>
+          </div>
+          <h2 class="module-card-title">SQL Server &amp; Relational DB</h2>
+          <p class="module-card-desc">
+            INNER vs LEFT JOIN, WHERE vs HAVING, Window Functions (ROW_NUMBER vs DENSE_RANK), Clustered vs Nonclustered Indexes, Covering INCLUDE Indexes, SARGable Seeks, Deadlocks, and sp_getapplock.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Joins &amp; NULLs</span>
+            <span class="module-topic-tag">Covering Indexes</span>
+            <span class="module-topic-tag">SARGable Queries</span>
+            <span class="module-topic-tag">Deadlocks &amp; Locks</span>
+          </div>
+          <div class="module-card-footer">
+            <span>18 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 5: React & TypeScript UI -->
+        <div class="module-card" onclick="window.AppController.openModuleVault('ui')">
+          <div class="module-card-top">
+            <div class="module-icon-wrap" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.3);">
+              <span>⚛️</span>
+            </div>
+            <span class="pillar-badge pillar-ui">React &amp; TypeScript</span>
+          </div>
+          <h2 class="module-card-title">React &amp; TypeScript UI</h2>
+          <p class="module-card-desc">
+            Props vs State, Controlled vs Uncontrolled, Functional State Updates, useEffect Cleanup &amp; Closures, useMemo / useCallback, Keys in Lists, TypeScript Generics, any vs unknown, and Discriminated Unions.
+          </p>
+          <div class="module-topics-list">
+            <span class="module-topic-tag">Props vs State</span>
+            <span class="module-topic-tag">useEffect Cleanup</span>
+            <span class="module-topic-tag">TypeScript Generics</span>
+            <span class="module-topic-tag">Discriminated Unions</span>
+          </div>
+          <div class="module-card-footer">
+            <span>16 High-Yield Questions</span>
+            <span>Study Module →</span>
+          </div>
+        </div>
+
+        <!-- Module 6: Azure DevOps, Docker & CI/CD -->
         <div class="module-card" onclick="window.AppController.openModuleVault('cloud')">
           <div class="module-card-top">
             <div class="module-icon-wrap" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3);">
@@ -289,58 +280,47 @@
             </div>
             <span class="pillar-badge pillar-cloud">Azure &amp; DevOps</span>
           </div>
-          <h2 class="module-card-title">Azure DevOps &amp; Cloud CI/CD</h2>
+          <h2 class="module-card-title">Azure DevOps, Docker &amp; CI/CD</h2>
           <p class="module-card-desc">
-            Deploy multi-stage YAML pipelines, configure App Service deployment slots with zero-downtime warmup probes, implement passwordless Managed Identities, and build distroless chiseled Docker images.
+            CI vs CD, Multi-Stage YAML Pipelines, Immutable Build Drops, Branch Policies &amp; PR Gates, Docker Multi-Stage builds, EXPOSE vs Port Mapping, Slot Swaps zero-downtime, and Honest Kubernetes fallback.
           </p>
           <div class="module-topics-list">
-            <span class="module-topic-tag">YAML Build/Release</span>
-            <span class="module-topic-tag">App Service Slots</span>
-            <span class="module-topic-tag">Managed Identities</span>
-            <span class="module-topic-tag">Transactional Outbox</span>
+            <span class="module-topic-tag">CI vs CD</span>
+            <span class="module-topic-tag">YAML Pipelines</span>
+            <span class="module-topic-tag">Docker Multi-Stage</span>
+            <span class="module-topic-tag">Slot Swaps &amp; Rollback</span>
           </div>
           <div class="module-card-footer">
-            <span>11 High-Yield Questions</span>
+            <span>18 High-Yield Questions</span>
             <span>Study Module →</span>
-          </div>
-        </div>
-
-        <!-- Module 8: Top 10 Coding Questions Arena -->
-        <div class="module-card" onclick="window.AppController.switchView('lab')" style="border-color: rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(18, 26, 43, 0.9) 0%, rgba(249, 115, 22, 0.08) 100%);">
-          <div class="module-card-top">
-            <div class="module-icon-wrap" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.4);">
-              <span>💻</span>
-            </div>
-            <span class="pillar-badge pillar-coding">Live Code Editor</span>
-          </div>
-          <h2 class="module-card-title">Top 10 Coding Questions Arena</h2>
-          <p class="module-card-desc">
-            Crack the most asked C# coding interview problems: Remove String Duplicates, Palindrome Two-Pointers, Reverse Words In-Place, Two Sum, Balanced Brackets Stack, LRU Cache, and Top K Frequent Elements.
-          </p>
-          <div class="module-topics-list">
-            <span class="module-topic-tag">String Duplicates</span>
-            <span class="module-topic-tag">Two Pointers</span>
-            <span class="module-topic-tag">LRU Cache</span>
-            <span class="module-topic-tag">PriorityQueue Heap</span>
-          </div>
-          <div class="module-card-footer">
-            <span style="color: #fb923c;">15 Challenges (10 Code + 5 Bug Labs)</span>
-            <span style="color: #fb923c;">Open Coding Arena →</span>
           </div>
         </div>
       </div>
 
-      <!-- Fast Action Study Strip -->
-      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
-        <button class="btn-primary" onclick="window.AppController.switchView('mock')" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
-          ⏱️ Start Timed Mock Interview Screen
-        </button>
-        <button class="btn-primary" onclick="window.AppController.switchView('diagrams')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
-          📊 Explore Visual Architecture Diagrams
-        </button>
-        <button class="btn-primary" onclick="window.AppController.switchView('flashcards')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
-          ⚡ Drill 56 Spaced Flashcards
-        </button>
+      <!-- Featured Section: Top 10 Live Coding Arena Banner -->
+      <div class="module-card" onclick="window.AppController.switchView('lab')" style="border-color: rgba(249, 115, 22, 0.4); background: linear-gradient(135deg, rgba(18, 26, 43, 0.95) 0%, rgba(249, 115, 22, 0.09) 100%); margin-bottom: 2.5rem;">
+        <div class="module-card-top">
+          <div class="module-icon-wrap" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.4);">
+            <span>💻</span>
+          </div>
+          <span class="pillar-badge pillar-coding">Live Interactive Editor</span>
+        </div>
+        <h2 class="module-card-title" style="font-size: 1.4rem;">Top 10 Coding Questions Arena &amp; Architectural Bug Labs</h2>
+        <p class="module-card-desc" style="font-size: 0.95rem;">
+          Write real code in the browser and pass automated test suites for the top 10 most frequently asked .NET coding interview problems: Remove String Duplicates, Two Sum, Reverse Words In-Place, First Unique Character, Valid Palindrome Two-Pointers, Group Anagrams, Merge Intervals, LRU Cache, Custom LINQ Where/Select, Producer-Consumer Channels, and Architectural Bug Labs.
+        </p>
+        <div class="module-topics-list">
+          <span class="module-topic-tag">Remove String Duplicates</span>
+          <span class="module-topic-tag">Two Sum</span>
+          <span class="module-topic-tag">Valid Palindrome</span>
+          <span class="module-topic-tag">LRU Cache</span>
+          <span class="module-topic-tag">Custom LINQ</span>
+          <span class="module-topic-tag">Channel Producer-Consumer</span>
+        </div>
+        <div class="module-card-footer">
+          <span style="color: #fb923c; font-weight: 700;">15 Live Challenges (10 Coding + 5 Bug Labs)</span>
+          <span style="color: #fb923c; font-weight: 700;">Enter Coding Arena →</span>
+        </div>
       </div>
     </section>
 
@@ -354,26 +334,25 @@
           <span>Question Vault</span>
         </h1>
         <p class="view-desc">
-          85 production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
+          96 popular, high-frequency questions engineered for mid-to-senior full-stack .NET interviews. Each question features a 20-second direct answer ("Say It"), memorable Teenager Analogy, deep internal mechanics, production code snippet, junior red flags, and senior pro-tips.
         </p>
       </div>
 
       <!-- Vault Filters & Search -->
       <div class="vault-controls">
         <div class="search-bar-wrap">
-          <input type="text" id="vaultSearchInput" class="search-input" placeholder="Search questions by keyword, topic, API, or algorithm (e.g. ValueTask, SARGable, Fiber, RCSI, Outbox, SelectMany)...">
+          <input type="text" id="vaultSearchInput" class="search-input" placeholder="Search questions by keyword, topic, API, or algorithm (e.g. OOP, ValueTask, SARGable, Generics, Deadlocks, Docker)...">
         </div>
 
         <!-- Pillar Filters -->
         <div class="filter-pills-row" id="pillarFiltersRow">
-          <button class="filter-pill active" data-pillar="all">All Modules (85)</button>
-          <button class="filter-pill" data-pillar="ui">⚛️ React 19 &amp; TS (13)</button>
-          <button class="filter-pill" data-pillar="csharp">⚡ C# Internals (16)</button>
-          <button class="filter-pill" data-pillar="linq">🔍 LINQ (10)</button>
-          <button class="filter-pill" data-pillar="efcore">🗄️ EF Core (10)</button>
-          <button class="filter-pill" data-pillar="sql">💾 SQL Server (11)</button>
+          <button class="filter-pill active" data-pillar="all">All Modules (96)</button>
+          <button class="filter-pill" data-pillar="csharp">⚡ C# &amp; OOP (18)</button>
           <button class="filter-pill" data-pillar="aspnet">🌐 ASP.NET Core (14)</button>
-          <button class="filter-pill" data-pillar="cloud">☁️ Azure &amp; DevOps (11)</button>
+          <button class="filter-pill" data-pillar="efcore">🗄️ EF Core &amp; LINQ (12)</button>
+          <button class="filter-pill" data-pillar="sql">💾 SQL Server &amp; DB (18)</button>
+          <button class="filter-pill" data-pillar="ui">⚛️ React &amp; TS (16)</button>
+          <button class="filter-pill" data-pillar="cloud">☁️ Azure &amp; DevOps (18)</button>
         </div>
 
         <!-- Seniority & Flags Filters -->
@@ -758,18 +737,17 @@
       <div class="flashcards-wrapper">
         <!-- Pillar Filter for Flashcards -->
         <div class="filter-pills-row" id="fcPillarFiltersRow">
-          <button class="filter-pill active" data-fcpillar="all">All Modules (44)</button>
-          <button class="filter-pill" data-fcpillar="ui">⚛️ React 19 &amp; TS (8)</button>
-          <button class="filter-pill" data-fcpillar="csharp">⚡ C# Internals (8)</button>
-          <button class="filter-pill" data-fcpillar="linq">🔍 LINQ (4)</button>
-          <button class="filter-pill" data-fcpillar="efcore">🗄️ EF Core (4)</button>
-          <button class="filter-pill" data-fcpillar="sql">💾 SQL Server (4)</button>
-          <button class="filter-pill" data-fcpillar="aspnet">🌐 ASP.NET Core (8)</button>
-          <button class="filter-pill" data-fcpillar="cloud">☁️ Azure &amp; DevOps (8)</button>
+          <button class="filter-pill active" data-fcpillar="all">All Modules (96)</button>
+          <button class="filter-pill" data-fcpillar="csharp">⚡ C# &amp; OOP (18)</button>
+          <button class="filter-pill" data-fcpillar="aspnet">🌐 ASP.NET Core (14)</button>
+          <button class="filter-pill" data-fcpillar="efcore">🗄️ EF Core &amp; LINQ (12)</button>
+          <button class="filter-pill" data-fcpillar="sql">💾 SQL Server &amp; DB (18)</button>
+          <button class="filter-pill" data-fcpillar="ui">⚛️ React &amp; TS (16)</button>
+          <button class="filter-pill" data-fcpillar="cloud">☁️ Azure &amp; DevOps (18)</button>
         </div>
 
         <div style="font-size: 0.85rem; color: var(--text-muted);">
-          Card <span id="fcCurrentIndex">1</span> of <span id="fcTotalCount">44</span>
+          Card <span id="fcCurrentIndex">1</span> of <span id="fcTotalCount">96</span>
         </div>
 
         <!-- 3D Flip Card Container -->
@@ -843,13 +821,12 @@
               <label class="option-label">Pillar Domain Focus</label>
               <div class="radio-tiles-row" id="mockPillarTiles" style="flex-wrap: wrap;">
                 <div class="radio-tile selected" data-pillar="all">All Modules (Full-Stack Loop)</div>
-                <div class="radio-tile" data-pillar="csharp">C# Internals</div>
-                <div class="radio-tile" data-pillar="linq">LINQ</div>
-                <div class="radio-tile" data-pillar="efcore">EF Core</div>
-                <div class="radio-tile" data-pillar="sql">SQL Server</div>
+                <div class="radio-tile" data-pillar="csharp">C# &amp; OOP</div>
                 <div class="radio-tile" data-pillar="aspnet">ASP.NET Core</div>
-                <div class="radio-tile" data-pillar="ui">React 19 &amp; TS</div>
-                <div class="radio-tile" data-pillar="cloud">Azure Cloud &amp; CI/CD</div>
+                <div class="radio-tile" data-pillar="efcore">EF Core &amp; LINQ</div>
+                <div class="radio-tile" data-pillar="sql">SQL Server &amp; DB</div>
+                <div class="radio-tile" data-pillar="ui">React &amp; TS</div>
+                <div class="radio-tile" data-pillar="cloud">Azure DevOps &amp; Docker</div>
               </div>
             </div>
 
@@ -927,8 +904,13 @@
             <!-- Revealed Answer Panel -->
             <div id="mockModelAnswerPanel" style="display: none; flex-direction: column; gap: 1rem;">
               <div class="section-box pitch-box">
-                <span class="section-box-title">🎯 60-Second Senior Elevator Pitch</span>
+                <span class="section-box-title">🎯 20-Second Direct Answer ("Say It")</span>
                 <p class="pitch-content" id="mockModelPitch"></p>
+              </div>
+
+              <div class="section-box analogy-box" id="mockModelAnalogyBox" style="display: none;">
+                <span class="section-box-title">💡 The Teenager Analogy (Mental Model)</span>
+                <p class="analogy-content" id="mockModelAnalogy"></p>
               </div>
 
               <div class="section-box deepdive-box">
