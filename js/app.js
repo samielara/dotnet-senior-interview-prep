@@ -19,6 +19,7 @@
     userChallengeCode: {},
     mockNotes: {},
     activeView: 'hub',
+    selectedExperience: null,
     vaultFilters: {
       search: '',
       pillar: 'all',
@@ -56,7 +57,8 @@
         reviewCards: state.reviewCards,
         completedChallenges: state.completedChallenges,
         userChallengeCode: state.userChallengeCode,
-        mockNotes: state.mockNotes
+        mockNotes: state.mockNotes,
+        selectedExperience: state.selectedExperience
       }));
     } catch (e) {
       console.error('Failed to save state to localStorage:', e);
@@ -171,11 +173,142 @@
 
     window.SoundEngine.playFlip();
 
+    if (viewName === 'hub') renderExperienceView();
     if (viewName === 'vault') renderQuestionVault();
     if (viewName === 'mock') renderMockView();
     if (viewName === 'lab') renderCodeLab();
     if (viewName === 'whiteboards') renderWhiteboards();
     if (viewName === 'flashcards') renderFlashcards();
+  }
+
+  // --- VIEW 0: CURRICULUM HUB & EXPERIENCE TIER SELECTION ---
+  const TIER_MODULE_DESCRIPTIONS = {
+    Entry: {
+      csharp: 'Master core language fundamentals: 4 OOP Pillars, Overloading vs. Overriding, Interface vs. Abstract Class, and Class vs. Struct stack/heap memory.',
+      aspnet: 'Understand web basics: Request-response lifecycles, ASP.NET Core controllers, basic dependency injection, and HTTP status codes.',
+      efcore: 'Database querying foundations: LINQ syntax, basic DbSet operations, DbContext lifecycle, and simple relations.',
+      sql: 'Relational database essentials: INNER vs. LEFT JOIN, WHERE vs. HAVING, primary keys vs. foreign keys, and basic clustered indexes.',
+      ui: 'Modern UI essentials: React JSX, Props vs. State, basic useState/useEffect hooks, and TypeScript type annotations.',
+      cloud: 'DevOps & release basics: Git branching, CI vs. CD pipelines, container concepts, and deployment drop artifacts.'
+    },
+    Mid: {
+      csharp: 'Software engineering depth: SOLID principles, design patterns, generic constraints, records, and memory allocation awareness.',
+      aspnet: 'Web API architecture: DI lifetimes (Transient, Scoped, Singleton), custom middleware, action filters, RFC 7807 ProblemDetails, and JWT auth.',
+      efcore: 'Data access optimization: IEnumerable vs. IQueryable, AsNoTracking memory performance, eliminating N+1 queries with projection, and optimistic locking.',
+      sql: 'Query performance & indexing: Covering INCLUDE indexes, SARGable predicates, window functions (ROW_NUMBER), and transaction isolation.',
+      ui: 'Scalable frontend engineering: Custom React hooks, useMemo/useCallback optimization, component state lifecycles, and TypeScript generics.',
+      cloud: 'Pipeline automation: Multi-stage YAML CI/CD pipelines, Docker multi-stage builds, Azure App Service configuration, and PR quality gates.'
+    },
+    Senior: {
+      csharp: 'Deep CLR internals: Task vs. ValueTask allocation mechanics, Roslyn compiler state machines, and Garbage Collection (LOH/POH/Generations).',
+      aspnet: 'High-throughput system APIs: Idempotency-Key pattern, zero-allocation pipelines, distributed rate limiting, and resilient telemetry.',
+      efcore: 'High-scale data architecture: Split queries, DbContext pooling, compiled models, concurrency token conflicts, and distributed caching.',
+      sql: 'Enterprise database concurrency: Deadlock detection & graph analysis, query execution plans, sp_getapplock distributed locking, and partitioning.',
+      ui: 'Frontend architecture & performance: React concurrency, memory leak prevention in closures, discriminated unions, and strict typing architectures.',
+      cloud: 'Cloud enterprise delivery: Zero-downtime blue/green slot swaps, container orchestration, automated rollback strategies, and infrastructure-as-code.'
+    }
+  };
+
+  function renderExperienceView() {
+    const tierSelectionView = document.getElementById('tierSelectionView');
+    const tailoredModulesView = document.getElementById('tailoredModulesView');
+    if (!tierSelectionView || !tailoredModulesView) return;
+
+    const selected = state.selectedExperience;
+
+    if (!selected) {
+      tierSelectionView.style.display = 'block';
+      tailoredModulesView.style.display = 'none';
+    } else {
+      tierSelectionView.style.display = 'none';
+      tailoredModulesView.style.display = 'block';
+
+      // Update Active Tier Badge and summary
+      const badge = document.getElementById('activeTierBadge');
+      const summary = document.getElementById('activeTierSummaryText');
+      const browseBtn = document.getElementById('btnBrowseTierQuestions');
+
+      const tierConfig = {
+        Entry: {
+          badgeClass: 'badge-entry',
+          badgeText: '🌱 Entry-Level (0–2 YOE)',
+          summary: 'Showing 27 fundamental questions covering OOP pillars, basic SQL, class vs struct, and React fundamentals.'
+        },
+        Mid: {
+          badgeClass: 'badge-mid',
+          badgeText: '⚡ Mid-Level (3–5 YOE)',
+          summary: 'Showing 39 high-yield questions covering SOLID, DI lifetimes, EF Core query tuning, SARGable indexes, and TypeScript.'
+        },
+        Senior: {
+          badgeClass: 'badge-senior',
+          badgeText: '🚀 Senior / Lead (5–8+ YOE)',
+          summary: 'Showing 30 deep-architecture questions covering Roslyn state machines, CLR GC, deadlocks, and distributed systems.'
+        }
+      }[selected] || {
+        badgeClass: 'badge-mid',
+        badgeText: `${selected} Level`,
+        summary: `Questions tailored for ${selected} technical screens.`
+      };
+
+      if (badge) {
+        badge.className = `active-tier-badge ${tierConfig.badgeClass}`;
+        badge.textContent = tierConfig.badgeText;
+      }
+      if (summary) {
+        summary.textContent = tierConfig.summary;
+      }
+
+      // Calculate and update question count per module for this selected tier
+      const questions = window.INTERVIEW_QUESTIONS || [];
+      const countFor = (pillar) => questions.filter(q => q.pillar === pillar && q.seniority === selected).length;
+      const totalForTier = questions.filter(q => q.seniority === selected).length;
+
+      if (browseBtn) {
+        browseBtn.textContent = `📚 Browse ${totalForTier} ${selected}-Level Questions in Vault`;
+      }
+
+      const counts = {
+        csharp: countFor('csharp'),
+        aspnet: countFor('aspnet'),
+        efcore: countFor('efcore'),
+        sql: countFor('sql'),
+        ui: countFor('ui'),
+        cloud: countFor('cloud')
+      };
+
+      const csharpCountEl = document.getElementById('csharpModuleCount');
+      const aspnetCountEl = document.getElementById('aspnetModuleCount');
+      const efcoreCountEl = document.getElementById('efcoreModuleCount');
+      const sqlCountEl = document.getElementById('sqlModuleCount');
+      const uiCountEl = document.getElementById('uiModuleCount');
+      const cloudCountEl = document.getElementById('cloudModuleCount');
+
+      if (csharpCountEl) csharpCountEl.textContent = `${counts.csharp} Questions (${selected})`;
+      if (aspnetCountEl) aspnetCountEl.textContent = `${counts.aspnet} Questions (${selected})`;
+      if (efcoreCountEl) efcoreCountEl.textContent = `${counts.efcore} Questions (${selected})`;
+      if (sqlCountEl) sqlCountEl.textContent = `${counts.sql} Questions (${selected})`;
+      if (uiCountEl) uiCountEl.textContent = `${counts.ui} Questions (${selected})`;
+      if (cloudCountEl) cloudCountEl.textContent = `${counts.cloud} Questions (${selected})`;
+
+      const descs = TIER_MODULE_DESCRIPTIONS[selected];
+      if (descs) {
+        const cDesc = document.getElementById('csharpModuleDesc');
+        const aDesc = document.getElementById('aspnetModuleDesc');
+        const eDesc = document.getElementById('efcoreModuleDesc');
+        const sDesc = document.getElementById('sqlModuleDesc');
+        const uDesc = document.getElementById('uiModuleDesc');
+        const clDesc = document.getElementById('cloudModuleDesc');
+
+        if (cDesc && descs.csharp) cDesc.textContent = descs.csharp;
+        if (aDesc && descs.aspnet) aDesc.textContent = descs.aspnet;
+        if (eDesc && descs.efcore) eDesc.textContent = descs.efcore;
+        if (sDesc && descs.sql) sDesc.textContent = descs.sql;
+        if (uDesc && descs.ui) uDesc.textContent = descs.ui;
+        if (clDesc && descs.cloud) clDesc.textContent = descs.cloud;
+      }
+    }
+
+    initTiltCards();
   }
 
   // --- VIEW 1: QUESTION VAULT ---
@@ -848,8 +981,15 @@
       .replace(/'/g, '&#039;');
   }
 
-  function highlightSyntax(code) {
+  function highlightSyntax(code, lang = 'csharp') {
     if (!code) return '';
+    if (window.Prism && window.Prism.languages && window.Prism.languages[lang]) {
+      try {
+        return window.Prism.highlight(code, window.Prism.languages[lang], lang);
+      } catch (e) {
+        // Fall back to built-in highlighter
+      }
+    }
     let html = escapeHtml(code);
 
     // Comments (//, /* */, --)
@@ -876,23 +1016,140 @@
     return html;
   }
 
+  // --- 3D INTERACTIVE HERO ANIMATIONS ---
+  function initTiltCards() {
+    if (window.VanillaTilt) {
+      window.VanillaTilt.init(document.querySelectorAll('.tilt-card'), {
+        max: 12,
+        speed: 400,
+        glare: true,
+        'max-glare': 0.25,
+        scale: 1.02
+      });
+    }
+  }
+
+  let threeInitialized = false;
+  function initThreeCanvas() {
+    if (threeInitialized) return;
+    const canvas = document.getElementById('three-bg-canvas');
+    if (!canvas || !window.THREE) return;
+
+    try {
+      const parent = canvas.parentElement;
+      const width = parent.clientWidth || window.innerWidth;
+      const height = parent.clientHeight || 320;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+      camera.position.z = 25;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Geometric wireframe icosahedron
+      const geometry = new THREE.IcosahedronGeometry(12, 1);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x6366f1,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15
+      });
+      const sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+
+      // Starfield / particle points
+      const pointsGeometry = new THREE.BufferGeometry();
+      const count = 96;
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count * 3; i++) {
+        positions[i] = (Math.random() - 0.5) * 45;
+      }
+      pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const pointsMaterial = new THREE.PointsMaterial({
+        size: 1.4,
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.4
+      });
+      const pointsMesh = new THREE.Points(pointsGeometry, pointsMaterial);
+      scene.add(pointsMesh);
+
+      let mouseX = 0;
+      let mouseY = 0;
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        sphere.rotation.x += 0.0012;
+        sphere.rotation.y += 0.0018;
+        pointsMesh.rotation.x -= 0.0008;
+        pointsMesh.rotation.y += 0.0012;
+
+        sphere.position.x += (mouseX * 1.5 - sphere.position.x) * 0.03;
+        sphere.position.y += (mouseY * 1.5 - sphere.position.y) * 0.03;
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        if (!parent) return;
+        const w = parent.clientWidth;
+        const h = parent.clientHeight || 320;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      threeInitialized = true;
+    } catch (err) {
+      console.warn('Three.js canvas init deferred or unsupported:', err);
+    }
+  }
+
   // --- GLOBAL EXPOSED CONTROLLER ---
   window.AppController = {
     switchView: function (viewName) {
       switchView(viewName);
     },
 
-    openModuleVault: function (pillar) {
+    selectExperienceLevel: function (level) {
+      state.selectedExperience = level;
+      saveState();
+      renderExperienceView();
+      window.SoundEngine.playLevelUp();
+      showNotification(`🎯 Selected ${level}-Level Experience Tier!`, 'success');
+      const hubEl = document.getElementById('view-hub');
+      if (hubEl) hubEl.scrollIntoView({ behavior: 'smooth' });
+    },
+
+    resetExperienceLevel: function () {
+      state.selectedExperience = null;
+      saveState();
+      renderExperienceView();
+      window.SoundEngine.playFlip();
+      showNotification('Experience level reset. Choose your target tier.', 'info');
+      const hubEl = document.getElementById('view-hub');
+      if (hubEl) hubEl.scrollIntoView({ behavior: 'smooth' });
+    },
+
+    openModuleVault: function (pillar, seniority) {
+      const targetSeniority = seniority || state.selectedExperience || 'all';
       state.vaultFilters.pillar = pillar;
       state.vaultFilters.search = '';
-      state.vaultFilters.seniority = 'all';
+      state.vaultFilters.seniority = targetSeniority;
       state.vaultFilters.bookmarkedOnly = false;
       state.vaultFilters.completedOnly = false;
 
       const searchInput = document.getElementById('vaultSearchInput');
       if (searchInput) searchInput.value = '';
       document.querySelectorAll('.seniority-pill').forEach(pill => {
-        pill.classList.toggle('active', pill.dataset.seniority === 'all');
+        pill.classList.toggle('active', pill.dataset.seniority === targetSeniority);
       });
 
       switchView('vault');
@@ -969,6 +1226,9 @@
   document.addEventListener('DOMContentLoaded', () => {
     loadState();
     updateHudUI();
+    renderExperienceView();
+    initThreeCanvas();
+    initTiltCards();
 
     // Tab buttons event listeners
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1002,7 +1262,9 @@
           state.completedChallenges = {};
           state.userChallengeCode = {};
           state.mockNotes = {};
+          state.selectedExperience = null;
           updateHudUI();
+          renderExperienceView();
           renderQuestionVault();
           showNotification('Progress reset successfully.', 'info');
         }

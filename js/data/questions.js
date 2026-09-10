@@ -1,14 +1,14 @@
 // ============================================================================
 // HIGH-YIELD SENIOR FULL-STACK .NET INTERVIEW CURRICULUM (POPULAR QUESTIONS)
 // Sourced from User's Layer 1-4 Guide, OOP Core Standards & Top GitHub .NET Repos
-// 96 Popular, High-Frequency Questions Across 6 Pillars with Teenager Analogies
+// 96 Popular, High-Frequency Questions Categorized by Experience Level (Entry, Mid, Senior)
 // ============================================================================
 
 window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-1",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "OOP",
       "Encapsulation",
@@ -33,7 +33,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-2",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "OOP",
       "Polymorphism",
@@ -60,7 +60,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-3",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "OOP",
       "Interface",
@@ -85,7 +85,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-4",
     "pillar": "csharp",
-    "seniority": "Senior",
+    "seniority": "Mid",
     "tags": [
       "SOLID",
       "Design Patterns",
@@ -113,7 +113,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-5",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Class",
       "Struct",
@@ -140,7 +140,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-6",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Access Modifiers",
       "Encapsulation",
@@ -165,7 +165,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-7",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "static",
       "Constructors",
@@ -190,7 +190,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-8",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Composition",
       "Inheritance",
@@ -214,7 +214,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-9",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "ref",
       "out",
@@ -240,7 +240,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-10",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Task",
       "Thread",
@@ -265,7 +265,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-11",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "async/await",
       "Scalability",
@@ -366,7 +366,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-15",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Delegates",
       "Events",
@@ -391,7 +391,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-16",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "const",
       "readonly",
@@ -416,7 +416,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-17",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "string",
       "StringBuilder",
@@ -441,7 +441,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-csharp-18",
     "pillar": "csharp",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Exceptions",
       "throw vs throw ex",
@@ -466,7 +466,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-1",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Controllers",
       "Thin Controller",
@@ -490,7 +490,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-2",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Dependency Injection",
       "IoC",
@@ -515,7 +515,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-3",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "DI Lifetimes",
       "Transient",
@@ -540,7 +540,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-4",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Middleware",
       "Filters",
@@ -565,7 +565,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-5",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "REST",
       "HTTP Status Codes",
@@ -590,7 +590,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-6",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Idempotency",
       "REST",
@@ -615,7 +615,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-7",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Exception Handling",
       "ProblemDetails",
@@ -640,7 +640,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-8",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Authentication",
       "Authorization",
@@ -666,7 +666,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-9",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "CancellationToken",
       "Cooperative Cancellation",
@@ -690,7 +690,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-10",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Hangfire",
       "Background Jobs",
@@ -740,7 +740,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-12",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "CORS",
       "Same-Origin Policy",
@@ -765,7 +765,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-aspnet-13",
     "pillar": "aspnet",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Minimal APIs",
       "Controllers",
@@ -816,7 +816,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-1",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "LINQ",
       "IEnumerable",
@@ -841,7 +841,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-2",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "EF Core",
       "AsNoTracking",
@@ -866,7 +866,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-3",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "EF Core",
       "N+1 Problem",
@@ -891,7 +891,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-4",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "DbContext",
       "Scoped Lifetime",
@@ -916,7 +916,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-5",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Transactions",
       "ACID",
@@ -941,7 +941,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-6",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Concurrency",
       "Optimistic Concurrency",
@@ -991,7 +991,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-8",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "First",
       "FirstOrDefault",
@@ -1016,7 +1016,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-9",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Eager Loading",
       "Explicit Loading",
@@ -1040,7 +1040,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-10",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Code-First",
       "Database-First",
@@ -1065,7 +1065,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-11",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "LINQ",
       "Deferred Execution",
@@ -1090,7 +1090,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-efcore-12",
     "pillar": "efcore",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Any()",
       "Count()",
@@ -1115,7 +1115,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-1",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "SQL",
       "Joins",
@@ -1139,7 +1139,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-2",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "SQL",
       "WHERE",
@@ -1164,7 +1164,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-3",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "Window Functions",
@@ -1189,7 +1189,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-4",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "Indexes",
@@ -1214,7 +1214,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-5",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "Covering Index",
@@ -1239,7 +1239,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-6",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "SARGable",
@@ -1264,7 +1264,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-7",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "SQL",
       "Execution Plan",
@@ -1289,7 +1289,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-8",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "Stored Procedures",
@@ -1338,7 +1338,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-10",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "SQL",
       "ACID",
@@ -1413,7 +1413,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-13",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "SQL",
       "Pagination",
@@ -1438,7 +1438,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-14",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "CTE",
@@ -1463,7 +1463,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-15",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "SQL",
       "Set-Based",
@@ -1488,7 +1488,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-16",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "SQL",
       "Security",
@@ -1538,7 +1538,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-sql-18",
     "pillar": "sql",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "SQL",
       "Normalization",
@@ -1563,7 +1563,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-1",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "React",
       "Props",
@@ -1588,7 +1588,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-2",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "React",
       "Forms",
@@ -1613,7 +1613,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-3",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "React",
       "State",
@@ -1638,7 +1638,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-4",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "React",
       "useEffect",
@@ -1663,7 +1663,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-5",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "React",
       "Performance",
@@ -1688,7 +1688,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-6",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "React",
       "Keys",
@@ -1713,7 +1713,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-7",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "React",
       "State Management",
@@ -1739,7 +1739,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-8",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "React",
       "Custom Hooks",
@@ -1763,7 +1763,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-9",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "TypeScript",
       "Generics",
@@ -1787,7 +1787,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-10",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "TypeScript",
       "any",
@@ -1812,7 +1812,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-11",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "TypeScript",
       "Interface",
@@ -1836,7 +1836,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-12",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "TypeScript",
       "Discriminated Unions",
@@ -1860,7 +1860,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-13",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "React",
       "API",
@@ -1910,7 +1910,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-ui-15",
     "pillar": "ui",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "React",
       "Testing",
@@ -1960,7 +1960,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-1",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "DevOps",
       "CI/CD",
@@ -1985,7 +1985,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-2",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Azure DevOps",
       "YAML",
@@ -2010,7 +2010,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-3",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Azure DevOps",
       "YAML",
@@ -2034,7 +2034,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-4",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "DevOps",
       "Build Artifacts",
@@ -2058,7 +2058,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-5",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Azure DevOps",
       "Branch Policies",
@@ -2083,7 +2083,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-6",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Azure DevOps",
       "Security",
@@ -2107,7 +2107,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-7",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Azure DevOps",
       "Environments",
@@ -2132,7 +2132,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-8",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "DevOps",
       "Troubleshooting",
@@ -2182,7 +2182,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-10",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Docker",
       "Containers",
@@ -2206,7 +2206,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-11",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Docker",
       "Dockerfile",
@@ -2230,7 +2230,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-12",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Docker",
       "Multi-Stage",
@@ -2255,7 +2255,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-13",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Entry",
     "tags": [
       "Docker",
       "Networking",
@@ -2280,7 +2280,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-14",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Docker",
       "Storage",
@@ -2305,7 +2305,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-15",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "Docker",
       "Health Checks",
@@ -2330,7 +2330,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-16",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Senior",
     "tags": [
       "Azure",
       "Azure Container Apps",
@@ -2380,7 +2380,7 @@ window.INTERVIEW_QUESTIONS = [
   {
     "id": "q-cloud-18",
     "pillar": "cloud",
-    "seniority": "Mid-to-Senior",
+    "seniority": "Mid",
     "tags": [
       "DevOps",
       "IaC",
