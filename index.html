@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20260910c">
 </head>
 <body>
 
@@ -1331,19 +1331,34 @@
   <!-- ========================================================================
        APPLICATION SCRIPTS
        ======================================================================== -->
-  <script src="js/data/questions.js"></script>
-  <script src="js/data/challenges.js"></script>
-  <script src="js/data/architectures.js"></script>
-  <script src="js/data/flashcards.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data/questions.js?v=20260910c"></script>
+  <script src="js/data/challenges.js?v=20260910c"></script>
+  <script src="js/data/architectures.js?v=20260910c"></script>
+  <script src="js/data/flashcards.js?v=20260910c"></script>
+  <script src="js/audio.js?v=20260910c"></script>
+  <script src="js/app.js?v=20260910c"></script>
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA Service Worker Registration & Live Update Sync -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+        navigator.serviceWorker.register('./sw.js?v=20260910c')
+          .then(reg => {
+            console.log('PWA Service Worker registered:', reg.scope);
+            // Trigger background update check
+            reg.update();
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('New update available, reloading to apply latest visual engine...');
+                    window.location.reload();
+                  }
+                });
+              }
+            });
+          })
           .catch(err => console.warn('Service Worker registration skipped:', err));
       });
     }

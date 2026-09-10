@@ -653,6 +653,11 @@
   }
 
   // --- MODERN VISUAL ARCHITECTURE BLUEPRINT PARSER & RENDERER ---
+  function cleanCellText(text) {
+    if (!text) return '';
+    return text.replace(/[\[\]]/g, '').trim();
+  }
+
   function parseVisualBlueprint(diagText, q) {
     if (!diagText) return '';
     const lines = diagText.trim().split('\n');
@@ -693,7 +698,7 @@
         }
         if (line.startsWith('│')) {
           const cleanContent = line.replace(/^│/, '').replace(/│$/, '');
-          const parts = cleanContent.split('│').map(p => p.trim());
+          const parts = cleanContent.split('│').map(p => cleanCellText(p));
           if (parts.length === 1 && !title && !tableHeaderCols.length) {
             title = parts[0];
           } else if (!tableHeaderCols.length) {
@@ -720,8 +725,24 @@
       const colCount = Math.min(tableHeaderCols.length, 4);
       html += `<div class="blueprint-bento-grid grid-cols-${colCount}">`;
       tableHeaderCols.forEach((colName, colIdx) => {
-        const colSubItems = tableRows.map(r => r[colIdx] || '').filter(Boolean);
-        const accentThemes = ['theme-indigo', 'theme-cyan', 'theme-emerald', 'theme-amber'];
+        const rawColItems = tableRows.map(r => r[colIdx] || '').filter(Boolean);
+        const colSubItems = [];
+        let currentPhrase = '';
+        rawColItems.forEach(item => {
+          if (!currentPhrase) {
+            currentPhrase = item;
+          } else if (currentPhrase.endsWith('/')) {
+            currentPhrase = currentPhrase.slice(0, -1).trim() + ' & ' + item;
+          } else if (currentPhrase.endsWith(',') || currentPhrase.endsWith('&') || item.startsWith('&')) {
+            currentPhrase += ' ' + item;
+          } else {
+            colSubItems.push(currentPhrase);
+            currentPhrase = item;
+          }
+        });
+        if (currentPhrase) colSubItems.push(currentPhrase);
+
+        const accentThemes = ['theme-indigo', 'theme-cyan', 'theme-emerald', 'theme-amber', 'theme-violet'];
         const themeClass = accentThemes[colIdx % accentThemes.length];
 
         html += `
@@ -739,22 +760,71 @@
 
     if (postBoxLines.length > 0) {
       html += `<div class="blueprint-mapping-panel">`;
+      let lastSource = '';
       const firstLine = postBoxLines[0].trim();
+      let startIndex = 0;
       if (firstLine.endsWith(':')) {
         html += `<div class="mapping-panel-title">💡 ${escapeHtml(firstLine)}</div>`;
-        postBoxLines.slice(1).forEach(l => {
-          html += renderMappingLine(l);
-        });
-      } else {
-        postBoxLines.forEach(l => {
-          html += renderMappingLine(l);
-        });
+        startIndex = 1;
+      }
+      for (let j = startIndex; j < postBoxLines.length; j++) {
+        const lineRes = renderMappingLineWithSource(postBoxLines[j], lastSource);
+        html += lineRes.html;
+        if (lineRes.source) lastSource = lineRes.source;
       }
       html += `</div>`;
     }
 
     html += `</div>`;
     return html;
+  }
+
+  function renderMappingLineWithSource(line, currentSource) {
+    const trimmed = line.trim();
+    if (!trimmed) return { html: '', source: currentSource };
+
+    const arrowRegex = /(?:──►|-->|──>|->)/;
+    if (arrowRegex.test(trimmed)) {
+      const parts = trimmed.split(arrowRegex).map(p => p.trim());
+      let source = parts[0];
+      const target = parts.slice(1).join(' ➔ ');
+      
+      let isContinuation = false;
+      if (!source && currentSource) {
+        source = `↳ ${currentSource}`;
+        isContinuation = true;
+      } else if (source) {
+        currentSource = source;
+      }
+
+      let targetHtml = escapeHtml(target);
+      if (target.includes(':')) {
+        const cIdx = target.indexOf(':');
+        const cat = target.substring(0, cIdx).trim();
+        const rest = target.substring(cIdx + 1).trim();
+        targetHtml = `<strong class="mapping-category">${escapeHtml(cat)}:</strong> <span class="mapping-detail">${escapeHtml(rest)}</span>`;
+      }
+
+      return {
+        html: `
+          <div class="blueprint-mapping-row${isContinuation ? ' is-sub-mapping' : ''}">
+            ${source ? `<span class="mapping-source-chip${isContinuation ? ' sub-chip' : ''}">${escapeHtml(source)}</span>` : ''}
+            <span class="mapping-arrow-icon">➔</span>
+            <span class="mapping-target-chip">${targetHtml}</span>
+          </div>
+        `,
+        source: currentSource
+      };
+    }
+
+    return {
+      html: `
+        <div class="blueprint-mapping-row single-row">
+          <span class="mapping-plain-text">${escapeHtml(trimmed)}</span>
+        </div>
+      `,
+      source: currentSource
+    };
   }
 
   function renderFlowOrMappingBlueprint(raw, lines, q) {
@@ -776,15 +846,18 @@
     if (title) {
       html += `
         <div class="blueprint-root-header">
-          <span class="blueprint-root-pill">FLOWCHART &amp; MAPPINGS</span>
+          <span class="blueprint-root-pill">SYSTEM FLOW ARCHITECTURE</span>
           <h3 class="blueprint-root-title">${escapeHtml(title)}</h3>
         </div>
       `;
     }
 
     html += `<div class="blueprint-flow-container">`;
+    let lastSource = '';
     mappingLines.forEach(l => {
-      html += renderMappingLine(l);
+      const res = renderMappingLineWithSource(l, lastSource);
+      html += res.html;
+      if (res.source) lastSource = res.source;
     });
     html += `</div></div>`;
     return html;
@@ -845,37 +918,6 @@
     });
     html += `</div></div>`;
     return html;
-  }
-
-  let lastMappingSource = '';
-  function renderMappingLine(line) {
-    const trimmed = line.trim();
-    if (!trimmed) return '';
-
-    const arrowRegex = /(?:──►|-->|──>|->)/;
-    if (arrowRegex.test(trimmed)) {
-      const parts = trimmed.split(arrowRegex).map(p => p.trim());
-      let source = parts[0];
-      const target = parts.slice(1).join(' ➔ ');
-      if (!source && lastMappingSource) {
-        source = `↳ ${lastMappingSource}`;
-      } else if (source) {
-        lastMappingSource = source;
-      }
-      return `
-        <div class="blueprint-mapping-row">
-          ${source ? `<span class="mapping-source-chip">${escapeHtml(source)}</span>` : ''}
-          <span class="mapping-arrow-icon">➔</span>
-          <span class="mapping-target-chip">${escapeHtml(target)}</span>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="blueprint-mapping-row single-row">
-        <span class="mapping-plain-text">${escapeHtml(trimmed)}</span>
-      </div>
-    `;
   }
 
   // --- VIEW 1: QUESTION VAULT ---
