@@ -2377,3 +2377,189 @@ body {
   font-style: italic;
 }
 
+/* ==========================================================================
+   IN-QUESTION VISUAL LEARNING BLUEPRINTS (.visual-box)
+   ========================================================================== */
+.visual-box {
+  background: rgba(6, 182, 212, 0.05);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-left: 4px solid #06b6d4;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.visual-box .section-box-title {
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 0.75rem;
+}
+
+.visual-diagram-container {
+  background: #060913;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 1.15rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.visual-diagram-ascii {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #c7d2fe;
+  line-height: 1.45;
+  white-space: pre;
+  margin: 0;
+}
+
+.visual-diagram-svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   MOBILE BOTTOM APP NAVIGATION & RESPONSIVE ERGONOMICS
+   ========================================================================== */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Hide top tabs on mobile to maximize viewport area */
+  .tabs-nav-wrapper {
+    display: none;
+  }
+
+  .site-header {
+    padding: 0.65rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+  }
+
+  .brand-title {
+    font-size: 1.05rem;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  /* Sticky Bottom Nav on Mobile */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(9, 13, 22, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.4rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px)) 0.5rem;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+  }
+
+  .mobile-nav-btn {
+    min-height: 48px;
+    min-width: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    padding: 0.25rem 0.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-btn.active {
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.12);
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform var(--transition-fast);
+  }
+
+  .mobile-nav-btn.active .mobile-nav-icon {
+    transform: scale(1.15);
+  }
+
+  .mobile-nav-label {
+    letter-spacing: 0.02em;
+  }
+
+  /* Offset main content bottom so it doesn't get obscured */
+  .main-content {
+    padding: 1rem 0.75rem calc(5.5rem + env(safe-area-inset-bottom, 0px)) 0.75rem;
+  }
+
+  /* Mobile Tier Selection Cards */
+  .tier-selection-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .tier-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .tier-title {
+    font-size: 1.25rem;
+  }
+
+  .tier-btn {
+    min-height: 48px;
+  }
+
+  /* Questions & Code Blocks Touch Sizing */
+  .q-card-header {
+    padding: 1rem;
+    min-height: 56px;
+  }
+
+  .q-title {
+    font-size: 1.05rem;
+  }
+
+  .code-pre {
+    padding: 1rem;
+    font-size: 0.78rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Flashcard Touch Enhancements */
+  .flashcard-stage {
+    height: 380px;
+    touch-action: pan-y;
+  }
+
+  .fc-question {
+    font-size: 1.15rem;
+  }
+
+  .fc-btn {
+    min-height: 48px;
+  }
+}
+

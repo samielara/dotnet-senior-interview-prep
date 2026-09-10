@@ -1,0 +1,27 @@
+{
+  "short_name": ".NET Prep",
+  "name": ".NET Senior Full-Stack Interview Preparation",
+  "description": "Production-grade interactive learning platform for Full-Stack .NET Developers (Entry, Mid, Senior).",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#090d16",
+  "theme_color": "#6366f1",
+  "display": "standalone",
+  "orientation": "any"
+}

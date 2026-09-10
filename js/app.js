@@ -167,8 +167,16 @@
       btn.classList.toggle('active', btn.dataset.view === viewName);
     });
 
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mobview === viewName);
+    });
+
     document.querySelectorAll('.view-panel').forEach(panel => {
-      panel.classList.toggle('active', panel.id === `view-${viewName}`);
+      const isTarget = panel.id === `view-${viewName}`;
+      panel.classList.toggle('active', isTarget);
+      if (isTarget && window.gsap) {
+        window.gsap.fromTo(panel, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+      }
     });
 
     window.SoundEngine.playFlip();
@@ -413,6 +421,16 @@
             <div class="section-box analogy-box">
               <span class="section-box-title">💡 The Teenager Analogy (Mental Model)</span>
               <p class="analogy-content">${escapeHtml(q.analogy)}</p>
+            </div>
+            ` : ''}
+
+            ${q.visualDiagram ? `
+            <!-- Visual Architecture Blueprint & Mental Model -->
+            <div class="section-box visual-box">
+              <span class="section-box-title">📐 Visual Architecture Blueprint &amp; Mental Model</span>
+              <div class="visual-diagram-container">
+                <pre class="visual-diagram-ascii">${escapeHtml(q.visualDiagram)}</pre>
+              </div>
             </div>
             ` : ''}
 
@@ -1511,6 +1529,28 @@
     const fcStage = document.getElementById('flashcardStage');
     if (fcStage) {
       fcStage.addEventListener('click', flipFlashcard);
+
+      // Mobile Touch Swipe Gestures
+      let touchStartX = 0;
+      let touchStartY = 0;
+      fcStage.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      fcStage.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) {
+            nextFlashcard();
+          } else {
+            prevFlashcard();
+          }
+        }
+      }, { passive: true });
     }
 
     document.getElementById('fcNextBtn').addEventListener('click', nextFlashcard);

@@ -13,6 +13,7 @@ const { efcoreQuestions } = require('./efcore_questions_v3');
 const { sqlQuestions } = require('./sql_questions_v3');
 const { uiQuestions } = require('./ui_questions_v3');
 const { cloudQuestions } = require('./cloud_questions_v3');
+const { VISUAL_BLUEPRINTS } = require('./visual_diagrams');
 
 console.log('--- Loaded Question Counts ---');
 console.log('C# & OOP:', csharpQuestions.length);
@@ -153,6 +154,7 @@ function addPillar(questions, pillarId, prefix) {
       title: q.title,
       pitch: q.pitch,
       analogy: q.analogy || "",
+      visualDiagram: (VISUAL_BLUEPRINTS[pillarId] && VISUAL_BLUEPRINTS[pillarId][questionNumber]) || "",
       deepDive: q.deepDive,
       codeSnippet: q.codeSnippet,
       redFlags: q.redFlags || [],

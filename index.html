@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>.NET Senior Full-Stack Interview Preparation Platform</title>
   <meta name="description" content="Production-grade interactive learning platform for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE), covering C#, ASP.NET Core, SQL Server, EF Core, React 19, Azure DevOps, and Top 10 Coding Challenges.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content=".NET Prep">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1108,8 +1115,35 @@
   </main>
 
   <!-- ========================================================================
-       EXTERNAL 3D ANIMATION & SYNTAX PLUGINS
+       MOBILE STICKY BOTTOM APP NAVIGATION (Visible on Mobile Screens)
        ======================================================================== -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+    <button class="mobile-nav-btn active" data-mobview="hub" onclick="window.AppController.switchView('hub')">
+      <span class="mobile-nav-icon">🏛️</span>
+      <span class="mobile-nav-label">Hub</span>
+    </button>
+    <button class="mobile-nav-btn" data-mobview="vault" onclick="window.AppController.switchView('vault')">
+      <span class="mobile-nav-icon">📚</span>
+      <span class="mobile-nav-label">Vault</span>
+    </button>
+    <button class="mobile-nav-btn" data-mobview="lab" onclick="window.AppController.switchView('lab')">
+      <span class="mobile-nav-icon">💻</span>
+      <span class="mobile-nav-label">Coding</span>
+    </button>
+    <button class="mobile-nav-btn" data-mobview="flashcards" onclick="window.AppController.switchView('flashcards')">
+      <span class="mobile-nav-icon">⚡</span>
+      <span class="mobile-nav-label">Cards</span>
+    </button>
+    <button class="mobile-nav-btn" data-mobview="mock" onclick="window.AppController.switchView('mock')">
+      <span class="mobile-nav-icon">⏱️</span>
+      <span class="mobile-nav-label">Mock</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================
+       EXTERNAL ANIMATION, 3D & SYNTAX PLUGINS (GSAP, Three.js, Vanilla-Tilt, Prism)
+       ======================================================================== -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -1126,5 +1160,16 @@
   <script src="js/data/flashcards.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.warn('Service Worker registration skipped:', err));
+      });
+    }
+  </script>
 </body>
 </html>
