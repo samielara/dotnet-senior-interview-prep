@@ -45,12 +45,12 @@
 
         <div class="hud-stat-item">
           <span class="stat-icon">📚</span>
-          <span class="stat-text"><strong id="hudCompletedCount">0</strong> / 66</span>
+          <span class="stat-text"><strong id="hudCompletedCount">0</strong> / <span id="hudTotalQuestionsCount">85</span></span>
         </div>
 
         <div class="hud-stat-item">
           <span class="stat-icon">⚡</span>
-          <span class="stat-text"><strong id="hudMasteredCount">0</strong> / 44</span>
+          <span class="stat-text"><strong id="hudMasteredCount">0</strong> / <span id="hudTotalFlashcardsCount">56</span></span>
         </div>
 
         <div class="hud-stat-item">
@@ -83,7 +83,7 @@
       <button class="tab-btn" data-view="vault">
         <span>📚</span>
         <span>Question Vault</span>
-        <span class="tab-badge" id="badgeVaultCount">66</span>
+        <span class="tab-badge" id="badgeVaultCount">85</span>
       </button>
       <button class="tab-btn" data-view="lab">
         <span>💻</span>
@@ -102,7 +102,7 @@
       <button class="tab-btn" data-view="flashcards">
         <span>⚡</span>
         <span>Rapid Flashcards</span>
-        <span class="tab-badge" id="badgeCardsCount">44</span>
+        <span class="tab-badge" id="badgeCardsCount">56</span>
       </button>
       <button class="tab-btn" data-view="mock">
         <span>⏱️</span>
@@ -126,11 +126,11 @@
           The definitive study guide engineered for Mid-to-Senior Full-Stack .NET Developers (3–8+ YOE). Real-world technical screens sourced from top GitHub .NET repositories and Reddit interview loops.
         </p>
         <div class="curriculum-stats-strip">
-          <div class="curriculum-stat-item"><span>🎓</span> <strong>66</strong> Senior Architecture Questions</div>
+          <div class="curriculum-stat-item"><span>🎓</span> <strong>85</strong> Senior Architecture Questions</div>
           <div class="curriculum-stat-item"><span>💻</span> <strong>Top 10</strong> Live Coding Challenges</div>
           <div class="curriculum-stat-item"><span>📊</span> <strong>4</strong> Visual Memory Diagrams</div>
           <div class="curriculum-stat-item"><span>📐</span> <strong>4</strong> System Design Whiteboards</div>
-          <div class="curriculum-stat-item"><span>⚡</span> <strong>44</strong> Spaced Repetition Cards</div>
+          <div class="curriculum-stat-item"><span>⚡</span> <strong>56</strong> Spaced Repetition Cards</div>
           <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Interview Simulator</div>
         </div>
       </div>
@@ -156,7 +156,7 @@
             <span class="module-topic-tag">Discriminated Unions</span>
           </div>
           <div class="module-card-footer">
-            <span>10 High-Yield Questions</span>
+            <span>13 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -180,7 +180,7 @@
             <span class="module-topic-tag">Channels Concurrency</span>
           </div>
           <div class="module-card-footer">
-            <span>11 High-Yield Questions</span>
+            <span>16 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -204,7 +204,7 @@
             <span class="module-topic-tag">Expression Trees</span>
           </div>
           <div class="module-card-footer">
-            <span>11 High-Yield Questions</span>
+            <span>10 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -228,7 +228,7 @@
             <span class="module-topic-tag">Dapper Hybrid CQRS</span>
           </div>
           <div class="module-card-footer">
-            <span>7 High-Yield Questions</span>
+            <span>10 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -252,7 +252,7 @@
             <span class="module-topic-tag">RCSI Lock Elimination</span>
           </div>
           <div class="module-card-footer">
-            <span>6 High-Yield Questions</span>
+            <span>11 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -276,7 +276,7 @@
             <span class="module-topic-tag">Polly v8 Resilience</span>
           </div>
           <div class="module-card-footer">
-            <span>11 High-Yield Questions</span>
+            <span>14 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -300,7 +300,7 @@
             <span class="module-topic-tag">Transactional Outbox</span>
           </div>
           <div class="module-card-footer">
-            <span>10 High-Yield Questions</span>
+            <span>11 High-Yield Questions</span>
             <span>Study Module →</span>
           </div>
         </div>
@@ -339,7 +339,7 @@
           📊 Explore Visual Architecture Diagrams
         </button>
         <button class="btn-primary" onclick="window.AppController.switchView('flashcards')" style="background: #1e293b; border: 1px solid var(--border-subtle);">
-          ⚡ Drill 44 Spaced Flashcards
+          ⚡ Drill 56 Spaced Flashcards
         </button>
       </div>
     </section>
@@ -354,7 +354,7 @@
           <span>Question Vault</span>
         </h1>
         <p class="view-desc">
-          66 production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
+          85 production-grade questions engineered for senior developer interviews. Each question features a crisp 60-second elevator pitch, deep internal mechanics, code snippets, junior red flags, and senior architectural trade-offs.
         </p>
       </div>
 
@@ -366,14 +366,14 @@
 
         <!-- Pillar Filters -->
         <div class="filter-pills-row" id="pillarFiltersRow">
-          <button class="filter-pill active" data-pillar="all">All Modules (66)</button>
-          <button class="filter-pill" data-pillar="ui">⚛️ React 19 &amp; TS (10)</button>
-          <button class="filter-pill" data-pillar="csharp">⚡ C# Internals (11)</button>
-          <button class="filter-pill" data-pillar="linq">🔍 LINQ (11)</button>
-          <button class="filter-pill" data-pillar="efcore">🗄️ EF Core (7)</button>
-          <button class="filter-pill" data-pillar="sql">💾 SQL Server (6)</button>
-          <button class="filter-pill" data-pillar="aspnet">🌐 ASP.NET Core (11)</button>
-          <button class="filter-pill" data-pillar="cloud">☁️ Azure &amp; DevOps (10)</button>
+          <button class="filter-pill active" data-pillar="all">All Modules (85)</button>
+          <button class="filter-pill" data-pillar="ui">⚛️ React 19 &amp; TS (13)</button>
+          <button class="filter-pill" data-pillar="csharp">⚡ C# Internals (16)</button>
+          <button class="filter-pill" data-pillar="linq">🔍 LINQ (10)</button>
+          <button class="filter-pill" data-pillar="efcore">🗄️ EF Core (10)</button>
+          <button class="filter-pill" data-pillar="sql">💾 SQL Server (11)</button>
+          <button class="filter-pill" data-pillar="aspnet">🌐 ASP.NET Core (14)</button>
+          <button class="filter-pill" data-pillar="cloud">☁️ Azure &amp; DevOps (11)</button>
         </div>
 
         <!-- Seniority & Flags Filters -->

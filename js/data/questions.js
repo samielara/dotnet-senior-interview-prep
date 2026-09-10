@@ -1,7 +1,7 @@
 // ============================================================================
 // HIGH-YIELD SENIOR FULL-STACK .NET INTERVIEW CURRICULUM
 // Organized into 7 Focused Technical Modules + Top 10 Coding Questions Arena
-// Sourced from top GitHub .NET repositories and Reddit r/dotnet interview patterns
+// Sourced from top GitHub .NET repositories (Venkatesh-Bharath) & Reddit interview loops
 // ============================================================================
 
 window.INTERVIEW_QUESTIONS = [
@@ -239,6 +239,149 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
+    "id": "q-csharp-11",
+    "pillar": "csharp",
+    "seniority": "Senior",
+    "tags": [
+      "Unsafe",
+      "Pointers",
+      "MemoryMarshal",
+      "SIMD"
+    ],
+    "title": "Unsafe Code, Native Pointers, and MemoryMarshal Zero-Copy Casts",
+    "pitch": "While C# is fundamentally a type-safe managed language, the 'unsafe' keyword and System.Runtime.InteropServices.MemoryMarshal allow developers to bypass CLR safety checks for ultra-high-throughput native interop, cryptographic operations, and SIMD hardware intrinsics. MemoryMarshal.Cast<TFrom, TTo>() allows zero-copy type reinterpretation of Span buffers without copying a single byte in memory.",
+    "deepDive": "Unsafe vs Safe Memory Operations:\n1. Pointers (fixed statement):\n   - The CLR GC moves objects during compaction.\n   - Using 'fixed (byte* p = buffer)' pins the managed array in memory, disabling GC movement for that block so raw pointers can be safely traversed.\n2. MemoryMarshal.Cast:\n   - Reinterprets a Span<byte> as a Span<int> or Span<Vector256<float>> without copying.\n   - Calculates the new length as: '(oldLength * sizeof(TFrom)) / sizeof(TTo)'.\n3. Hardware Intrinsics (SIMD):\n   - System.Runtime.Intrinsics.X86 (AVX2, AVX512) and Arm.Arm64.\n   - Performs Single Instruction Multiple Data operations, processing 8 or 16 numbers in a single CPU clock cycle.",
+    "codeSnippet": "using System.Runtime.InteropServices;\nusing System.Runtime.Intrinsics;\nusing System.Runtime.Intrinsics.X86;\n\npublic static class FastBufferUtilities\n{\n    // Zero-allocation byte-to-uint cast using MemoryMarshal\n    public static uint ComputeFastSum(ReadOnlySpan<byte> data)\n    {\n        // Reinterpret byte span as uint span (4 bytes per uint)\n        ReadOnlySpan<uint> uintSpan = MemoryMarshal.Cast<byte, uint>(data);\n        uint sum = 0;\n        for (int i = 0; i < uintSpan.Length; i++)\n        {\n            sum += uintSpan[i];\n        }\n        return sum;\n    }\n}",
+    "redFlags": [
+      "Using unsafe pointer arithmetic where Span<T> or ArrayPool<T> provides equivalent speed safely.",
+      "Pinning managed objects with 'fixed' for long periods, causing severe GC heap fragmentation."
+    ],
+    "proTips": [
+      "Always prefer MemoryMarshal and Unsafe.As<T>() over raw pointers: they are verified by Roslyn and preserve JIT optimization heuristics."
+    ]
+  },
+  {
+    "title": "ref vs. out vs. in vs. ref readonly: Parameter Passing Semantics and Memory Safety",
+    "seniority": "Senior",
+    "tags": [
+      "ref",
+      "out",
+      "in",
+      "ref readonly",
+      "Memory Safety",
+      "IL Lowering"
+    ],
+    "pitch": "In C#, 'ref' passes an existing variable by reference (must be initialized before passing, allows both read and write). 'out' passes by reference to return multiple values (the callee is required to assign a value before returning). 'in' passes a value type by read-only reference ('ref readonly'), eliminating stack-copy overhead for large structs while the compiler strictly forbids mutation. In IL bytecode, all four emit managed pointers (&), but 'in' emits [in] modreq and generates defensive copies if non-readonly members are invoked.",
+    "deepDive": "Under the Hood & IL Mechanics:\n1. IL Lowering:\n   - 'ref', 'out', and 'in' all pass a 32-bit or 64-bit managed pointer on the stack, identical to passing a pointer in C++.\n   - 'out' generates the same IL parameter signature as 'ref' but adds a ParamArray/Out attribute metadata instructing the compiler and Roslyn to enforce definite assignment.\n2. The 'in' Modifier and Defensive Copies:\n   - When passing a large struct with 'in', C# enforces read-only access.\n   - ⚠️ CRITICAL TRAP: If the struct is NOT declared as 'readonly struct', invoking any method or property on it causes Roslyn to create a hidden defensive copy on the stack first to guarantee that the method doesn't mutate fields!\n   - Always declare large structs as 'readonly struct' when pairing with 'in' parameters!\n3. 'ref readonly' Return Types:\n   - Introduced in C# 7.2, methods can return 'ref readonly T', allowing callers to access large in-memory struct elements without allocating or copying memory, while guaranteeing immutability.",
+    "codeSnippet": "// Struct must be readonly to prevent hidden defensive copies with 'in'\npublic readonly struct Vector4D\n{\n    public readonly double X, Y, Z, W; // 32 bytes (4 * 8 bytes)\n    public Vector4D(double x, double y, double z, double w) => (X, Y, Z, W) = (x, y, z, w);\n}\n\npublic class ParameterPassingBenchmark\n{\n    // ✅ SENIOR PATTERN: Zero-copy read-only reference for large struct\n    public static double CalculateMagnitude(in Vector4D v)\n    {\n        // v.X = 10; // ❌ Compile error: Cannot assign to variable 'in Vector4D'\n        return Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z + v.W * v.W);\n    }\n\n    // Modern 'out' declaration with discards\n    public static bool TryParseCoords(string input, out double lat, out double lon)\n    {\n        lat = 0; lon = 0; // Callee MUST assign before returning!\n        var parts = input.Split(',');\n        if (parts.Length != 2) return false;\n        return double.TryParse(parts[0], out lat) && double.TryParse(parts[1], out lon);\n    }\n}",
+    "redFlags": [
+      "Saying that 'in' and 'out' create new copies of objects on the heap.",
+      "Using 'in' on small primitive types like int, float, or bool (creates pointer indirection overhead worse than copying 4 bytes directly in CPU registers).",
+      "Failing to declare structs as 'readonly struct' when using 'in', leading to silent defensive copy performance degradation."
+    ],
+    "proTips": [
+      "Use 'in' only for structs larger than IntPtr.Size * 2 (16 bytes on 64-bit systems); for primitives like int or guid, pass by value directly into CPU registers."
+    ],
+    "id": "q-csharp-12",
+    "pillar": "csharp"
+  },
+  {
+    "title": "Abstract Classes vs. Interfaces: Polymorphism, State, and C# 8+ Default Interface Methods",
+    "seniority": "Senior",
+    "tags": [
+      "Abstract Class",
+      "Interface",
+      "Polymorphism",
+      "DIM",
+      "Multiple Inheritance"
+    ],
+    "pitch": "An abstract class defines an 'is-a' identity hierarchy, can encapsulate mutable state fields, constructors, and access modifiers, but C# enforces single class inheritance. An interface defines a 'can-do' behavioral contract with multiple inheritance support. Modern C# 8+ introduced Default Interface Methods (DIM) allowing interface trait composition and backward-compatible API evolution without breaking existing implementers; however, DIM methods cannot be overridden via traditional polymorphism unless the class is explicitly cast to the interface.",
+    "deepDive": "Architectural Breakdown:\n1. State vs Contract:\n   - Abstract classes can have instance fields, constructors that enforce initialization invariants, and protected internal members.\n   - Interfaces cannot have instance fields or non-static constructors; they represent pure capability abstractions.\n2. Default Interface Methods (DIM) Internals:\n   - DIM allows adding new methods with default implementations to existing interfaces without breaking legacy classes implementing them.\n   - ⚠️ TRAP: DIM methods are NOT inherited by implementing classes as public methods! They can ONLY be called when the object is cast to the interface reference:\n     ((ILogger)myClass).LogDebug(\"msg\");\n3. Diamond Problem Resolution:\n   - If a class implements two interfaces with identical DIM signatures, the C# compiler produces an ambiguity error unless the implementing class explicitly implements the method to resolve the conflict.",
+    "codeSnippet": "public interface IRepository<T>\n{\n    Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);\n\n    // ✅ C# 8+ Default Interface Method (DIM)\n    // Legacy implementations don't break when this method is added!\n    Task<T> GetRequiredAsync(Guid id, CancellationToken ct = default)\n    {\n        return GetByIdAsync(id, ct).ContinueWith(t => \n            t.Result ?? throw new KeyNotFoundException($\"Entity {id} not found!\"));\n    }\n}\n\n// Abstract base class: Holds state & constructor invariants\npublic abstract class AuditableEntity\n{\n    public Guid Id { get; protected init; } = Guid.NewGuid();\n    public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;\n\n    protected AuditableEntity() { } // Enforces controlled instantiation\n}\n\npublic class Order : AuditableEntity, IRepository<Order>\n{\n    public Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default) => Task.FromResult<Order?>(this);\n    // Note: GetRequiredAsync is available via ((IRepository<Order>)order).GetRequiredAsync(id)\n}",
+    "redFlags": [
+      "Claiming that interfaces and abstract classes are now identical because of C# 8 Default Interface Methods (DIM).",
+      "Attempting to declare instance state fields inside an interface.",
+      "Not knowing that DIM methods are not directly accessible on the class instance without casting to the interface."
+    ],
+    "proTips": [
+      "Use Interfaces for defining public API surface contracts and enabling dependency injection mocking; use Abstract Classes within internal domain models to share invariant state and Template Method patterns."
+    ],
+    "id": "q-csharp-13",
+    "pillar": "csharp"
+  },
+  {
+    "title": "The Standard IDisposable and IAsyncDisposable Pattern with Finalizers",
+    "seniority": "Senior",
+    "tags": [
+      "IDisposable",
+      "IAsyncDisposable",
+      "Finalizer",
+      "GC.SuppressFinalize",
+      "SafeHandle"
+    ],
+    "pitch": "The standard Dispose pattern provides deterministic cleanup of unmanaged OS resources (file handles, network sockets, unmanaged pointers) before the non-deterministic Garbage Collector runs. Implementing IDisposable with Dispose(bool disposing) and GC.SuppressFinalize(this) tells the GC to remove the object from the Finalization Queue, avoiding costly Gen 2 finalizer promotion. Modern .NET also requires IAsyncDisposable with DisposeAsync() for non-blocking asynchronous flushing of streams, buffers, and network connections via 'await using'.",
+    "deepDive": "Resource Management Under the Hood:\n1. Deterministic vs Non-Deterministic:\n   - Managed memory is freed by GC non-deterministically.\n   - Native OS handles (file descriptors, database connections, GDI handles) must be released deterministically via Dispose().\n2. The Finalizer Cost:\n   - Objects with a Finalizer (~ClassName) that are NOT suppressed survive Gen 0/1 collection, get promoted to Gen 2, and are placed on the Finalizer Queue.\n   - The CLR's single-threaded Finalizer thread must run before their memory can be reclaimed on the NEXT GC cycle!\n   - Calling GC.SuppressFinalize(this) completely bypasses the finalizer thread.\n3. IAsyncDisposable (.NET Core 3.0+):\n   - Traditional Dispose() is synchronous: closing a network socket or flushing a buffered stream synchronously causes ThreadPool blocking.\n   - DisposeAsync() returns a ValueTask, enabling non-blocking asynchronous cleanup: 'await using var stream = ...;'",
+    "codeSnippet": "public class ProductionResourceHolder : IDisposable, IAsyncDisposable\n{\n    private SafeHandle? _unmanagedHandle; // OS handle\n    private FileStream? _bufferedFile;     // Managed disposable\n    private int _disposed = 0;              // Interlocked flag\n\n    public ProductionResourceHolder(string path)\n    {\n        _bufferedFile = new FileStream(path, FileMode.OpenOrCreate);\n    }\n\n    // Standard synchronous dispose\n    public void Dispose()\n    {\n        Dispose(disposing: true);\n        GC.SuppressFinalize(this); // Remove from GC Finalization Queue!\n    }\n\n    protected virtual void Dispose(bool disposing)\n    {\n        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;\n\n        if (disposing)\n        {\n            // Free managed disposables\n            _bufferedFile?.Dispose();\n            _bufferedFile = null;\n        }\n\n        // Free unmanaged resources\n        _unmanagedHandle?.Dispose();\n        _unmanagedHandle = null;\n    }\n\n    // Modern asynchronous dispose\n    public async ValueTask DisposeAsync()\n    {\n        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;\n\n        if (_bufferedFile is not null)\n        {\n            await _bufferedFile.DisposeAsync().ConfigureAwait(false);\n            _bufferedFile = null;\n        }\n\n        Dispose(disposing: false);\n        GC.SuppressFinalize(this);\n    }\n\n    ~ProductionResourceHolder() => Dispose(disposing: false); // Finalizer fallback\n}",
+    "redFlags": [
+      "Forgetting GC.SuppressFinalize(this) in Dispose(), forcing the object onto the slow Gen 2 finalizer queue.",
+      "Accessing managed disposable objects inside the Finalizer (the managed objects may have already been collected by the GC!).",
+      "Calling synchronous .Dispose() on streams and network handles in high-throughput async pipelines instead of 'await using'."
+    ],
+    "proTips": [
+      "Wrap native OS pointers with SafeHandle instead of raw IntPtr: SafeHandle derives from CriticalFinalizerObject and guarantees cleanup even during thread aborts or out-of-memory exceptions."
+    ],
+    "id": "q-csharp-14",
+    "pillar": "csharp"
+  },
+  {
+    "title": "Delegates vs. Events vs. Multicast Delegates: Encapsulation and Memory Leak Traps",
+    "seniority": "Senior",
+    "tags": [
+      "Delegates",
+      "Events",
+      "MulticastDelegate",
+      "Memory Leaks",
+      "Action/Func"
+    ],
+    "pitch": "A delegate is a type-safe object-oriented function pointer inheriting from System.MulticastDelegate with an internal linked invocation list. An 'event' is a compiler-enforced encapsulation wrapper over a delegate: it restricts external consumers to only adding (+=) or removing (-=) handlers, preventing external code from invoking the delegate directly or accidentally resetting subscribers with '= null'. The classic senior bug is the 'Lapsed Listener' memory leak: subscribing a short-lived object's method to a long-lived publisher prevents the subscriber from ever being collected by GC.",
+    "deepDive": "Internal Architecture & Lowering:\n1. System.MulticastDelegate Anatomy:\n   - Holds '_target' (the instance object) and '_methodPtr' (the native function pointer).\n   - If multiple methods are hooked (+=), it allocates a new MulticastDelegate with an internal array '_invocationList'.\n2. Why the 'event' Keyword Exists:\n   - A public delegate field can be cleared by anyone: 'myClass.OnSave = null;' destroying all other subscribers!\n   - A public delegate can also be invoked externally: 'myClass.OnSave(data);'.\n   - The 'event' keyword turns the field into two accessor methods in IL: add_EventName and remove_EventName, locking down invocation to the declaring class only.\n3. The Lapsed Listener Memory Leak:\n   - When object B subscribes to publisher A: publisher A's delegate invocation list holds a strong reference to B!\n   - If A is a Singleton (or static) and B is a short-lived UI view or scoped service, B will NEVER be garbage collected until unsubscribed or until WeakEventManager is used.",
+    "codeSnippet": "public class OrderPublisher\n{\n    // ✅ SENIOR PATTERN: Event encapsulates delegate against external tampering\n    public event EventHandler<OrderEventArgs>? OrderCompleted;\n\n    public void CompleteOrder(Guid orderId)\n    {\n        // Thread-safe invocation via null-conditional copy\n        OrderCompleted?.Invoke(this, new OrderEventArgs(orderId));\n    }\n}\n\n// Subscriber demonstrating clean unsubscription\npublic class OrderAuditLogger : IDisposable\n{\n    private readonly OrderPublisher _publisher;\n\n    public OrderAuditLogger(OrderPublisher publisher)\n    {\n        _publisher = publisher;\n        _publisher.OrderCompleted += HandleOrderCompleted; // Subscribes strong reference\n    }\n\n    private void HandleOrderCompleted(object? sender, OrderEventArgs e)\n    {\n        Console.WriteLine($\"Order {e.OrderId} completed.\");\n    }\n\n    // MUST unsubscribe to prevent Lapsed Listener memory leak!\n    public void Dispose()\n    {\n        _publisher.OrderCompleted -= HandleOrderCompleted;\n    }\n}",
+    "redFlags": [
+      "Declaring public delegate fields instead of 'event', allowing external callers to wipe out other subscribers.",
+      "Failing to unsubscribe from events in long-lived publishers, leading to massive memory leaks.",
+      "Not knowing that delegates in C# are immutable (calling += creates a brand-new MulticastDelegate instance)."
+    ],
+    "proTips": [
+      "In modern C#, favor built-in Action<T> and Func<T, TResult> over custom delegate types unless you need 'ref' parameters or custom parameter names in API signatures."
+    ],
+    "id": "q-csharp-15",
+    "pillar": "csharp"
+  },
+  {
+    "title": "const vs. readonly vs. static readonly: Compile-Time Inlining and Assembly Versioning",
+    "seniority": "Senior",
+    "tags": [
+      "const",
+      "readonly",
+      "static readonly",
+      "IL Inlining",
+      "Assembly Versioning"
+    ],
+    "pitch": "'const' is evaluated at compile-time: the Roslyn compiler literally inlines the literal primitive or string value directly into the calling assembly's IL bytecode. If assembly A changes a 'const' and is redeployed without recompiling assembly B, assembly B silently retains the stale hardcoded value. In contrast, 'readonly' and 'static readonly' fields are evaluated at runtime (in instance constructors or the static class constructor .cctor), referencing the live memory address and supporting reference types and cross-assembly updates without breaking changes.",
+    "deepDive": "Compilation and Execution Mechanics:\n1. Roslyn IL Lowering of 'const':\n   - 'public const int MaxRetries = 3;'\n   - When referenced from another assembly: 'ldc.i4.3' (literal constant 3) is hardcoded directly into the caller's IL!\n   - There is NO runtime field lookup. If MaxRetries is changed to 5 in a shared NuGet library, the consumer will keep using 3 until recompiled!\n2. 'static readonly' Evaluation:\n   - Evaluated during the execution of the class's static constructor (.cctor) when the type is first initialized by the CLR.\n   - Emits 'ldsfld' (load static field) in the caller's IL, ensuring the current value from memory is always loaded.\n   - Allows constructing complex reference objects: 'public static readonly HttpClient Client = new();'\n3. Instance 'readonly':\n   - Can only be assigned at declaration or within instance constructors. Once construction completes, the CLR runtime enforces immutability.",
+    "codeSnippet": "public static class ApiConfig\n{\n    // ⚠️ DANGEROUS ACROSS ASSEMBLIES: Value is inlined into caller assembly IL!\n    public const string DefaultBaseUrl = \"https://api.domain.com/v1\";\n\n    // ✅ SENIOR PATTERN FOR PUBLIC LIBRARIES: Evaluated at runtime via ldsfld\n    public static readonly string SafeBaseUrl = \"https://api.domain.com/v1\";\n\n    // ✅ Supports complex reference types and environment lookups\n    public static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(\n        int.TryParse(Environment.GetEnvironmentVariable(\"HTTP_TIMEOUT\"), out var t) ? t : 30\n    );\n}",
+    "redFlags": [
+      "Exposing 'public const' in public shared NuGet packages for configuration values that could ever change.",
+      "Believing that 'readonly' reference fields make the referenced object immutable (it only prevents reassigning the reference itself, not its properties).",
+      "Attempting to assign a 'const' to a reference type other than string or null."
+    ],
+    "proTips": [
+      "Rule of thumb: Only use 'const' for true mathematical or unchanging constants (like Math.PI, DaysInWeek = 7). For configuration defaults and URLs across assemblies, always use 'static readonly'."
+    ],
+    "id": "q-csharp-16",
+    "pillar": "csharp"
+  },
+  {
     "id": "q-aspnet-1",
     "pillar": "aspnet",
     "seniority": "Senior",
@@ -461,6 +604,556 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
+    "id": "q-aspnet-11",
+    "pillar": "aspnet",
+    "seniority": "Senior",
+    "tags": [
+      "SignalR",
+      "WebSockets",
+      "Real-Time",
+      "MessagePack"
+    ],
+    "title": "ASP.NET Core SignalR Scale-Out, MessagePack, and Azure SignalR Service",
+    "pitch": "ASP.NET Core SignalR simplifies real-time bidirectional communication by abstracting WebSockets, Server-Sent Events, and Long Polling. In high-traffic clusters, sticky sessions and memory constraints make hosting WebSockets on application pods unscalable. Azure SignalR Service offloads client connections entirely: backend web servers maintain only a lightweight multiplexed control channel. Replacing standard JSON with MessagePack serialization reduces network payloads by up to 70% and drastically cuts GC allocations.",
+    "deepDive": "Real-Time Architecture Nuances:\n1. Transport Fallbacks:\n   - WebSocket: Full-duplex persistent TCP connection (preferred).\n   - Server-Sent Events (SSE): Half-duplex (server-to-client push only; client sends via standard HTTP).\n   - Long Polling: Legacy fallback for restrictive enterprise proxies.\n2. Backplane Alternatives:\n   - Redis Backplane: Every broadcast to a group is fanned out to EVERY connected node in the cluster ($O(N \times M)$ overhead).\n   - Azure SignalR Service: Managed edge service terminating 100k+ WebSockets. Only routes messages to nodes with active subscribers.\n3. MessagePack Binary Protocol:\n   - By default, SignalR serializes messages to JSON text.\n   - Adding 'Microsoft.AspNetCore.SignalR.Protocols.MessagePack' transmits compact binary data, reducing CPU serialization overhead and mobile client bandwidth.",
+    "codeSnippet": "// Program.cs: SignalR with Azure SignalR Service and MessagePack\nbuilder.Services.AddSignalR()\n    .AddAzureSignalR(options =>\n    {\n        options.ConnectionString = builder.Configuration.GetConnectionString(\"AzureSignalR\");\n        options.ServerStickyMode = ServerStickyMode.Disabled;\n    })\n    .AddMessagePackProtocol(); // Binary high-efficiency protocol",
+    "redFlags": [
+      "Assuming SignalR requires sticky sessions when using Azure SignalR Service (Azure SignalR eliminates sticky session requirements).",
+      "Broadcasting 5MB payloads over SignalR instead of sending a lightweight notification with an HTTP download link."
+    ],
+    "proTips": [
+      "Implement Hub lifetime events ('OnConnectedAsync' and 'OnDisconnectedAsync') to manage user presence in Redis with automatic TTL timeouts."
+    ]
+  },
+  {
+    "title": "Action Filters vs. Middleware in ASP.NET Core: Pipeline Architecture and Execution Context",
+    "seniority": "Senior",
+    "tags": [
+      "Middleware",
+      "Action Filters",
+      "HTTP Pipeline",
+      "ModelState",
+      "Execution Order"
+    ],
+    "pitch": "Middleware executes in the outer HTTP pipeline before routing reaches the endpoint: it has access only to raw HttpContext and operates globally across all requests (WebSockets, static files, gRPC, REST). Filters (Authorization, Resource, Action, Exception, Result) execute inside the MVC/Routing endpoint pipeline after model binding: they possess full context of the invoked Controller, action parameters, ModelState, and metadata attributes. Senior engineers use middleware for cross-cutting infrastructure concerns (CORS, logging, rate limiting) and Action Filters for business-level request validation, audit trails, and response formatting.",
+    "deepDive": "Pipeline Execution Order:\n1. Request Ingress:\n   - Request -> Middleware 1 -> Middleware 2 (Routing) -> Endpoint Selected ->\n   - Authorization Filter -> Resource Filter -> Model Binding ->\n   - Action Filter (OnActionExecuting) -> Controller Action -> Action Filter (OnActionExecuted) ->\n   - Result Filter -> Action Result Executed -> Resource Filter (Post) ->\n   - Middleware 2 -> Middleware 1 -> Response Egress.\n2. Context Differences:\n   - Middleware has 'HttpContext' only: no knowledge of which controller/action was chosen, no access to parsed DTOs, and no access to ModelState errors.\n   - Action Filter receives 'ActionExecutingContext': provides 'context.ActionArguments', 'context.Controller', 'context.ModelState', and can short-circuit by setting 'context.Result'.\n3. Performance Considerations:\n   - Resource Filters run before Model Binding and can short-circuit cached requests without paying the CPU cost of deserializing large JSON request bodies!",
+    "codeSnippet": "// 1. Action Filter: Has access to ActionArguments and ModelState\npublic class ValidateModelStateFilter : IAsyncActionFilter\n{\n    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)\n    {\n        if (!context.ModelState.IsValid)\n        {\n            // Short-circuit with RFC 7807 ProblemDetails\n            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));\n            return;\n        }\n\n        // Execute controller action\n        var executedContext = await next();\n\n        // Post-execution logic (e.g., response auditing)\n    }\n}\n\n// 2. Middleware: Cross-cutting infrastructure concern\npublic class RequestTimingMiddleware\n{\n    private readonly RequestDelegate _next;\n    public RequestTimingMiddleware(RequestDelegate next) => _next = next;\n\n    public async Task InvokeAsync(HttpContext context, ILogger<RequestTimingMiddleware> logger)\n    {\n        var sw = Stopwatch.StartNew();\n        await _next(context); // Passes down the pipeline\n        sw.Stop();\n        logger.LogInformation(\"HTTP {Method} {Path} finished in {ElapsedMs}ms\", \n            context.Request.Method, context.Request.Path, sw.ElapsedMilliseconds);\n    }\n}",
+    "redFlags": [
+      "Using Action Filters for global authentication or CORS (should always be handled early in the middleware pipeline).",
+      "Attempting to read and deserialize the request body inside an Action Filter multiple times without enabling request buffering.",
+      "Not knowing the 5 filter types and their order of execution (Authorization -> Resource -> Action -> Exception -> Result)."
+    ],
+    "proTips": [
+      "Use Resource Filters for performance-critical caching: they execute before model binding, allowing you to return cached responses without allocating DTO objects or running JSON serializers."
+    ],
+    "id": "q-aspnet-12",
+    "pillar": "aspnet"
+  },
+  {
+    "title": "CORS Architecture: Same-Origin Policy, Preflight OPTIONS, and Middleware Ordering",
+    "seniority": "Senior",
+    "tags": [
+      "CORS",
+      "Same-Origin Policy",
+      "OPTIONS Preflight",
+      "Middleware Pipeline",
+      "Security"
+    ],
+    "pitch": "CORS (Cross-Origin Resource Sharing) is a browser-enforced security mechanism preventing malicious scripts on one origin from making unauthorized cross-origin requests. Browsers send an HTTP OPTIONS preflight request with Origin and Access-Control-Request-Method headers before non-simple requests (custom headers, PUT/DELETE, JSON). In ASP.NET Core, app.UseCors() MUST be placed in the exact pipeline position: after app.UseRouting() but before app.UseAuthentication(), app.UseAuthorization(), and app.UseResponseCaching(). A classic senior pitfall is configuring AllowAnyOrigin() together with AllowCredentials(), which browsers reject outright.",
+    "deepDive": "Internal Browser & Middleware Protocol:\n1. Simple vs Preflighted Requests:\n   - Simple requests (GET/POST with standard headers and Content-Type: text/plain, multipart/form-data, or application/x-www-form-urlencoded) do NOT send preflight requests.\n   - Any request with 'application/json', custom headers (Authorization, X-Api-Key), or PUT/DELETE triggers an automatic browser OPTIONS preflight.\n2. The Fatal AllowAnyOrigin + AllowCredentials Conflict:\n   - If an API sets 'AllowAnyOrigin()' (*), the browser refuses to send cookies or Authorization headers.\n   - Setting 'AllowCredentials()' with '*' is blocked by the W3C spec for security reasons.\n   - Solution: Use '.SetIsOriginAllowed(origin => ...)' or specify explicit trusted origins: '.WithOrigins(\"https://app.domain.com\")'.\n3. Middleware Order Pitfall:\n   - 'app.UseCors()' MUST precede 'app.UseResponseCaching()', or cached responses for one origin will be returned to another origin without CORS headers!",
+    "codeSnippet": "var builder = WebApplication.CreateBuilder(args);\n\nbuilder.Services.AddCors(options =>\n{\n    options.AddPolicy(\"ProductionCorsPolicy\", policy =>\n    {\n        policy.WithOrigins(\"https://app.company.com\", \"https://admin.company.com\")\n              .AllowAnyMethod()\n              .AllowAnyHeader()\n              .AllowCredentials() // ✅ Allowed only because explicit origins are defined!\n              .SetPreflightMaxAge(TimeSpan.FromHours(2)); // Caches OPTIONS preflight in browser\n    });\n});\n\nvar app = builder.Build();\n\n// ⚠️ CRITICAL MIDDLEWARE ORDER:\napp.UseRouting();\n\napp.UseCors(\"ProductionCorsPolicy\"); // ✅ AFTER UseRouting, BEFORE Auth & Endpoints!\n\napp.UseAuthentication();\napp.UseAuthorization();\n\napp.MapControllers();\napp.Run();",
+    "redFlags": [
+      "Using 'builder.Services.AddCors()' with AllowAnyOrigin() and AllowCredentials() simultaneously (browsers reject response with CORS error).",
+      "Placing app.UseCors() before app.UseRouting() or after app.UseAuthorization().",
+      "Assuming CORS is a server-side firewall (CORS is purely a client-side browser instruction; Postman or curl completely bypass CORS)."
+    ],
+    "proTips": [
+      "Set .SetPreflightMaxAge(TimeSpan.FromHours(2)) in production CORS policies to prevent browsers from issuing a wasteful HTTP OPTIONS round-trip before every single API call."
+    ],
+    "id": "q-aspnet-13",
+    "pillar": "aspnet"
+  },
+  {
+    "title": "Background Tasks with IHostedService and BackgroundService: Scopes and Graceful Shutdown",
+    "seniority": "Senior",
+    "tags": [
+      "IHostedService",
+      "BackgroundService",
+      "Captive Dependency",
+      "CancellationToken",
+      "Graceful Shutdown"
+    ],
+    "pitch": "IHostedService and BackgroundService allow ASP.NET Core web servers to run asynchronous background workers (message queue consumers, cache warming, periodic synchronizations). Because BackgroundService is registered as a Singleton, injecting a Scoped service (such as EF Core's DbContext) directly into its constructor creates a Captive Dependency that either crashes on startup or causes concurrency exceptions and memory leaks. The senior pattern injects IServiceScopeFactory, creating an explicit 'using var scope = _scopeFactory.CreateScope()' per processing iteration and honoring the CancellationToken for graceful 30-second shutdown.",
+    "deepDive": "Under the Hood Lifecycle:\n1. Lifecycle Orchestration:\n   - When ASP.NET Core boots, the Host calls 'StartAsync(CancellationToken)' on all registered IHostedService instances sequentially before accepting incoming HTTP requests.\n   - BackgroundService implements IHostedService by executing 'ExecuteAsync(CancellationToken)' in an unawaited background Task.\n2. Graceful Shutdown & HostOptions:\n   - When SIGTERM / SIGINT occurs, the Host calls 'StopAsync(CancellationToken)'.\n   - The default shutdown timeout is 30 seconds (configurable via HostOptions.ShutdownTimeout).\n   - If ExecuteAsync does not check 'stoppingToken.IsCancellationRequested' or pass it to async APIs, the host forcibly terminates the process, causing data corruption.\n3. Captive Scope Resolution:\n   - Singleton services live for the entire process lifetime.\n   - EF Core DbContext is Scoped and NOT thread-safe.\n   - Always create a temporary scope inside the worker loop to retrieve a fresh DbContext instance.",
+    "codeSnippet": "public class QueueProcessorWorker : BackgroundService\n{\n    private readonly IServiceScopeFactory _scopeFactory;\n    private readonly ILogger<QueueProcessorWorker> _logger;\n\n    public QueueProcessorWorker(IServiceScopeFactory scopeFactory, ILogger<QueueProcessorWorker> logger)\n    {\n        _scopeFactory = scopeFactory;\n        _logger = logger;\n    }\n\n    protected override async Task ExecuteAsync(CancellationToken stoppingToken)\n    {\n        _logger.LogInformation(\"QueueProcessorWorker started.\");\n\n        // Loop until host triggers graceful shutdown\n        while (!stoppingToken.IsCancellationRequested)\n        {\n            try\n            {\n                // ✅ SENIOR PATTERN: Create scope per work batch to resolve Scoped DbContext\n                using (var scope = _scopeFactory.CreateScope())\n                {\n                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();\n                    var pendingJobs = await db.Jobs\n                        .Where(j => j.Status == JobStatus.Queued)\n                        .Take(10)\n                        .ToListAsync(stoppingToken);\n\n                    foreach (var job in pendingJobs)\n                    {\n                        job.Process();\n                    }\n\n                    await db.SaveChangesAsync(stoppingToken);\n                }\n\n                // Throttle poll interval honoring cancellation\n                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);\n            }\n            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)\n            {\n                break; // Graceful shutdown requested, exit loop cleanly\n            }\n            catch (Exception ex)\n            {\n                _logger.LogError(ex, \"Error processing job queue batch.\");\n            }\n        }\n\n        _logger.LogInformation(\"QueueProcessorWorker cleanly shut down.\");\n    }\n}",
+    "redFlags": [
+      "Injecting AppDbContext directly into the constructor of a BackgroundService (Captive Dependency bug).",
+      "Ignoring the stoppingToken in Task.Delay or async calls, preventing Docker / Kubernetes from shutting down containers gracefully.",
+      "Swallowing OperationCanceledException and continuing the loop during host shutdown."
+    ],
+    "proTips": [
+      "Configure 'HostOptions.ShutdownTimeout' in Program.cs to give long-running background tasks adequate time to drain in-flight batches before SIGKILL."
+    ],
+    "id": "q-aspnet-14",
+    "pillar": "aspnet"
+  },
+  {
+    "id": "q-linq-1",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "EF Core",
+      "N+1 Problem",
+      "Projection",
+      "Cartesian Explosion"
+    ],
+    "title": "Eliminating N+1 Queries and Cartesian Explosion via LINQ Projection",
+    "pitch": "The N+1 query problem occurs when an application executes 1 initial database query to fetch N parent records, then fires N subsequent queries in a loop to fetch child records for each parent. While eager loading with .Include() eliminates N+1, chaining multiple .Include() calls on collections causes a Cartesian Explosion, where SQL joins multiply rows into thousands of redundant duplicated records. Pure LINQ projection via .Select() solves both by generating a single optimized SQL query that retrieves only needed columns.",
+    "deepDive": "Comparing Data Fetching Strategies:\n1. Lazy Loading (N+1 Anti-Pattern):\n   - var blogs = db.Blogs.ToList(); // 1 query\n   - foreach (var b in blogs) Console.WriteLine(b.Posts.Count); // N queries!\n2. Eager Loading with Multiple Includes (Cartesian Explosion):\n   - db.Blogs.Include(b => b.Posts).Include(b => b.Contributors).ToList();\n   - SQL JOIN produces: (Posts Count * Contributors Count) rows! If a blog has 50 posts and 20 contributors, 1,000 rows are returned across TDS for a single blog!\n3. Split Queries (.AsSplitQuery()):\n   - Issues separate SQL queries per collection (1 for Blogs, 1 for Posts, 1 for Contributors), avoiding the Cartesian multiplication.\n4. Projection (.Select()):\n   - Compiles directly to targeted SQL SELECT list. Computes counts and sums in the database engine in a single roundtrip.",
+    "codeSnippet": "//  SENIOR PROJECTION PATTERN: Single DB roundtrip, zero duplicate bytes\npublic async Task<List<BlogSummaryDto>> GetBlogSummariesAsync(AppDbContext db, CancellationToken ct)\n{\n    return await db.Blogs\n        .AsNoTracking()\n        .Where(b => b.IsPublished)\n        .Select(b => new BlogSummaryDto(\n            b.Id,\n            b.Title,\n            b.Author.FullName,\n            b.Posts.Count(), // Translated to SQL subquery\n            b.Posts.OrderByDescending(p => p.PublishedAt).Select(p => p.Title).Take(3).ToList()\n        ))\n        .ToListAsync(ct);\n}",
+    "redFlags": [
+      "Leaving Lazy Loading enabled in Web APIs (leads to silent N+1 queries during JSON serialization).",
+      "Fetching complete entity graphs containing 40 columns just to display 3 fields on a frontend grid."
+    ],
+    "proTips": [
+      "Use EF Core Query Tagging (.TagWith(\"GetBlogSummaries\")) to easily trace LINQ queries in SQL Server Profiler and Application Insights."
+    ]
+  },
+  {
+    "id": "q-linq-2",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "IEnumerable",
+      "IQueryable",
+      "Expression Trees",
+      "Deferred Execution"
+    ],
+    "title": "IEnumerable<T> vs. IQueryable<T>: In-Memory Client Filtering vs SQL Expression Trees",
+    "pitch": "IEnumerable<T> operates in-memory on in-process collections using compiled delegates (Func<T, bool>). Every filtering operation evaluates in the CLR on the client machine. IQueryable<T> inherits from IEnumerable but evaluates out-of-process against an external data source (like SQL Server) using Expression Trees (Expression<Func<T, bool>>). The query provider parses the expression tree and translates it into native SQL, executing filtering directly on the database engine.",
+    "deepDive": "Under the Hood Differences:\n1. Method Signatures:\n   - Enumerable.Where takes Func<TSource, bool> (compiled C# IL delegate).\n   - Queryable.Where takes Expression<Func<TSource, bool>> (data structure representing code).\n2. The Fatal Performance Anti-Pattern:\n   - If an EF Core query is cast to IEnumerable<T> before applying Where or Take:\n     IEnumerable<Order> orders = dbContext.Orders; // Still IQueryable\n     var filtered = orders.Where(o => o.Status == \"Completed\").Take(10);\n   - Because Where() is invoked on IEnumerable, EF Core issues: SELECT * FROM Orders;\n   - All 5,000,000 order rows are transferred across the network to client RAM, where the CLR filters in-memory!\n   - Invoking Where() on IQueryable compiles to: SELECT TOP (10) * FROM Orders WHERE Status = 'Completed';\n3. When to use each:\n   - Use IQueryable while building the database query pipeline (paging, filtering, sorting, projection).\n   - Use IEnumerable once data has been materialized (.ToList(), .AsEnumerable()) for C# domain computations that SQL cannot express.",
+    "codeSnippet": "// ❌ JUNIOR MISTAKE: Pulls all 5 million rows into memory!\npublic List<OrderDto> BadGetOrders(AppDbContext db)\n{\n    IEnumerable<Order> query = db.Orders; // Casts to IEnumerable!\n    return query\n        .Where(o => o.Total > 500)       // Executes in C# memory, NOT in SQL!\n        .Take(20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToList();\n}\n\n// ✅ SENIOR PATTERN: Generates optimal SQL with WHERE and TOP\npublic async Task<List<OrderDto>> GoodGetOrdersAsync(AppDbContext db, CancellationToken ct)\n{\n    IQueryable<Order> query = db.Orders.AsNoTracking();\n    return await query\n        .Where(o => o.Total > 500)       // Translated to SQL: WHERE Total > 500\n        .Take(20)                        // Translated to SQL: TOP (20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToListAsync(ct);\n}",
+    "redFlags": [
+      "Calling '.ToList()' or '.AsEnumerable()' early in an EF query pipeline before applying filters or pagination.",
+      "Stating that IQueryable and IEnumerable execute the same way."
+    ],
+    "proTips": [
+      "Keep method return types as IQueryable<T> inside Repository/Query specifications only if you want callers to append further SQL clauses; otherwise, return Task<List<TDto>> to prevent leaky query logic."
+    ]
+  },
+  {
+    "id": "q-linq-3",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "Deferred Execution",
+      "Multiple Enumeration",
+      "Re-evaluation",
+      "Yield"
+    ],
+    "title": "LINQ Deferred Execution vs. Immediate Execution: The Multiple Enumeration Bug",
+    "pitch": "LINQ queries use deferred execution by default: defining a query does not execute it or allocate collection memory; execution occurs only when the sequence is iterated (via foreach, .ToList(), .Count(), etc.). However, this introduces the critical 'Multiple Enumeration' performance bug: iterating an unmaterialized deferred query multiple times causes the entire query (and underlying database roundtrip or calculation) to re-execute every single time.",
+    "deepDive": "Core Mechanics of Deferred Execution:\n1. Iterators & Yield:\n   - Operators like Where, Select, and Skip return custom iterator structs/classes implementing IEnumerator<T>.\n   - Code executes on each call to MoveNext().\n2. The Multiple Enumeration Hazard:\n   public void Process(IEnumerable<User> users)\n   {\n       if (users.Any()) // Enumeration 1: Runs SQL query or generator\n       {\n           int count = users.Count(); // Enumeration 2: Re-runs entire query!\n           foreach (var u in users) { ... } // Enumeration 3: Re-runs again!\n       }\n   }\n3. Immediate Execution Operators:\n   - Operators that produce a non-sequence value: Count(), Any(), First(), Single(), Sum(), Average().\n   - Operators that buffer into a collection: ToList(), ToArray(), ToDictionary(), ToLookup().",
+    "codeSnippet": "// ❌ MULTIPLE ENUMERATION: Re-executes HTTP/DB or LINQ stream twice\npublic void SendAlerts(IEnumerable<SensorReading> readings)\n{\n    // Multiple enumeration warning!\n    if (readings.Any(r => r.Temperature > 100))\n    {\n        var critical = readings.Where(r => r.Temperature > 100);\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count()); // Re-enumerates!\n    }\n}\n\n// ✅ MATERIALIZED EVALUATION: Single pass iteration\npublic void SendAlertsOptimal(IEnumerable<SensorReading> readings)\n{\n    // Materialize into memory once if multiple iterations are required\n    var critical = readings.Where(r => r.Temperature > 100).ToList();\n    if (critical.Count > 0)\n    {\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count);\n    }\n}",
+    "redFlags": [
+      "Ignoring JetBrains ReSharper / Roslyn 'Possible multiple enumeration of IEnumerable' compiler warnings.",
+      "Calling .ToList() prematurely on huge streams that only require a single streaming forward-pass."
+    ],
+    "proTips": [
+      "In .NET 6+, use 'reading.TryGetNonEnumeratedCount(out int count)' to check element count without forcing an enumeration if the sequence implements ICollection."
+    ]
+  },
+  {
+    "id": "q-linq-4",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "SelectMany",
+      "Cross Join",
+      "Hierarchy Flattening",
+      "Projection"
+    ],
+    "title": "SelectMany vs. Select: Flattening Hierarchies, 1:N Relationships, and Cross Joins",
+    "pitch": "Select() projects each element of a sequence into a new form, producing a 1-to-1 output sequence (IEnumerable<TOut>). SelectMany() projects each element to an intermediate sequence and flattens the resulting sequences into a single one-dimensional collection (1-to-many relationship). In relational databases and EF Core, SelectMany translates to an SQL CROSS APPLY or INNER JOIN, avoiding nested collection objects.",
+    "deepDive": "Understanding the Mechanics:\n1. Select:\n   - Input: List of Authors (each author has List<Book>).\n   - authors.Select(a => a.Books) returns IEnumerable<List<Book>> (a collection of collections).\n2. SelectMany:\n   - authors.SelectMany(a => a.Books) returns IEnumerable<Book> (a single flat list of all books from all authors).\n3. Cross Product / Cartesian Generation:\n   - SelectMany can take a second result selector to combine parent and child attributes:\n     authors.SelectMany(a => a.Books, (author, book) => new { author.Name, book.Title });\n4. EF Core Translation:\n   - Translates into SQL: 'FROM Authors a CROSS APPLY Books b' or 'INNER JOIN Books b ON a.Id = b.AuthorId'.",
+    "codeSnippet": "public class Department\n{\n    public string Name { get; set; } = \"\";\n    public List<Employee> Employees { get; set; } = new();\n}\n\npublic class ReportingService\n{\n    public List<EmployeeDto> GetAllActiveEmployees(List<Department> departments)\n    {\n        // Flattens departments into a single stream of active employees\n        return departments\n            .SelectMany(dept => dept.Employees)\n            .Where(emp => emp.IsActive)\n            .Select(emp => new EmployeeDto(emp.Id, emp.FullName, emp.Salary))\n            .ToList();\n    }\n}",
+    "redFlags": [
+      "Using nested foreach loops to append child items to a new List instead of a declarative SelectMany.",
+      "Confusing SelectMany with Concat or Union."
+    ],
+    "proTips": [
+      "SelectMany is the monadic 'bind' (flatMap) operation in functional programming, enabling railway-oriented programming when chaining Result<T> types."
+    ]
+  },
+  {
+    "id": "q-linq-5",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "GroupBy",
+      "ToLookup",
+      "ToDictionary",
+      "Memory"
+    ],
+    "title": "LINQ GroupBy vs. ToLookup vs. ToDictionary: Performance and Memory Trade-Offs",
+    "pitch": "GroupBy produces a deferred, lazy-evaluated sequence of IGrouping<TKey, TElement> where each group is streamed. ToLookup() immediately executes and creates an immutable 1-to-many lookup structure (ILookup<TKey, TElement>) where duplicate keys are supported and querying a missing key returns an empty sequence rather than throwing an exception. ToDictionary() creates a mutable 1-to-1 map where duplicate keys throw ArgumentException.",
+    "deepDive": "Comparison Table:\n1. GroupBy(k):\n   - Execution: Deferred (iterated on demand).\n   - Keys: Multiple values per key.\n   - Missing key: N/A (linear search through groups).\n2. ToLookup(k):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Multiple values per key.\n   - Missing key: Returns Enumerable.Empty<T>() (safe, never throws KeyNotFoundException).\n3. ToDictionary(k, v):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Strictly UNIQUE keys only!\n   - Missing key: Throws KeyNotFoundException unless using TryGetValue. Duplicate key on creation throws ArgumentException.",
+    "codeSnippet": "var orders = GetOrders();\n\n// 1. ToDictionary: Fails if duplicate CustomerId exists!\n// var dict = orders.ToDictionary(o => o.CustomerId); // 💥 ArgumentException!\n\n// 2. ToLookup: Ideal for 1-to-many in-memory indexing\nILookup<int, Order> ordersByCustomer = orders.ToLookup(o => o.CustomerId);\n\n// Safe lookup: Never throws KeyNotFoundException\nIEnumerable<Order> customerOrders = ordersByCustomer[999]; // Returns empty sequence if not found!\nConsole.WriteLine($\"Customer 999 order count: {customerOrders.Count()}\");",
+    "redFlags": [
+      "Using ToDictionary on columns with potential duplicates without grouping first.",
+      "Iterating GroupBy multiple times without materializing with ToLookup or ToList."
+    ],
+    "proTips": [
+      "When building in-memory multi-value caches, prefer ILookup<K, V> over Dictionary<K, List<V>> for cleaner, thread-safe, immutable reads."
+    ]
+  },
+  {
+    "id": "q-linq-6",
+    "pillar": "linq",
+    "seniority": "Senior",
+    "tags": [
+      "Expression Trees",
+      "Roslyn",
+      "Dynamic LINQ",
+      "IQueryProvider"
+    ],
+    "title": "Expression Trees Under the Hood: Func<T, bool> vs. Expression<Func<T, bool>>",
+    "pitch": "In C#, a lambda passed to Func<T, bool> compiles into executable IL code (a delegate). When the identical lambda syntax is assigned to Expression<Func<T, bool>>, the Roslyn compiler lowers it into a tree data structure composed of Expression nodes (ParameterExpression, BinaryExpression, MemberExpression). This expression tree represents the code structure as data, allowing database providers like EF Core to inspect nodes at runtime and translate them into SQL.",
+    "deepDive": "Why Expression Trees are Essential for Senior .NET Developers:\n1. Inspection as Data:\n   - An Expression tree can be visited using the Visitor Pattern (ExpressionVisitor).\n   - EF Core walks the tree to translate 'user.Age > 18' into SQL 'WHERE [u].[Age] > 18'.\n2. Dynamic Query Generation:\n   - For advanced search screens with 15 optional filter inputs, instead of writing 15 nested if statements or string SQL concatenation, senior engineers dynamically combine Expression trees using Expression.AndAlso and Expression.Lambda.\n3. Compiling Expressions:\n   - You can compile an Expression tree back into an executable delegate at runtime via 'expr.Compile()', though compilation incurs high CPU overhead and should be cached.",
+    "codeSnippet": "// Programmatic Dynamic Filter Construction using Expression Trees\npublic static Expression<Func<T, bool>> CombineWithAnd<T>(\n    Expression<Func<T, bool>> first, \n    Expression<Func<T, bool>> second)\n{\n    var parameter = Expression.Parameter(typeof(T), \"x\");\n\n    // Replace parameters in both expressions with unified parameter\n    var leftVisitor = new ParameterReplacer(first.Parameters[0], parameter);\n    var left = leftVisitor.Visit(first.Body);\n\n    var rightVisitor = new ParameterReplacer(second.Parameters[0], parameter);\n    var right = rightVisitor.Visit(second.Body);\n\n    // Combine with logical AND: x => left && right\n    var body = Expression.AndAlso(left!, right!);\n    return Expression.Lambda<Func<T, bool>>(body, parameter);\n}\n\npublic class ParameterReplacer : ExpressionVisitor\n{\n    private readonly ParameterExpression _from, _to;\n    public ParameterReplacer(ParameterExpression from, ParameterExpression to) => (_from, _to) = (from, to);\n    protected override Expression VisitParameter(ParameterExpression node) => node == _from ? _to : base.VisitParameter(node);\n}",
+    "redFlags": [
+      "Compiling Expression trees in a tight loop with .Compile() (causes severe JIT CPU spikes).",
+      "Attempting to invoke arbitrary C# methods inside EF Core Expressions that have no SQL equivalent."
+    ],
+    "proTips": [
+      "Use System.Linq.Expressions with compiled lambdas for high-speed dynamic object mapping that matches manual assignment speed while avoiding Reflection overhead."
+    ]
+  },
+  {
+    "title": "LINQ Any() vs. Count() > 0 vs. Exists(): Short-Circuiting vs. Full Table Scans",
+    "seniority": "Senior",
+    "tags": [
+      "Any()",
+      "Count()",
+      "Exists()",
+      "Short-Circuiting",
+      "SQL Execution Plan"
+    ],
+    "pitch": "To check for the presence of elements, '.Any()' is asymptotically superior because it short-circuits on the very first match: in-memory, it calls MoveNext() once; in EF Core / SQL, it compiles to 'IF EXISTS(SELECT 1 FROM ...)' which terminates index traversal immediately. In contrast, '.Count() > 0' forces an eager evaluation of the entire sequence: in SQL, it generates 'SELECT COUNT(*)', reading all matching leaf pages and incurring severe disk I/O and network latency on million-row tables.",
+    "deepDive": "Under the Hood Differences:\n1. In-Memory Execution:\n   - 'collection.Any(predicate)': Enumerates until the first match is found, then immediately returns true (O(1) best case).\n   - 'collection.Count(predicate) > 0': Must enumerate the entire collection to count every element (O(N) guaranteed), allocating CPU cycles needlessly.\n2. EF Core SQL Translation:\n   - 'db.Orders.Any(o => o.Status == \"Pending\")' ->\n     SELECT CASE WHEN EXISTS (SELECT 1 FROM [Orders] AS [o] WHERE [o].[Status] = N'Pending') THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END\n     (Engine performs an Index Seek and stops at row 1).\n   - 'db.Orders.Count(o => o.Status == \"Pending\") > 0' ->\n     SELECT COUNT(*) FROM [Orders] AS [o] WHERE [o].[Status] = N'Pending'\n     (Engine must count ALL 5,000,000 rows!).\n3. List<T>.Exists vs Any:\n   - For List<T>, '.Exists(predicate)' is an instance method that avoids allocating an IEnumerator<T> object, making it slightly faster than the LINQ extension method '.Any()'.",
+    "codeSnippet": "// ❌ JUNIOR ANTI-PATTERN: Forces full index scan to count all 2,000,000 orders!\npublic async Task<bool> BadHasPendingOrdersAsync(AppDbContext db, CancellationToken ct)\n{\n    return await db.Orders.CountAsync(o => o.Status == \"Pending\", ct) > 0;\n}\n\n// ✅ SENIOR PATTERN: Generates IF EXISTS (SELECT 1 ...), stops on row 1\npublic async Task<bool> GoodHasPendingOrdersAsync(AppDbContext db, CancellationToken ct)\n{\n    return await db.Orders.AnyAsync(o => o.Status == \"Pending\", ct);\n}\n\n// In-Memory List optimization:\nList<User> userList = GetUsers();\nbool hasAdmin = userList.Exists(u => u.IsAdmin); // Faster than userList.Any(): No enumerator allocation!",
+    "redFlags": [
+      "Using '.Count() > 0' or '.Count() != 0' to check if a sequence has any items.",
+      "Calling '.ToList()' before '.Any()' on an IQueryable, pulling data into client RAM first.",
+      "Assuming that SQL Server optimizes 'COUNT(*) > 0' into an EXISTS automatically in all query scenarios."
+    ],
+    "proTips": [
+      "On in-memory List<T>, use 'list.Exists(match)' instead of 'list.Any(match)': Exists is an optimized struct-based internal loop that does not allocate an enumerator instance on the heap."
+    ],
+    "id": "q-linq-7",
+    "pillar": "linq"
+  },
+  {
+    "title": "Inner Join vs. Left Outer Join in LINQ: GroupJoin and DefaultIfEmpty Mechanics",
+    "seniority": "Senior",
+    "tags": [
+      "Inner Join",
+      "Left Outer Join",
+      "GroupJoin",
+      "DefaultIfEmpty",
+      "SQL Translation"
+    ],
+    "pitch": "A standard LINQ 'join ... in ... on ... equals ...' compiles to an inner join, dropping records with no match. To express a SQL 'LEFT OUTER JOIN' in LINQ query syntax, developers must combine 'join ... into' (which creates a GroupJoin) with '.DefaultIfEmpty()' on the grouped collection: 'from o in orders join c in customers on o.CustomerId equals c.Id into custGroup from c in custGroup.DefaultIfEmpty()'. In EF Core, this compiles cleanly to 'LEFT OUTER JOIN Customers ON ...', returning null for non-matching customer fields.",
+    "deepDive": "How LINQ Translates Left Joins:\n1. GroupJoin Architecture:\n   - The 'into groupName' clause groups all matching right-hand elements into an IEnumerable<TRight> for each left-hand element.\n2. The Role of DefaultIfEmpty():\n   - 'DefaultIfEmpty()' yields a sequence with a single default element (null for reference types, 0 for ints) if the grouped sequence is empty.\n   - Flattening this sequence via a secondary 'from' clause instructs the EF Core query provider to emit a SQL 'LEFT OUTER JOIN'.\n3. Navigation Property Alternative:\n   - In EF Core, if foreign key navigation properties exist, explicit LINQ joins are rarely needed!\n   - Simply querying: 'db.Orders.Select(o => new { o.Id, CustomerName = o.Customer.Name })' automatically generates an optimal SQL LEFT JOIN if the relationship is optional, or INNER JOIN if required.",
+    "codeSnippet": "// Explicit LINQ Left Outer Join Syntax\npublic async Task<List<OrderReportDto>> GetOrderReportsAsync(AppDbContext db, CancellationToken ct)\n{\n    var query = from o in db.Orders\n                join c in db.Customers on o.CustomerId equals c.Id into customerGroup\n                from c in customerGroup.DefaultIfEmpty() // Emits LEFT OUTER JOIN\n                select new OrderReportDto\n                {\n                    OrderId = o.Id,\n                    OrderTotal = o.Total,\n                    CustomerName = c != null ? c.Name : \"Anonymous Guest\" // Handles NULL side of join\n                };\n\n    return await query.ToListAsync(ct);\n}\n\n// Generated SQL:\n// SELECT [o].[Id] AS [OrderId], [o].[Total] AS [OrderTotal], \n//        COALESCE([c].[Name], N'Anonymous Guest') AS [CustomerName]\n// FROM [Orders] AS [o]\n// LEFT JOIN [Customers] AS [c] ON [o].[CustomerId] = [c].[Id]",
+    "redFlags": [
+      "Attempting to do a Left Join without calling '.DefaultIfEmpty()', which accidentally converts the query into an Inner Join.",
+      "Writing manual complex LINQ joins when navigation properties already exist on the DbContext entities.",
+      "Accessing properties on the nullable right-hand object without null-checking, throwing NullReferenceException in in-memory LINQ."
+    ],
+    "proTips": [
+      "In modern EF Core, prefer navigation properties over manual 'join' syntax: EF Core automatically knows whether the relationship is optional (nullable FK -> LEFT JOIN) or mandatory (non-null FK -> INNER JOIN)."
+    ],
+    "id": "q-linq-8",
+    "pillar": "linq"
+  },
+  {
+    "title": "First vs. FirstOrDefault vs. Single vs. SingleOrDefault: SQL Generation (TOP 1 vs TOP 2)",
+    "seniority": "Senior",
+    "tags": [
+      "First",
+      "FirstOrDefault",
+      "Single",
+      "SingleOrDefault",
+      "TOP 1 vs TOP 2"
+    ],
+    "pitch": "First() and FirstOrDefault() take the earliest matching item and generate 'SELECT TOP (1)' in SQL Server, terminating query execution immediately upon finding a match. Single() and SingleOrDefault() assert that EXACTLY ONE match exists in the entire table: to verify uniqueness, EF Core generates 'SELECT TOP (2)'. If more than one row matches, Single() throws an InvalidOperationException. In high-throughput APIs, using SingleOrDefault() on non-unique indexed columns wastes database CPU checking for secondary rows when business logic only requires FirstOrDefault().",
+    "deepDive": "Under the Hood Mechanics & Exception Matrix:\n1. The 4 Combinations:\n   - First(): Returns item 1. Throws InvalidOperationException if sequence is EMPTY. (SQL: TOP 1)\n   - FirstOrDefault(): Returns item 1, or default/null if EMPTY. Never throws on count. (SQL: TOP 1)\n   - Single(): Returns item 1. Throws if EMPTY, and throws if > 1 items match! (SQL: TOP 2)\n   - SingleOrDefault(): Returns item 1, or default/null if EMPTY. Throws if > 1 items match! (SQL: TOP 2)\n2. The Database Performance Penalty:\n   - Why does Single emit 'SELECT TOP (2)'? Because the database must inspect whether a 2nd row exists!\n   - If the column is NOT backed by a Unique Index, SQL Server cannot stop after finding 1 row—it must continue scanning the table or index until it finds a second row or reaches the end of the table!\n3. When to use Single vs First:\n   - Use 'SingleOrDefaultAsync' ONLY when encountering multiple records indicates critical database corruption (e.g., fetching a User by Unique National Id).\n   - Use 'FirstOrDefaultAsync' for general lookups (e.g., GetLatestOrderByUserId).",
+    "codeSnippet": "// ❌ PERFORMANCE MISTAKE: Non-unique column forces TOP (2) and continues scanning\npublic async Task<User?> BadGetUserAsync(AppDbContext db, string email, CancellationToken ct)\n{\n    // If Email does NOT have a UNIQUE constraint, SQL scans until it finds 2 rows!\n    return await db.Users.SingleOrDefaultAsync(u => u.Email == email, ct);\n}\n\n// ✅ SENIOR PATTERN: Terminates immediately at first row\npublic async Task<User?> GoodGetUserAsync(AppDbContext db, Guid id, CancellationToken ct)\n{\n    // Id is the Clustered Primary Key; FirstOrDefaultAsync emits TOP (1) and stops immediately\n    return await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);\n}",
+    "redFlags": [
+      "Using SingleOrDefault() blindly on queries that can return hundreds of rows, expecting it to behave like FirstOrDefault().",
+      "Calling First() without handling or anticipating an InvalidOperationException when the sequence might be empty.",
+      "Not knowing that Single and SingleOrDefault generate 'TOP (2)' in SQL."
+    ],
+    "proTips": [
+      "In .NET 6+, use the overload 'FirstOrDefault(predicate, defaultValue)' to specify an explicit fallback object instead of checking for null after evaluation."
+    ],
+    "id": "q-linq-9",
+    "pillar": "linq"
+  },
+  {
+    "title": "LINQ Aggregate() (Fold / Reduce): Functional Accumulators and Seed States",
+    "seniority": "Senior",
+    "tags": [
+      "Aggregate",
+      "Fold",
+      "Reduce",
+      "Functional Programming",
+      "In-Memory vs SQL"
+    ],
+    "pitch": "Aggregate() is LINQ's functional fold/reduce operator, accumulating sequence values into a single summary output via an accumulator function. It supports an initial seed value, a transformation step, and a final projection selector. While powerful for computing running state, custom string concatenation, and mathematical reductions, using Aggregate() on unmaterialized IQueryable cannot be translated to SQL by EF Core and throws runtime translation exceptions, requiring in-memory client evaluation.",
+    "deepDive": "Internal Accumulation Cycle:\n1. Overloads of Aggregate:\n   - Aggregate(Func<TSource, TSource, TSource>): Uses element 0 as initial seed. Throws if empty!\n   - Aggregate(TAccumulate seed, Func<TAccumulate, TSource, TAccumulate>): Starts with explicit seed. Safe on empty collections.\n   - Aggregate(TAccumulate seed, Func<TAccumulate, TSource, TAccumulate>, Func<TAccumulate, TResult>): Projects final accumulator to result type.\n2. EF Core Translation Limitation:\n   - SQL Server does not have an arbitrary higher-order fold operator.\n   - EF Core cannot translate custom C# lambda delegates inside Aggregate() to T-SQL.\n   - Attempting to run '.Aggregate()' on a DbSet<T> throws 'InvalidOperationException: The LINQ expression could not be translated'.\n   - You must materialize with '.ToListAsync()' or '.AsEnumerable()' before invoking Aggregate().",
+    "codeSnippet": "public class CartCalculationService\n{\n    // ✅ SENIOR PATTERN: Functional fold over in-memory domain items\n    public decimal CalculateDiscountedTotal(IEnumerable<CartItem> items, decimal baseDiscountRate)\n    {\n        // Computes compound progressive discount\n        return items.Aggregate(\n            seed: 0m, // Initial total\n            func: (currentTotal, item) => currentTotal + (item.Price * item.Quantity * (1 - baseDiscountRate)),\n            resultSelector: finalTotal => Math.Round(finalTotal, 2)\n        );\n    }\n\n    // String builder accumulation\n    public string BuildCsvLine(IEnumerable<string> values)\n    {\n        return values.Aggregate(new StringBuilder(), \n            (sb, val) => sb.Append(sb.Length == 0 ? \"\" : \",\").Append(val), \n            sb => sb.ToString());\n    }\n}",
+    "redFlags": [
+      "Calling Aggregate() directly on an EF Core IQueryable expecting it to run inside SQL Server.",
+      "Using the seedless overload of Aggregate on potentially empty collections (throws InvalidOperationException).",
+      "Using string concatenation (s1 + ',' + s2) inside Aggregate on large collections, generating O(N^2) heap allocations instead of using StringBuilder."
+    ],
+    "proTips": [
+      "For string concatenation across collections, always prefer 'string.Join(',', sequence)' over Aggregate(): string.Join uses internal high-performance zero-allocation FastAllocateString mechanisms."
+    ],
+    "id": "q-linq-10",
+    "pillar": "linq"
+  },
+  {
+    "id": "q-efcore-1",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "EF Core",
+      "Change Tracker",
+      "AsNoTracking",
+      "Memory"
+    ],
+    "title": "EF Core Change Tracker Overhead and the .AsNoTracking() Optimization",
+    "pitch": "When EF Core executes a tracking query, it instantiates the entity, registers its reference in an Identity Map dictionary, and takes a deep snapshot copy of all its properties. During SaveChangesAsync, it compares every entity against its snapshot (DetectChanges) to find modifications. For read-only queries, this snapshotting and identity mapping wastes 40–60% of CPU and RAM. Using .AsNoTracking() bypasses the change tracker entirely for dramatic performance gains.",
+    "deepDive": "Internal Costs of EF Core Tracking:\n1. Snapshot Allocation: Every tracked entity requires a second internal object storing original property values.\n2. Identity Map Lookup: Every materialized row checks whether an entity with that primary key is already tracked.\n3. Relationship Fixup: EF Core traverses navigation properties to stitch together references between entities.\n4. DetectChanges(): SaveChangesAsync must iterate every tracked entity to compute diffs.\n\nWhen to Use Variations:\n- AsNoTracking(): Fastest read-only execution. Does not track or resolve duplicate instances in the same query.\n- AsNoTrackingWithIdentityResolution(): Bypasses change tracking but ensures that multiple rows referencing the same primary key share a single C# object reference in memory (crucial for complex 1:N graph results).",
+    "codeSnippet": "public async Task<List<ProductDto>> GetActiveProductsAsync(AppDbContext db, CancellationToken ct)\n{\n    // Bypasses Identity Map, Snapshot copies, and Change Tracker\n    return await db.Products\n        .AsNoTracking()\n        .Where(p => p.IsActive)\n        .OrderBy(p => p.Name)\n        .Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Category.Name))\n        .ToListAsync(ct);\n}",
+    "redFlags": [
+      "Using tracking queries in high-volume read-only API GET endpoints.",
+      "Calling .Update(entity) blindly on an entity retrieved without tracking, causing EF to issue UPDATE statements for all 50 columns instead of modified columns."
+    ],
+    "proTips": [
+      "You can configure ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking globally in DbContext options for read-heavy microservices, explicitly opting into tracking only when writing."
+    ]
+  },
+  {
+    "id": "q-efcore-2",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "EF Core",
+      "AsSplitQuery",
+      "SQL Joins",
+      "Performance"
+    ],
+    "title": "EF Core Split Queries (.AsSplitQuery): Mitigating Relational Duplication",
+    "pitch": "When EF Core loads multiple 1-to-many navigation properties using .Include(), its default behavior is to generate a single SQL query with LEFT JOINs. This causes severe Cartesian product data duplication over the network. EF Core's .AsSplitQuery() forces the query engine to split the operation into multiple discrete SQL queries executed within a single context, dramatically reducing transferred bytes and memory allocations at the expense of extra database roundtrips.",
+    "deepDive": "How AsSplitQuery Works Under the Hood:\n- Single Query Mode (Default):\n  `SELECT b.Id, b.Name, p.Id, p.Title, c.Id, c.Text FROM Blogs b LEFT JOIN Posts p ... LEFT JOIN Comments c ...`\n  If a blog has 10 posts and 100 comments, 1,000 rows are sent over the network, duplicating the blog's name and post titles 1,000 times.\n- Split Query Mode:\n  Query 1: `SELECT b.Id, b.Name FROM Blogs b`\n  Query 2: `SELECT p.Id, p.Title, p.BlogId FROM Posts p WHERE p.BlogId IN (SELECT Id FROM Blogs ...)`\n  Query 3: `SELECT c.Id, c.Text, c.BlogId FROM Comments c WHERE c.BlogId IN (SELECT Id FROM Blogs ...)`\n  Total rows: 1 + 10 + 100 = 111 rows instead of 1,000!\n\nTrade-offs and Risks:\n- Network Roundtrips: Split queries require multiple roundtrips to the database.\n- Data Consistency: Unless executed inside an explicit serializable/snapshot transaction, an update could occur between query 1 and query 2, leading to inconsistent partial data.",
+    "codeSnippet": "// Enabling Split Query on a multi-collection eager load\npublic async Task<CustomerOrderGraphDto?> GetCustomerGraphAsync(AppDbContext db, int customerId, CancellationToken ct)\n{\n    return await db.Customers\n        .AsNoTracking()\n        .AsSplitQuery() // Splits into distinct queries to avoid Cartesian explosion\n        .Include(c => c.Orders)\n            .ThenInclude(o => o.OrderItems)\n        .Include(c => c.SupportTickets)\n        .Where(c => c.Id == customerId)\n        .FirstOrDefaultAsync(ct);\n}",
+    "redFlags": [
+      "Blindly applying AsSplitQuery everywhere without benchmarking (for 1:1 relationships, standard single JOIN is much faster).",
+      "Ignoring the EF Core warning 'Compiling a query which loads related collections for more than one collection navigation'."
+    ],
+    "proTips": [
+      "You can configure split queries globally: options.UseSqlServer(connectionString, o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))."
+    ]
+  },
+  {
+    "id": "q-efcore-3",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "Concurrency",
+      "RowVersion",
+      "Optimistic Locking",
+      "EF Core"
+    ],
+    "title": "Optimistic Concurrency Control with RowVersion and DbUpdateConcurrencyException",
+    "pitch": "Pessimistic locking holds exclusive database locks for the duration of a transaction, causing contention and deadlocks in web applications. Optimistic Concurrency assumes conflicts are rare: it allows concurrent reads and updates, but verifies at commit time that no other user modified the row in the interim. In SQL Server and EF Core, this is achieved using a 'RowVersion' (byte[]) column. If a conflict occurs, EF Core throws DbUpdateConcurrencyException, allowing the app to resolve the collision.",
+    "deepDive": "Implementation Details:\n1. RowVersion in SQL Server:\n   - A table column declared as 'RowVersion' (synonym: TIMESTAMP) automatically increments an internal 8-byte monotonic binary number on every INSERT or UPDATE.\n2. EF Core Mapping:\n   - Configured via '[Timestamp]' or 'builder.Property(p => p.Version).IsRowVersion()'.\n3. The SQL Execution:\n   - When updating: UPDATE Products SET Price = @newPrice WHERE Id = @id AND Version = @originalVersion;\n   - If another process updated the product first, the database Version has incremented.\n   - Rows affected = 0.\n   - EF Core detects affected rows == 0 and throws DbUpdateConcurrencyException.\n4. Conflict Resolution Strategies:\n   - Client Wins: Overwrite database with client values.\n   - Database Wins: Discard client changes and reload latest database values.\n   - Custom Merge: Present both values to the user to choose fields.",
+    "codeSnippet": "public async Task UpdateAccountBalanceAsync(int accountId, decimal depositAmount, CancellationToken ct)\n{\n    var account = await _db.Accounts.FindAsync(new object[] { accountId }, ct);\n    if (account == null) throw new NotFoundException();\n\n    account.Balance += depositAmount;\n\n    try\n    {\n        await _db.SaveChangesAsync(ct);\n    }\n    catch (DbUpdateConcurrencyException ex)\n    {\n        // Concurrency conflict occurred! Another user updated the record.\n        var entry = ex.Entries.Single();\n        var databaseValues = await entry.GetDatabaseValuesAsync(ct);\n\n        if (databaseValues == null)\n        {\n            throw new InvalidOperationException(\"Account was deleted by another user.\");\n        }\n\n        var dbAccount = (Account)databaseValues.ToObject();\n        throw new ConcurrencyException($\"Conflict! Current DB balance is {dbAccount.Balance}. Please retry.\");\n    }\n}",
+    "redFlags": [
+      "Using pessimistic transactions across HTTP requests (e.g. keeping a DB transaction open while awaiting user form submission).",
+      "Catching DbUpdateConcurrencyException and doing nothing, silently dropping user updates."
+    ],
+    "proTips": [
+      "In distributed microservices where SQL Server RowVersion is unavailable, use an integer 'Version' column incremented manually: 'UPDATE Entity SET Version = Version + 1, ... WHERE Id = @id AND Version = @expectedVersion'."
+    ]
+  },
+  {
+    "id": "q-efcore-4",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "Dapper",
+      "EF Core",
+      "Hybrid CQRS",
+      "Micro-ORM"
+    ],
+    "title": "Dapper and EF Core Hybrid CQRS Architecture: Blending ORM with Micro-ORM",
+    "pitch": "In high-throughput enterprise .NET systems, combining EF Core and Dapper provides the ideal balance of productivity and performance. EF Core is used on the Command (Write) side for complex Domain Aggregate Roots, validation, change tracking, and transactional units of work. Dapper is used on the Query (Read) side for raw SQL execution, multi-mapping, and zero-allocation object hydration directly into read-optimized DTOs.",
+    "deepDive": "Why Pure EF Core or Pure Dapper Falls Short:\n- Pure EF Core on Writes: Excellent. Handles state transitions, navigations, and concurrency tokens.\n- Pure EF Core on Reads: Even with AsNoTracking(), LINQ translation imposes overhead on complex aggregations, window functions, and legacy schema joins.\n- Pure Dapper on Writes: Painful. Requires writing manual boilerplate SQL INSERT/UPDATE statements for 50 entity fields and handling change tracking manually.\n\nThe Hybrid Solution:\n- Both share the same underlying SQL Connection and Transaction: 'var conn = dbContext.Database.GetDbConnection();'.\n- Dapper executes custom SQL with CTEs, PIVOTs, or window functions (ROW_NUMBER() OVER (...)) that LINQ cannot efficiently translate.",
+    "codeSnippet": "// Query Handler using Dapper for micro-second read performance\npublic class GetOrderAnalyticsQueryHandler : IRequestHandler<GetOrderAnalyticsQuery, OrderAnalyticsDto>\n{\n    private readonly IDbConnectionFactory _dbConnectionFactory;\n\n    public GetOrderAnalyticsQueryHandler(IDbConnectionFactory factory) => _dbConnectionFactory = factory;\n\n    public async Task<OrderAnalyticsDto> Handle(GetOrderAnalyticsQuery request, CancellationToken ct)\n    {\n        using var connection = _dbConnectionFactory.CreateConnection();\n        const string sql = @\"\n            SELECT \n                COUNT(1) AS TotalOrders,\n                SUM(TotalAmount) AS GrossRevenue,\n                AVG(TotalAmount) AS AverageOrderValue\n            FROM Orders WITH (NOLOCK)\n            WHERE CreatedAt >= @StartDate AND Status = 'Completed';\";\n\n        return await connection.QuerySingleAsync<OrderAnalyticsDto>(\n            new CommandDefinition(sql, new { request.StartDate }, cancellationToken: ct));\n    }\n}",
+    "redFlags": [
+      "Using string concatenation in Dapper SQL queries instead of parameterized anonymous objects (creates SQL Injection vulnerabilities!).",
+      "Using Dapper to update complex entity aggregate graphs manually."
+    ],
+    "proTips": [
+      "Use Dapper's 'QueryMultipleAsync' to execute multiple SQL SELECT statements in a single database roundtrip, hydrating parent and child collections simultaneously."
+    ]
+  },
+  {
+    "id": "q-efcore-5",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "EF Core",
+      "Compiled Queries",
+      "Batching",
+      "Raw SQL"
+    ],
+    "title": "EF Core Compiled Queries, Statement Batching, and Parameterized Raw SQL",
+    "pitch": "Every LINQ query executed in EF Core must compile the expression tree into a relational SQL statement and cache the query plan. For micro-second critical endpoints, EF.CompileAsyncQuery() pre-compiles the query into an invocable delegate, bypassing expression tree compilation on every request. Furthermore, modern EF Core automatically batches multiple INSERT/UPDATE/DELETE statements into a single network roundtrip, and provides ExecuteSqlInterpolated() for safe, parameterized raw SQL execution.",
+    "deepDive": "Mechanics of Compiled Queries:\n- Standard LINQ Execution:\n  1. Parse C# Expression Tree.\n  2. Compute Query Cache Key (based on shape and parameters).\n  3. Look up relational command in memory cache.\n  4. Generate and parameterize SQL string.\n- Compiled Query (EF.CompileAsyncQuery):\n  1. Evaluates steps 1-4 ONCE at startup.\n  2. Stores a compiled Func<DbContext, TParam, IAsyncEnumerable<TResult>> delegate.\n  3. Subsequent executions invoke the delegate directly, cutting query overhead by 50-70%.\n\nAutomatic Statement Batching:\nWhen calling SaveChangesAsync on 50 modified entities, EF Core bundles all 50 statements into a single TDS batch packet rather than issuing 50 sequential network roundtrips.",
+    "codeSnippet": "// High-performance static pre-compiled query delegate\npublic static class QueryCache\n{\n    public static readonly Func<AppDbContext, int, Task<UserSummaryDto?>> GetUserSummaryCompiled =\n        EF.CompileAsyncQuery((AppDbContext db, int id) =>\n            db.Users\n              .AsNoTracking()\n              .Where(u => u.Id == id)\n              .Select(u => new UserSummaryDto(u.Id, u.Email, u.Role))\n              .FirstOrDefault());\n}\n\n// In your high-frequency controller / endpoint:\npublic async Task<IResult> GetUser(int id, AppDbContext db)\n{\n    var user = await QueryCache.GetUserSummaryCompiled(db, id);\n    return user is not null ? TypedResults.Ok(user) : TypedResults.NotFound();\n}",
+    "redFlags": [
+      "Using string concatenation with db.Database.ExecuteSqlRaw() (creates critical SQL injection vulnerabilities!).",
+      "Over-optimizing with compiled queries on low-volume admin endpoints where standard LINQ is more readable."
+    ],
+    "proTips": [
+      "In EF Core 7+, use ExecuteUpdateAsync() and ExecuteDeleteAsync() to execute bulk mutations directly on the database without loading entities into memory first."
+    ]
+  },
+  {
+    "id": "q-efcore-6",
+    "pillar": "efcore",
+    "seniority": "Senior",
+    "tags": [
+      "Migrations",
+      "CI/CD",
+      "Bundle",
+      "Zero-Downtime"
+    ],
+    "title": "EF Core Migrations in CI/CD: Migration Bundles vs Database.Migrate() at Startup",
+    "pitch": "Calling 'context.Database.Migrate()' during application startup is dangerous in production: in horizontally scaled environments with multiple containers starting concurrently, race conditions corrupt the __EFMigrationsHistory table or cause deadlocks. The enterprise standard is using self-contained Migration Bundles (dotnet ef migrations bundle) executed as a dedicated gated step in CI/CD pipelines before application deployment, paired with expand/contract schema design for zero downtime.",
+    "deepDive": "Why Migrate() at Startup Fails at Scale:\n1. Concurrency Race: Multiple App Service or Kubernetes pods booting simultaneously execute ALTER TABLE at the same time.\n2. Permission Violation: Web app database users should have DML permissions (SELECT, INSERT, UPDATE, DELETE) only, NEVER DDL permissions (CREATE TABLE, ALTER TABLE, DROP TABLE).\n3. Health Check Failure: Migrations running on 100M-row tables cause startup timeouts and crash-loops.\n\nThe CI/CD Migration Bundle Pattern:\n1. Generate Bundle during CI build:\n   dotnet ef migrations bundle --output ./bundle.exe --self-contained -r linux-x64\n2. Execute in Release Pipeline:\n   Run bundle.exe against the staging/production database using elevated DBA credentials.\n3. Expand / Contract Pattern for Zero Downtime:\n   - Phase 1 (Expand): Add new nullable columns or tables. Deploy new code.\n   - Phase 2 (Backfill): Populate data asynchronously.\n   - Phase 3 (Contract): After old code is fully decommissioned, remove deprecated columns in a future migration.",
+    "codeSnippet": "# Azure DevOps Release Pipeline Migration Step\n- task: AzureCLI@2\n  displayName: 'Execute EF Core Migration Bundle'\n  inputs:\n    azureSubscription: 'Production-Azure-Connection'\n    scriptType: 'bash'\n    scriptLocation: 'inlineScript'\n    inlineScript: |\n      chmod +x $(Pipeline.Workspace)/drop/bundle\n      # Execute idempotent migration binary with elevated connection string\n      $(Pipeline.Workspace)/drop/bundle --connection \"$(PROD_DB_CONNECTION_STRING)\"",
+    "redFlags": [
+      "Running 'context.Database.EnsureCreated()' in production (bypasses migration history completely).",
+      "Renaming a column in a single migration on a live system without expand/contract (causes instant 500 errors for running containers)."
+    ],
+    "proTips": [
+      "Generate idempotent SQL scripts via 'dotnet ef migrations script --idempotent' to allow DBA inspection and auditing before deployment."
+    ]
+  },
+  {
+    "title": "Eager Loading (Include/ThenInclude) vs. Explicit Loading vs. Lazy Loading",
+    "seniority": "Senior",
+    "tags": [
+      "Include",
+      "ThenInclude",
+      "Lazy Loading",
+      "Explicit Loading",
+      "N+1 Query"
+    ],
+    "pitch": "Eager loading (.Include(), .ThenInclude()) fetches related entity graphs in the initial SQL query via JOINs or split queries. Explicit loading (entry.Collection().LoadAsync()) retrieves navigations on-demand for already tracked entities. Lazy loading (UseLazyLoadingProxies()) automatically fetches child entities upon property access using Castle DynamicProxy subclassing. While convenient, lazy loading is notorious in enterprise systems for introducing hidden N+1 query storms and circular reference JSON serialization crashes.",
+    "deepDive": "Mechanics & Architectural Hazards:\n1. Eager Loading (.Include):\n   - Generates SQL JOINs in the initial query.\n   - ⚠️ Hazard: Multiple collection .Include() calls produce a Cartesian product explosion unless paired with .AsSplitQuery().\n2. Explicit Loading (entry.Reference / entry.Collection):\n   - Useful when relationship loading is conditional on business logic:\n     await db.Entry(order).Collection(o => o.Items).LoadAsync(ct);\n   - Only runs the query if business rules dictate loading child data.\n3. Lazy Loading (Virtual Proxies):\n   - Requires marking navigation properties as 'virtual'.\n   - ⚠️ Hazard: Accessing 'order.Items' inside a foreach loop generates 1 query for the orders + N individual queries for each order's items (N+1 query storm).\n   - ⚠️ Hazard: Passing lazy-loaded entities into System.Text.Json triggers infinite recursion and stack overflow exceptions.",
+    "codeSnippet": "public class OrderService\n{\n    // 1. Eager Loading with Split Query (Best for APIs returning parent + children)\n    public async Task<Order?> GetOrderWithDetailsAsync(AppDbContext db, Guid orderId, CancellationToken ct)\n    {\n        return await db.Orders\n            .AsNoTracking()\n            .AsSplitQuery() // Prevents Cartesian explosion across multiple includes\n            .Include(o => o.Customer)\n            .Include(o => o.Items)\n                .ThenInclude(i => i.Product)\n            .FirstOrDefaultAsync(o => o.Id == orderId, ct);\n    }\n\n    // 2. Explicit Loading (Best for conditional branch loading)\n    public async Task LoadDiscountsIfVipAsync(AppDbContext db, Order order, CancellationToken ct)\n    {\n        if (order.IsVipCustomer)\n        {\n            // Only loads discounts when condition is satisfied\n            await db.Entry(order)\n                .Collection(o => o.Discounts)\n                .LoadAsync(ct);\n        }\n    }\n}",
+    "redFlags": [
+      "Enabling Lazy Loading proxies in production Web APIs without knowing how to prevent N+1 queries.",
+      "Including multiple child collections in eager loading without .AsSplitQuery(), creating massive Cartesian multiplication on SQL Server.",
+      "Returning untracked lazy-loading proxy entities to JSON serializers."
+    ],
+    "proTips": [
+      "In high-performance REST APIs, prefer direct DTO Projection (.Select(o => new OrderDto { ... })) over .Include(): EF Core will only query the exact columns requested and completely bypass entity tracking overhead."
+    ],
+    "id": "q-efcore-7",
+    "pillar": "efcore"
+  },
+  {
+    "title": "Code-First vs. Database-First: Reverse Engineering, Migrations, and Schema Governance",
+    "seniority": "Senior",
+    "tags": [
+      "Code-First",
+      "Database-First",
+      "Migrations",
+      "Scaffold",
+      "Schema Governance"
+    ],
+    "pitch": "Code-First models the database schema using C# classes and Fluent API configurations, automating incremental schema evolution via 'dotnet ef migrations add'. Database-First begins with an existing relational schema and generates C# entities using 'dotnet ef dbcontext scaffold'. For enterprise applications with dedicated DBAs, strict security auditing, or legacy schemas, Database-First or Migration Bundles with reviewable idempotent SQL scripts (--idempotent) prevent breaking production changes.",
+    "deepDive": "Schema Evolution Comparison:\n1. Code-First with Migrations:\n   - Developers write C# domain entities and Fluent API mappings.\n   - EF Core creates migration snapshot files (__EFMigrationsHistory).\n   - Ideal for greenfield microservices where the development team owns the database lifecycle entirely.\n2. Database-First / Reverse Engineering:\n   - Database schema is owned by DBAs or defined via SSDT (SQL Server Data Tools).\n   - Command: 'dotnet ef dbcontext scaffold \"Server=...;\" Microsoft.EntityFrameworkCore.SqlServer -o Models'\n   - Ideal for brownfield enterprise databases shared across multiple legacy applications.\n3. Production Migration Governance:\n   - Never run 'context.Database.Migrate()' inside application startup in production (causes race conditions in container clusters).\n   - Best practice: Generate idempotent SQL scripts in CI/CD pipeline:\n     'dotnet ef migrations script --idempotent --output migrate.sql'",
+    "codeSnippet": "// Fluent API Entity Configuration (Code-First Best Practice)\npublic class OrderConfiguration : IEntityTypeConfiguration<Order>\n{\n    public void Configure(EntityTypeBuilder<Order> builder)\n    {\n        builder.ToTable(\"Orders\", \"sales\");\n\n        builder.HasKey(o => o.Id);\n\n        builder.Property(o => o.OrderNumber)\n            .IsRequired()\n            .HasMaxLength(32)\n            .IsUnicode(false); // VARCHAR(32) instead of NVARCHAR\n\n        builder.Property(o => o.RowVersion)\n            .IsRowVersion(); // Optimistic concurrency token (ROWVERSION / TIMESTAMP)\n\n        builder.HasIndex(o => o.OrderNumber)\n            .IsUnique();\n    }\n}",
+    "redFlags": [
+      "Running 'context.Database.EnsureCreated()' in a production environment (ignores migrations completely and cannot evolve schema).",
+      "Allowing multiple microservice instances to run migrations simultaneously on startup.",
+      "Placing database connection strings with DDL 'sa' privileges in application appsettings.json."
+    ],
+    "proTips": [
+      "Use 'IEntityTypeConfiguration<T>' classes with 'modelBuilder.ApplyConfigurationsFromAssembly(typeof(MyDbContext).Assembly)' to keep DbContext.OnModelCreating clean and modular."
+    ],
+    "id": "q-efcore-8",
+    "pillar": "efcore"
+  },
+  {
+    "title": "Shadow Properties, Complex Types, and Owned Entity Types in EF Core 8",
+    "seniority": "Senior",
+    "tags": [
+      "Shadow Properties",
+      "Owned Entities",
+      "Complex Types",
+      "EF Core 8",
+      "DDD"
+    ],
+    "pitch": "Shadow properties are database columns not defined in the C# entity class (e.g., LastUpdatedUtc, TenantId), configured via Fluent API and accessed using EF.Property<T>(entity, 'Name'). Owned Entity Types (OwnsOne(), OwnsMany()) and modern EF Core 8 Complex Types (ComplexProperty()) enable Domain-Driven Design (DDD) Value Objects: they have no independent identity or primary key, flattening columns directly into the owner table without requiring foreign key JOINs.",
+    "deepDive": "Deep Dive into DDD Mapping:\n1. Shadow Properties:\n   - Kept in EF Core's StateManager without polluting domain models.\n   - Example: 'builder.Property<DateTime>(\"LastModifiedUtc\");'\n   - Querying: 'db.Orders.OrderByDescending(o => EF.Property<DateTime>(o, \"LastModifiedUtc\"))'.\n2. Owned Entity Types vs EF Core 8 Complex Types:\n   - Owned Entities: Implemented as hidden entity types with shared primary keys. Can be null in database.\n   - EF Core 8 Complex Types (ComplexProperty): True value objects. Cannot have identity, cannot be shared across multiple entities, and support immutable C# record types seamlessly.\n3. Column Flattening:\n   - An Address complex object (Street, City, Zip) on a Customer entity is stored as Customer.Street, Customer.City, Customer.Zip in the single 'Customers' table.",
+    "codeSnippet": "// Domain Model: Pure DDD Value Object (Immutable Record)\npublic record Address(string Street, string City, string PostalCode, string Country);\n\npublic class Customer\n{\n    public Guid Id { get; init; } = Guid.NewGuid();\n    public string Name { get; set; } = string.Empty;\n    public Address ShippingAddress { get; set; } = default!; // Value Object\n}\n\n// EF Core 8 Configuration\npublic class CustomerConfig : IEntityTypeConfiguration<Customer>\n{\n    public void Configure(EntityTypeBuilder<Customer> builder)\n    {\n        builder.HasKey(c => c.Id);\n\n        // ✅ EF Core 8 Complex Type (DDD Value Object mapped into same table)\n        builder.ComplexProperty(c => c.ShippingAddress, addressBuilder =>\n        {\n            addressBuilder.Property(a => a.Street).HasMaxLength(120);\n            addressBuilder.Property(a => a.PostalCode).HasMaxLength(10);\n        });\n\n        // ✅ Shadow Property: Auditing field not exposed in C# class\n        builder.Property<DateTime>(\"LastModifiedUtc\").HasDefaultValueSql(\"GETUTCDATE()\");\n    }\n}",
+    "redFlags": [
+      "Creating artificial Primary Keys (AddressId) on DDD Value Objects that have no independent lifecycle.",
+      "Polluting domain models with infrastructure auditing properties instead of using EF Core Shadow Properties.",
+      "Modifying an Owned Entity instance directly without replacing the immutable record, violating value object semantics."
+    ],
+    "proTips": [
+      "In EF Core 8+, use 'ComplexProperty()' instead of 'OwnsOne()' for value objects: Complex Types are natively treated as values rather than hidden entities, eliminating surrogate key tracking overhead."
+    ],
+    "id": "q-efcore-9",
+    "pillar": "efcore"
+  },
+  {
+    "title": "EF Core Interceptors: Auditing, Soft Deletes, and Multi-Tenant Query Filtering",
+    "seniority": "Senior",
+    "tags": [
+      "Interceptors",
+      "SaveChangesInterceptor",
+      "Global Query Filters",
+      "Soft Delete",
+      "Auditing"
+    ],
+    "pitch": "EF Core Interceptors (ISaveChangesInterceptor, IDbCommandInterceptor) hook directly into the database execution lifecycle, allowing cross-cutting operations like automatic audit timestamping (CreatedAt, ModifiedAt), user ID injection, and SQL telemetry logging. Combined with Global Query Filters (modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentTenant)), interceptors ensure data isolation and soft delete enforcement without repeating WHERE clauses across every LINQ query.",
+    "deepDive": "Execution Lifecycle Hooking:\n1. SaveChangesInterceptor Flow:\n   - Executes inside the DbContext transaction right before 'SaveChanges' or 'SaveChangesAsync'.\n   - Iterates through 'ChangeTracker.Entries<IAuditableEntity>()'.\n   - Sets CreatedAtUtc / ModifiedAtUtc automatically based on EntityState.Added / EntityState.Modified.\n2. Global Query Filters:\n   - Automatically appends a WHERE clause to every SQL query targeting the entity.\n   - Example: 'WHERE [e].[IsDeleted] = 0 AND [e].[TenantId] = @__tenantId_0'\n   - Can be temporarily bypassed for admin workflows using '.IgnoreQueryFilters()'.\n3. DbCommandInterceptor:\n   - Allows mutating SQL text or parameters right before sending the command over the TDS protocol. Useful for query tagging, security auditing, and query performance tracing.",
+    "codeSnippet": "// 1. Production SaveChanges Interceptor for Automatic Auditing\npublic class AuditSaveChangesInterceptor : SaveChangesInterceptor\n{\n    private readonly ICurrentUserService _currentUser;\n    public AuditSaveChangesInterceptor(ICurrentUserService currentUser) => _currentUser = currentUser;\n\n    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(\n        DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)\n    {\n        var context = eventData.Context;\n        if (context == null) return base.SavingChangesAsync(eventData, result, ct);\n\n        var now = DateTime.UtcNow;\n        var userId = _currentUser.UserId ?? \"SYSTEM\";\n\n        foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>())\n        {\n            if (entry.State == EntityState.Added)\n            {\n                entry.Entity.CreatedAtUtc = now;\n                entry.Entity.CreatedBy = userId;\n            }\n            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)\n            {\n                entry.Entity.LastModifiedUtc = now;\n                entry.Entity.LastModifiedBy = userId;\n            }\n        }\n\n        return base.SavingChangesAsync(eventData, result, ct);\n    }\n}",
+    "redFlags": [
+      "Manually setting 'CreatedAt' and 'ModifiedAt' in every API controller or repository instead of an Interceptor.",
+      "Forgetting that Global Query Filters are applied to navigation property includes, which can cause related entities to silently return null.",
+      "Calling SaveChangesAsync recursively inside a SaveChangesInterceptor (creates infinite loops)."
+    ],
+    "proTips": [
+      "Use 'query.IgnoreQueryFilters()' when writing admin restoration tools or undelete operations that need to query soft-deleted records."
+    ],
+    "id": "q-efcore-10",
+    "pillar": "efcore"
+  },
+  {
     "id": "q-sql-1",
     "pillar": "sql",
     "seniority": "Senior",
@@ -550,116 +1243,6 @@ window.INTERVIEW_QUESTIONS = [
   },
   {
     "id": "q-sql-5",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "EF Core",
-      "Change Tracker",
-      "AsNoTracking",
-      "Memory"
-    ],
-    "title": "EF Core Change Tracker Overhead and the .AsNoTracking() Optimization",
-    "pitch": "When EF Core executes a tracking query, it instantiates the entity, registers its reference in an Identity Map dictionary, and takes a deep snapshot copy of all its properties. During SaveChangesAsync, it compares every entity against its snapshot (DetectChanges) to find modifications. For read-only queries, this snapshotting and identity mapping wastes 40–60% of CPU and RAM. Using .AsNoTracking() bypasses the change tracker entirely for dramatic performance gains.",
-    "deepDive": "Internal Costs of EF Core Tracking:\n1. Snapshot Allocation: Every tracked entity requires a second internal object storing original property values.\n2. Identity Map Lookup: Every materialized row checks whether an entity with that primary key is already tracked.\n3. Relationship Fixup: EF Core traverses navigation properties to stitch together references between entities.\n4. DetectChanges(): SaveChangesAsync must iterate every tracked entity to compute diffs.\n\nWhen to Use Variations:\n- AsNoTracking(): Fastest read-only execution. Does not track or resolve duplicate instances in the same query.\n- AsNoTrackingWithIdentityResolution(): Bypasses change tracking but ensures that multiple rows referencing the same primary key share a single C# object reference in memory (crucial for complex 1:N graph results).",
-    "codeSnippet": "public async Task<List<ProductDto>> GetActiveProductsAsync(AppDbContext db, CancellationToken ct)\n{\n    // Bypasses Identity Map, Snapshot copies, and Change Tracker\n    return await db.Products\n        .AsNoTracking()\n        .Where(p => p.IsActive)\n        .OrderBy(p => p.Name)\n        .Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Category.Name))\n        .ToListAsync(ct);\n}",
-    "redFlags": [
-      "Using tracking queries in high-volume read-only API GET endpoints.",
-      "Calling .Update(entity) blindly on an entity retrieved without tracking, causing EF to issue UPDATE statements for all 50 columns instead of modified columns."
-    ],
-    "proTips": [
-      "You can configure ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking globally in DbContext options for read-heavy microservices, explicitly opting into tracking only when writing."
-    ]
-  },
-  {
-    "id": "q-sql-6",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "EF Core",
-      "N+1 Problem",
-      "Projection",
-      "Cartesian Explosion"
-    ],
-    "title": "Eliminating N+1 Queries and Cartesian Explosion via LINQ Projection",
-    "pitch": "The N+1 query problem occurs when an application executes 1 initial database query to fetch N parent records, then fires N subsequent queries in a loop to fetch child records for each parent. While eager loading with .Include() eliminates N+1, chaining multiple .Include() calls on collections causes a Cartesian Explosion, where SQL joins multiply rows into thousands of redundant duplicated records. Pure LINQ projection via .Select() solves both by generating a single optimized SQL query that retrieves only needed columns.",
-    "deepDive": "Comparing Data Fetching Strategies:\n1. Lazy Loading (N+1 Anti-Pattern):\n   - var blogs = db.Blogs.ToList(); // 1 query\n   - foreach (var b in blogs) Console.WriteLine(b.Posts.Count); // N queries!\n2. Eager Loading with Multiple Includes (Cartesian Explosion):\n   - db.Blogs.Include(b => b.Posts).Include(b => b.Contributors).ToList();\n   - SQL JOIN produces: (Posts Count * Contributors Count) rows! If a blog has 50 posts and 20 contributors, 1,000 rows are returned across TDS for a single blog!\n3. Split Queries (.AsSplitQuery()):\n   - Issues separate SQL queries per collection (1 for Blogs, 1 for Posts, 1 for Contributors), avoiding the Cartesian multiplication.\n4. Projection (.Select()):\n   - Compiles directly to targeted SQL SELECT list. Computes counts and sums in the database engine in a single roundtrip.",
-    "codeSnippet": "//  SENIOR PROJECTION PATTERN: Single DB roundtrip, zero duplicate bytes\npublic async Task<List<BlogSummaryDto>> GetBlogSummariesAsync(AppDbContext db, CancellationToken ct)\n{\n    return await db.Blogs\n        .AsNoTracking()\n        .Where(b => b.IsPublished)\n        .Select(b => new BlogSummaryDto(\n            b.Id,\n            b.Title,\n            b.Author.FullName,\n            b.Posts.Count(), // Translated to SQL subquery\n            b.Posts.OrderByDescending(p => p.PublishedAt).Select(p => p.Title).Take(3).ToList()\n        ))\n        .ToListAsync(ct);\n}",
-    "redFlags": [
-      "Leaving Lazy Loading enabled in Web APIs (leads to silent N+1 queries during JSON serialization).",
-      "Fetching complete entity graphs containing 40 columns just to display 3 fields on a frontend grid."
-    ],
-    "proTips": [
-      "Use EF Core Query Tagging (.TagWith(\"GetBlogSummaries\")) to easily trace LINQ queries in SQL Server Profiler and Application Insights."
-    ]
-  },
-  {
-    "id": "q-sql-7",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "EF Core",
-      "AsSplitQuery",
-      "SQL Joins",
-      "Performance"
-    ],
-    "title": "EF Core Split Queries (.AsSplitQuery): Mitigating Relational Duplication",
-    "pitch": "When EF Core loads multiple 1-to-many navigation properties using .Include(), its default behavior is to generate a single SQL query with LEFT JOINs. This causes severe Cartesian product data duplication over the network. EF Core's .AsSplitQuery() forces the query engine to split the operation into multiple discrete SQL queries executed within a single context, dramatically reducing transferred bytes and memory allocations at the expense of extra database roundtrips.",
-    "deepDive": "How AsSplitQuery Works Under the Hood:\n- Single Query Mode (Default):\n  `SELECT b.Id, b.Name, p.Id, p.Title, c.Id, c.Text FROM Blogs b LEFT JOIN Posts p ... LEFT JOIN Comments c ...`\n  If a blog has 10 posts and 100 comments, 1,000 rows are sent over the network, duplicating the blog's name and post titles 1,000 times.\n- Split Query Mode:\n  Query 1: `SELECT b.Id, b.Name FROM Blogs b`\n  Query 2: `SELECT p.Id, p.Title, p.BlogId FROM Posts p WHERE p.BlogId IN (SELECT Id FROM Blogs ...)`\n  Query 3: `SELECT c.Id, c.Text, c.BlogId FROM Comments c WHERE c.BlogId IN (SELECT Id FROM Blogs ...)`\n  Total rows: 1 + 10 + 100 = 111 rows instead of 1,000!\n\nTrade-offs and Risks:\n- Network Roundtrips: Split queries require multiple roundtrips to the database.\n- Data Consistency: Unless executed inside an explicit serializable/snapshot transaction, an update could occur between query 1 and query 2, leading to inconsistent partial data.",
-    "codeSnippet": "// Enabling Split Query on a multi-collection eager load\npublic async Task<CustomerOrderGraphDto?> GetCustomerGraphAsync(AppDbContext db, int customerId, CancellationToken ct)\n{\n    return await db.Customers\n        .AsNoTracking()\n        .AsSplitQuery() // Splits into distinct queries to avoid Cartesian explosion\n        .Include(c => c.Orders)\n            .ThenInclude(o => o.OrderItems)\n        .Include(c => c.SupportTickets)\n        .Where(c => c.Id == customerId)\n        .FirstOrDefaultAsync(ct);\n}",
-    "redFlags": [
-      "Blindly applying AsSplitQuery everywhere without benchmarking (for 1:1 relationships, standard single JOIN is much faster).",
-      "Ignoring the EF Core warning 'Compiling a query which loads related collections for more than one collection navigation'."
-    ],
-    "proTips": [
-      "You can configure split queries globally: options.UseSqlServer(connectionString, o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))."
-    ]
-  },
-  {
-    "id": "q-sql-8",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "Concurrency",
-      "RowVersion",
-      "Optimistic Locking",
-      "EF Core"
-    ],
-    "title": "Optimistic Concurrency Control with RowVersion and DbUpdateConcurrencyException",
-    "pitch": "Pessimistic locking holds exclusive database locks for the duration of a transaction, causing contention and deadlocks in web applications. Optimistic Concurrency assumes conflicts are rare: it allows concurrent reads and updates, but verifies at commit time that no other user modified the row in the interim. In SQL Server and EF Core, this is achieved using a 'RowVersion' (byte[]) column. If a conflict occurs, EF Core throws DbUpdateConcurrencyException, allowing the app to resolve the collision.",
-    "deepDive": "Implementation Details:\n1. RowVersion in SQL Server:\n   - A table column declared as 'RowVersion' (synonym: TIMESTAMP) automatically increments an internal 8-byte monotonic binary number on every INSERT or UPDATE.\n2. EF Core Mapping:\n   - Configured via '[Timestamp]' or 'builder.Property(p => p.Version).IsRowVersion()'.\n3. The SQL Execution:\n   - When updating: UPDATE Products SET Price = @newPrice WHERE Id = @id AND Version = @originalVersion;\n   - If another process updated the product first, the database Version has incremented.\n   - Rows affected = 0.\n   - EF Core detects affected rows == 0 and throws DbUpdateConcurrencyException.\n4. Conflict Resolution Strategies:\n   - Client Wins: Overwrite database with client values.\n   - Database Wins: Discard client changes and reload latest database values.\n   - Custom Merge: Present both values to the user to choose fields.",
-    "codeSnippet": "public async Task UpdateAccountBalanceAsync(int accountId, decimal depositAmount, CancellationToken ct)\n{\n    var account = await _db.Accounts.FindAsync(new object[] { accountId }, ct);\n    if (account == null) throw new NotFoundException();\n\n    account.Balance += depositAmount;\n\n    try\n    {\n        await _db.SaveChangesAsync(ct);\n    }\n    catch (DbUpdateConcurrencyException ex)\n    {\n        // Concurrency conflict occurred! Another user updated the record.\n        var entry = ex.Entries.Single();\n        var databaseValues = await entry.GetDatabaseValuesAsync(ct);\n\n        if (databaseValues == null)\n        {\n            throw new InvalidOperationException(\"Account was deleted by another user.\");\n        }\n\n        var dbAccount = (Account)databaseValues.ToObject();\n        throw new ConcurrencyException($\"Conflict! Current DB balance is {dbAccount.Balance}. Please retry.\");\n    }\n}",
-    "redFlags": [
-      "Using pessimistic transactions across HTTP requests (e.g. keeping a DB transaction open while awaiting user form submission).",
-      "Catching DbUpdateConcurrencyException and doing nothing, silently dropping user updates."
-    ],
-    "proTips": [
-      "In distributed microservices where SQL Server RowVersion is unavailable, use an integer 'Version' column incremented manually: 'UPDATE Entity SET Version = Version + 1, ... WHERE Id = @id AND Version = @expectedVersion'."
-    ]
-  },
-  {
-    "id": "q-sql-9",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "Dapper",
-      "EF Core",
-      "Hybrid CQRS",
-      "Micro-ORM"
-    ],
-    "title": "Dapper and EF Core Hybrid CQRS Architecture: Blending ORM with Micro-ORM",
-    "pitch": "In high-throughput enterprise .NET systems, combining EF Core and Dapper provides the ideal balance of productivity and performance. EF Core is used on the Command (Write) side for complex Domain Aggregate Roots, validation, change tracking, and transactional units of work. Dapper is used on the Query (Read) side for raw SQL execution, multi-mapping, and zero-allocation object hydration directly into read-optimized DTOs.",
-    "deepDive": "Why Pure EF Core or Pure Dapper Falls Short:\n- Pure EF Core on Writes: Excellent. Handles state transitions, navigations, and concurrency tokens.\n- Pure EF Core on Reads: Even with AsNoTracking(), LINQ translation imposes overhead on complex aggregations, window functions, and legacy schema joins.\n- Pure Dapper on Writes: Painful. Requires writing manual boilerplate SQL INSERT/UPDATE statements for 50 entity fields and handling change tracking manually.\n\nThe Hybrid Solution:\n- Both share the same underlying SQL Connection and Transaction: 'var conn = dbContext.Database.GetDbConnection();'.\n- Dapper executes custom SQL with CTEs, PIVOTs, or window functions (ROW_NUMBER() OVER (...)) that LINQ cannot efficiently translate.",
-    "codeSnippet": "// Query Handler using Dapper for micro-second read performance\npublic class GetOrderAnalyticsQueryHandler : IRequestHandler<GetOrderAnalyticsQuery, OrderAnalyticsDto>\n{\n    private readonly IDbConnectionFactory _dbConnectionFactory;\n\n    public GetOrderAnalyticsQueryHandler(IDbConnectionFactory factory) => _dbConnectionFactory = factory;\n\n    public async Task<OrderAnalyticsDto> Handle(GetOrderAnalyticsQuery request, CancellationToken ct)\n    {\n        using var connection = _dbConnectionFactory.CreateConnection();\n        const string sql = @\"\n            SELECT \n                COUNT(1) AS TotalOrders,\n                SUM(TotalAmount) AS GrossRevenue,\n                AVG(TotalAmount) AS AverageOrderValue\n            FROM Orders WITH (NOLOCK)\n            WHERE CreatedAt >= @StartDate AND Status = 'Completed';\";\n\n        return await connection.QuerySingleAsync<OrderAnalyticsDto>(\n            new CommandDefinition(sql, new { request.StartDate }, cancellationToken: ct));\n    }\n}",
-    "redFlags": [
-      "Using string concatenation in Dapper SQL queries instead of parameterized anonymous objects (creates SQL Injection vulnerabilities!).",
-      "Using Dapper to update complex entity aggregate graphs manually."
-    ],
-    "proTips": [
-      "Use Dapper's 'QueryMultipleAsync' to execute multiple SQL SELECT statements in a single database roundtrip, hydrating parent and child collections simultaneously."
-    ]
-  },
-  {
-    "id": "q-sql-10",
     "pillar": "sql",
     "seniority": "Senior",
     "tags": [
@@ -681,7 +1264,150 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-1",
+    "id": "q-sql-6",
+    "pillar": "sql",
+    "seniority": "Senior",
+    "tags": [
+      "Normalization",
+      "Denormalization",
+      "OLTP vs OLAP",
+      "Database Design"
+    ],
+    "title": "Relational Normalization (1NF through 3NF/BCNF) vs. Pragmatic Denormalization",
+    "pitch": "Normalization organizes relational schemas to minimize data redundancy and eliminate insert, update, and delete anomalies by ensuring every non-key attribute depends on 'the key, the whole key, and nothing but the key' (3NF/BCNF). In high-throughput OLTP systems, 3NF ensures atomic, consistent writes. However, in read-heavy architectures with massive JOIN overhead, senior engineers pragmatically apply Denormalization (materialized views, read-model projections, and pre-aggregated summary tables) to trade write complexity for sub-millisecond query performance.",
+    "deepDive": "The Normal Forms Breakdown:\n1. 1NF (First Normal Form): Atomic values only (no repeating groups, comma-separated lists, or arrays in a column).\n2. 2NF (Second Normal Form): 1NF + No partial key dependencies (every non-key column must depend on the FULL composite primary key).\n3. 3NF (Third Normal Form): 2NF + No transitive dependencies (non-key columns must not depend on other non-key columns).\n4. BCNF (Boyce-Codd Normal Form): A stricter version of 3NF where every determinant must be a candidate key.\n\nPragmatic Denormalization Patterns in Modern .NET:\n1. Summary Tables & Pre-Aggregation: Maintaining 'DailySalesSummary' updated asynchronously via background jobs or triggers.\n2. Read-Model Projections (CQRS): Keeping normalized relational tables for write aggregates, while projecting denormalized JSON or DTO tables for read screens.\n3. Indexed / Materialized Views: SQL Server automatically maintains the view output on disk when underlying tables change, allowing lightning-fast index seeks on complex aggregations.",
+    "codeSnippet": "-- SQL Server Indexed View (Materialized Denormalization)\nCREATE VIEW dbo.vw_CustomerOrderTotals\nWITH SCHEMABINDING -- Required for indexing\nAS\nSELECT \n    c.CustomerId,\n    c.CustomerName,\n    COUNT_BIG(*) AS OrderCount,\n    SUM(ISNULL(o.TotalAmount, 0)) AS LifetimeSpend\nFROM dbo.Customers c\nINNER JOIN dbo.Orders o ON c.CustomerId = o.CustomerId\nGROUP BY c.CustomerId, c.CustomerName;\nGO\n\n-- Create unique clustered index to materialize view on disk\nCREATE UNIQUE CLUSTERED INDEX CIX_vw_CustomerOrderTotals \nON dbo.vw_CustomerOrderTotals (CustomerId);",
+    "redFlags": [
+      "Prematurely denormalizing tables during initial schema design before identifying read bottlenecks.",
+      "Denormalizing transactional write models without establishing mechanisms to prevent data divergence."
+    ],
+    "proTips": [
+      "Use SQL Server Indexed Views with SCHEMABINDING for read-heavy aggregates: the query optimizer can automatically substitute the view index even when the query targets the underlying base tables!"
+    ]
+  },
+  {
+    "title": "SQL Joins: Inner, Left Outer, Right Outer, Full Outer, Cross, and Self Joins",
+    "seniority": "Senior",
+    "tags": [
+      "SQL Joins",
+      "Nested Loops",
+      "Hash Match",
+      "Merge Join",
+      "Venn Diagrams"
+    ],
+    "pitch": "SQL Joins combine data from two tables based on relational predicates. Inner Join returns only intersecting rows where the join predicate evaluates to true. Left Outer Join returns all left rows plus matching right rows (or NULLs). Full Outer Join returns the complete union with NULLs on either unmatched side. Cross Join produces the Cartesian product (M * N rows). Under the hood, SQL Server's cost-based optimizer selects between three join operators: Nested Loops (optimal for small outer table with indexed inner table), Merge Join (optimal when both inputs are pre-sorted on join keys), and Hash Match (optimal for massive unindexed datasets).",
+    "deepDive": "Internal Join Algorithms in SQL Server:\n1. Nested Loops Join:\n   - For every row in the outer table, SQL Server performs an index seek into the inner table.\n   - Lightning fast (O(N log M)) when outer row count is small and inner table has a clustered/non-clustered index on the join key.\n2. Merge Join:\n   - Requires both inputs to be sorted on the join column.\n   - Scans both inputs concurrently like a zipper: O(N + M) complexity. Extremely efficient for large sorted datasets.\n3. Hash Match Join:\n   - Builds an in-memory hash table on the smaller table's join keys, then probes it with rows from the larger table.\n   - Resource intensive (requires memory grants in tempdb); used when tables lack indexes.\n4. Self Join & Cross Join:\n   - Self Join: Joining a table to itself to evaluate hierarchical relationships (e.g., Employees.ManagerId -> Employees.Id).\n   - Cross Join: Produces M * N rows. Useful for generating date tally tables or matrix combinations.",
+    "codeSnippet": "-- 1. Left Outer Join with NULL filter (Finding customers who NEVER ordered)\nSELECT c.CustomerId, c.Name\nFROM dbo.Customers c\nLEFT JOIN dbo.Orders o ON c.CustomerId = o.CustomerId\nWHERE o.OrderId IS NULL; -- Filters out any customer who has an order\n\n-- 2. Self Join for Manager Hierarchy\nSELECT \n    e.EmployeeId,\n    e.FullName AS EmployeeName,\n    ISNULL(m.FullName, 'CEO / Top Exec') AS ManagerName\nFROM dbo.Employees e\nLEFT JOIN dbo.Employees m ON e.ManagerId = m.EmployeeId;\n\n-- 3. Full Outer Join (Auditing discrepancies between Billing and Shipping)\nSELECT \n    COALESCE(b.AccountId, s.AccountId) AS AccountId,\n    b.AmountDue,\n    s.TrackingNumber\nFROM dbo.Billing b\nFULL OUTER JOIN dbo.Shipping s ON b.AccountId = s.AccountId;",
+    "redFlags": [
+      "Using a Cartesian CROSS JOIN by omitting the WHERE/ON clause, exhausting server RAM with billions of rows.",
+      "Placing filtering predicates for the right table in the WHERE clause instead of the ON clause of a LEFT JOIN (accidentally converting it into an INNER JOIN).",
+      "Not understanding why SQL Server chose a Hash Match instead of a Nested Loop join (indicates missing index)."
+    ],
+    "proTips": [
+      "Always put filters on the right-hand table inside the 'ON' clause of a LEFT JOIN: putting them in the 'WHERE' clause filters out NULL rows and silently turns the query into an INNER JOIN!"
+    ],
+    "id": "q-sql-7",
+    "pillar": "sql"
+  },
+  {
+    "title": "Window Functions: ROW_NUMBER(), RANK(), DENSE_RANK(), and NTILE() with OVER()",
+    "seniority": "Senior",
+    "tags": [
+      "Window Functions",
+      "ROW_NUMBER",
+      "RANK",
+      "DENSE_RANK",
+      "NTILE",
+      "OVER()"
+    ],
+    "pitch": "Window functions calculate running totals, rankings, and moving averages across a partitioned subset of rows without collapsing rows like GROUP BY. ROW_NUMBER() generates unique sequential integers (1, 2, 3, 4). RANK() assigns identical ranks to ties and leaves gaps (1, 2, 2, 4). DENSE_RANK() assigns identical ranks to ties without gaps (1, 2, 2, 3). NTILE(n) distributes rows into N approximately equal buckets. Sourcing the Nth highest salary or deduping records uses DENSE_RANK() OVER (ORDER BY Salary DESC) inside a CTE.",
+    "deepDive": "Differences and Memory Execution:\n1. The Ranking Matrix (for values 100, 100, 80, 70):\n   - ROW_NUMBER(): 1, 2, 3, 4 (Arbitrary tie-breaking based on ordering).\n   - RANK(): 1, 1, 3, 4 (Ties share rank 1; rank 2 is skipped).\n   - DENSE_RANK(): 1, 1, 2, 3 (Ties share rank 1; next rank is 2 without gaps).\n2. The OVER() Clause Anatomy:\n   - PARTITION BY: Divides the result set into distinct partitions (e.g., DepartmentId).\n   - ORDER BY: Dictates the sequence of row evaluation inside each partition.\n   - ROWS BETWEEN ...: Defines the rolling window frame for running aggregates (e.g., 7-day moving average).\n3. The Classic Senior Interview Problem:\n   - 'Find the Nth highest salary per department': Requires DENSE_RANK() inside a CTE, because RANK() skips ranks on ties!",
+    "codeSnippet": "-- Classic Senior Interview Question: Find the 2nd Highest Salary per Department\nWITH RankedSalaries AS\n(\n    SELECT \n        EmployeeId,\n        DepartmentId,\n        Salary,\n        DENSE_RANK() OVER (\n            PARTITION BY DepartmentId \n            ORDER BY Salary DESC\n        ) AS SalaryRank\n    FROM dbo.Employees\n)\nSELECT DepartmentId, EmployeeId, Salary\nFROM RankedSalaries\nWHERE SalaryRank = 2; -- Correctly handles ties without skipping!\n\n-- Running Total with Window Framing\nSELECT \n    OrderId, \n    OrderDate, \n    TotalAmount,\n    SUM(TotalAmount) OVER (\n        PARTITION BY CustomerId \n        ORDER BY OrderDate \n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) AS RunningCustomerSpend\nFROM dbo.Orders;",
+    "redFlags": [
+      "Using RANK() instead of DENSE_RANK() when solving 'Nth highest value' interview questions with ties.",
+      "Attempting to filter by a Window Function directly in the WHERE clause (Window functions execute after WHERE; you MUST wrap in a CTE or subquery).",
+      "Omitting the frame specification ('ROWS BETWEEN ...') on running SUM(), causing SQL Server to default to the slower RANGE specification."
+    ],
+    "proTips": [
+      "Always specify 'ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW' when computing running aggregates in SQL Server: the default 'RANGE' specification creates an on-disk worktable in tempdb that is significantly slower."
+    ],
+    "id": "q-sql-8",
+    "pillar": "sql"
+  },
+  {
+    "title": "Common Table Expressions (CTEs) & Recursive Queries vs. Temp Tables vs. Table Variables",
+    "seniority": "Senior",
+    "tags": [
+      "CTE",
+      "Recursive CTE",
+      "Temp Tables (#table)",
+      "Table Variables (@table)",
+      "tempdb"
+    ],
+    "pitch": "A CTE is a non-materialized inline view defined with WITH that exists only during query execution: if referenced multiple times in the outer query, SQL Server re-executes the CTE logic each time. Recursive CTEs enable hierarchical tree traversal (org charts, bill of materials). Temporary Tables (#table) are physically materialized in tempdb, have full column statistics, support indexes, and participate in parallel query plans. Table Variables (@table) live in tempdb as well, have NO statistics (optimizer historically assumes 1 row), do not support parallel plans, and do not rollback during transaction aborts.",
+    "deepDive": "Physical Architecture & tempdb Comparison:\n1. CTEs (Common Table Expressions):\n   - Scope: Single statement.\n   - Materialization: NOT materialized! Evaluated inline like a view.\n   - ⚠️ TRAP: If a CTE joins to itself or is queried twice, SQL Server executes the underlying query TWICE!\n2. Temporary Tables (#table):\n   - Scope: Current connection/session.\n   - Materialization: Physical table in tempdb.\n   - Features: Supports clustered/non-clustered indexes, triggers, and full distribution statistics. The query optimizer estimates rows accurately.\n3. Table Variables (@table):\n   - Scope: Current batch/stored procedure execution.\n   - Materialization: Lives in tempdb as well (NOT in memory only!).\n   - ⚠️ TRAP: Has NO column statistics. Prior to SQL Server 2019, the optimizer always estimated Cardinality = 1, leading to terrible execution plans on large datasets.",
+    "codeSnippet": "-- 1. Recursive CTE: Traversal of Organizational Hierarchy\nWITH OrgChartCTE AS\n(\n    -- Anchor member: The CEO / Top level (ManagerId is NULL)\n    SELECT EmployeeId, FullName, ManagerId, 1 AS OrgLevel\n    FROM dbo.Employees\n    WHERE ManagerId IS NULL\n\n    UNION ALL\n\n    -- Recursive member: Subordinates joining to parent\n    SELECT e.EmployeeId, e.FullName, e.ManagerId, o.OrgLevel + 1\n    FROM dbo.Employees e\n    INNER JOIN OrgChartCTE o ON e.ManagerId = o.EmployeeId\n)\nSELECT EmployeeId, FullName, OrgLevel\nFROM OrgChartCTE\nORDER BY OrgLevel, FullName\nOPTION (MAXRECURSION 100); -- Safety check against circular reporting loops!",
+    "redFlags": [
+      "Believing that Table Variables live exclusively in RAM (they spill to tempdb just like temp tables).",
+      "Using a Table Variable for datasets larger than 100 rows, causing the optimizer to pick terrible nested loop plans due to 1-row cardinality assumptions.",
+      "Joining a non-materialized CTE multiple times expecting cached results, causing duplicate database execution."
+    ],
+    "proTips": [
+      "For complex intermediate datasets (> 1,000 rows) used across multiple steps, use a '#temp' table with an explicit clustered index instead of a CTE or Table Variable."
+    ],
+    "id": "q-sql-9",
+    "pillar": "sql"
+  },
+  {
+    "title": "Stored Procedures vs. User-Defined Functions (Scalar vs. Inline TVF) and Parameter Sniffing",
+    "seniority": "Senior",
+    "tags": [
+      "Stored Procedures",
+      "Scalar UDF",
+      "Inline TVF",
+      "Parameter Sniffing",
+      "RBAR"
+    ],
+    "pitch": "Stored procedures compile into cached execution plans, support DML/DDL, output parameters, and explicit transactions, but can suffer from 'Parameter Sniffing' when the initial compiled plan is suboptimal for subsequent parameter distributions. Scalar User-Defined Functions (UDFs) historically forced Row-By-Agonizing-Row (RBAR) serial execution, disabling parallelism until SQL Server 2019 Scalar UDF Inlining. Inline Table-Valued Functions (iTVFs) expand directly into the calling query like parameterized views, allowing the query optimizer to choose index seeks and parallel join plans.",
+    "deepDive": "Internal Compilation & Optimization Differences:\n1. Parameter Sniffing in Stored Procedures:\n   - When a stored procedure is first executed, SQL Server 'sniffs' the parameter values and builds an execution plan optimized specifically for that parameter's cardinality.\n   - If parameter 1 returns 2 rows (Index Seek), but parameter 2 returns 2,000,000 rows (Index Scan), parameter 2 suffers severe performance degradation using the Seek plan!\n   - Solutions: 'OPTIMIZE FOR (@param UNKNOWN)', 'OPTION (RECOMPILE)', or local variable assignment.\n2. Scalar UDFs & RBAR (Row-By-Agonizing-Row):\n   - When a scalar UDF is called in a SELECT list or WHERE clause, the engine invokes the function separately for every single row, blocking parallel execution plans.\n3. Inline TVFs (The Senior Pattern):\n   - Functions defined as a single RETURN SELECT statement.\n   - SQL Server treats inline TVFs as parameterized views, embedding the logic directly into the outer query's execution tree.",
+    "codeSnippet": "-- 1. ❌ BAD: Multi-statement Scalar UDF (Forces RBAR serial execution)\nCREATE FUNCTION dbo.fn_BadGetCustomerTotalSpend (@CustomerId INT)\nRETURNS DECIMAL(18,2)\nAS\nBEGIN\n    DECLARE @Total DECIMAL(18,2);\n    SELECT @Total = SUM(TotalAmount) FROM dbo.Orders WHERE CustomerId = @CustomerId;\n    RETURN ISNULL(@Total, 0);\nEND;\nGO\n\n-- 2. ✅ SENIOR PATTERN: Inline Table-Valued Function (iTVF)\n-- Inlines directly into calling query; supports index seeks and parallelism!\nCREATE FUNCTION dbo.fn_GoodGetCustomerSpend (@CustomerId INT)\nRETURNS TABLE\nAS\nRETURN\n(\n    SELECT ISNULL(SUM(TotalAmount), 0) AS TotalSpend\n    FROM dbo.Orders\n    WHERE CustomerId = @CustomerId\n);\nGO\n\n-- Calling iTVF via CROSS APPLY:\nSELECT c.CustomerId, c.Name, s.TotalSpend\nFROM dbo.Customers c\nCROSS APPLY dbo.fn_GoodGetCustomerSpend(c.CustomerId) s;",
+    "redFlags": [
+      "Using Multi-Statement Scalar UDFs in large queries without knowing they destroy parallelism and force serial RBAR execution.",
+      "Not knowing what Parameter Sniffing is or how to resolve it when stored procedures intermittently stall.",
+      "Attempting to modify database state (INSERT/UPDATE) inside a User-Defined Function (UDFs are read-only)."
+    ],
+    "proTips": [
+      "Always write User-Defined Functions as Inline Table-Valued Functions (iTVFs) using a single 'RETURN SELECT' statement: the query optimizer inlines them completely into the host query tree."
+    ],
+    "id": "q-sql-10",
+    "pillar": "sql"
+  },
+  {
+    "title": "Primary Key vs. Unique Key vs. Clustered Index: Logical Constraints vs. Physical Storage",
+    "seniority": "Senior",
+    "tags": [
+      "Primary Key",
+      "Unique Key",
+      "Clustered Index",
+      "Heap Tables",
+      "B-Tree Leaf"
+    ],
+    "pitch": "A Primary Key is a logical relational constraint enforcing entity integrity: it requires unique, non-null values, and SQL Server defaults to creating a Clustered Index (though it can be declared NONCLUSTERED). A Unique Constraint also enforces uniqueness but permits a single NULL value (in SQL Server) and defaults to a Non-Clustered Index. A Clustered Index is a physical storage structure: it dictates the physical order of leaf data pages on disk in the B-Tree (a table can have at most one clustered index; tables without one are Heaps).",
+    "deepDive": "Physical vs Logical Architecture:\n1. Logical Constraints:\n   - Primary Key: Disallows duplicate values AND disallows NULL values. Enforces entity identity.\n   - Unique Constraint: Disallows duplicate non-null values. Under ANSI standard, multiple NULLs are allowed; in SQL Server, only one NULL is permitted (unless a filtered unique index 'WHERE Column IS NOT NULL' is used).\n2. Physical Storage (B-Tree vs Heap):\n   - A Clustered Index physically orders the table's data rows on disk at the leaf level of the B-Tree.\n   - You can create a Primary Key as NONCLUSTERED:\n     'ALTER TABLE Orders ADD CONSTRAINT PK_Orders PRIMARY KEY NONCLUSTERED (OrderId);'\n   - This frees the single Clustered Index to be placed on a sequential business column (like CreatedAtUtc or TenantId) that optimizes range scans!",
+    "codeSnippet": "-- Decoupling Logical Primary Key from Physical Clustered Index\nCREATE TABLE dbo.TenantEvents\n(\n    EventGuid UNIQUEIDENTIFIER NOT NULL, -- Random UUID\n    TenantId INT NOT NULL,\n    CreatedAtUtc DATETIME2(3) NOT NULL,\n    Payload NVARCHAR(MAX) NOT NULL,\n\n    -- 1. Logical Identity: Enforces uniqueness, but NONCLUSTERED\n    -- Prevents index fragmentation caused by random GUIDs!\n    CONSTRAINT PK_TenantEvents PRIMARY KEY NONCLUSTERED (EventGuid)\n);\n\n-- 2. Physical Storage: Sequential CLUSTERED Index on Tenant & Date\n-- Optimizes physical disk range queries for tenant analytics!\nCREATE CLUSTERED INDEX CIX_TenantEvents_Tenant_Date\nON dbo.TenantEvents (TenantId, CreatedAtUtc);",
+    "redFlags": [
+      "Assuming that a Primary Key MUST always be the Clustered Index on a table.",
+      "Using random 'Guid.NewGuid()' as the Clustered Primary Key, causing catastrophic 50% B-Tree page splits and disk fragmentation.",
+      "Believing that Unique Keys and Primary Keys behave identically regarding NULL values."
+    ],
+    "proTips": [
+      "If you use GUID primary keys, create the Primary Key as NONCLUSTERED, and place the CLUSTERED index on a sequential column (e.g. CreatedAtUtc or sequential GUID via UuidCreateSequential / Guid Version 7) to eliminate page splits."
+    ],
+    "id": "q-sql-11",
+    "pillar": "sql"
+  },
+  {
+    "id": "q-ui-1",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -703,7 +1429,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-2",
+    "id": "q-ui-2",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -725,7 +1451,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-3",
+    "id": "q-ui-3",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -747,7 +1473,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-4",
+    "id": "q-ui-4",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -769,7 +1495,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-5",
+    "id": "q-ui-5",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -791,7 +1517,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-6",
+    "id": "q-ui-6",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -813,7 +1539,7 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-frontend-7",
+    "id": "q-ui-7",
     "pillar": "ui",
     "seniority": "Senior",
     "tags": [
@@ -833,6 +1559,144 @@ window.INTERVIEW_QUESTIONS = [
     "proTips": [
       "Use 'Awaited<ReturnType<typeof asyncFn>>' in TypeScript 4.5+ to unwrap Promise types cleanly without manual 'infer' boilerplate."
     ]
+  },
+  {
+    "id": "q-ui-8",
+    "pillar": "ui",
+    "seniority": "Senior",
+    "tags": [
+      "React 19",
+      "Server Actions",
+      "useActionState",
+      "Forms"
+    ],
+    "title": "React 19 Server Actions and Form State Management with useActionState",
+    "pitch": "React 19 introduced first-class Server Actions and hooks like useActionState and useFormStatus to standardize form handling and asynchronous mutations. Server Actions execute asynchronously on the server and can be invoked directly from HTML form action attributes. The useActionState hook encapsulates pending state, validation errors, and optimistic UI updates without manual useState, useEffect, or fetch boilerplate.",
+    "deepDive": "Evolution of Mutations in React:\n- Pre-React 19: Required manual onSubmit event handlers, e.preventDefault(), useState for isSubmitting, error, and response, and manual try/catch fetch logic.\n- React 19 Actions:\n  Functions that transition state asynchronously. When passed to an action prop or useActionState, React automatically manages the transition lifecycle, exposes isPending, and coordinates with Suspense and Error Boundaries.",
+    "codeSnippet": "import React, { useActionState } from 'react';\n\n// Action function handling API mutation\nasync function updateProfileScore(prevState: { error?: string; success?: boolean }, formData: FormData) {\n  const score = formData.get('score');\n  try {\n    const res = await fetch('/api/profile/score', {\n      method: 'POST',\n      body: JSON.stringify({ score }),\n      headers: { 'Content-Type': 'application/json' }\n    });\n    if (!res.ok) return { error: 'Failed to update score' };\n    return { success: true };\n  } catch (err: any) {\n    return { error: err.message };\n  }\n}\n\nexport function ProfileScoreEditor() {\n  const [state, formAction, isPending] = useActionState(updateProfileScore, {});\n\n  return (\n    <form action={formAction}>\n      <input type=\"number\" name=\"score\" defaultValue={100} disabled={isPending} />\n      <button type=\"submit\" disabled={isPending}>\n        {isPending ? 'Saving...' : 'Update Score'}\n      </button>\n      {state.error && <p className=\"error\">{state.error}</p>}\n      {state.success && <p className=\"success\">Saved successfully!</p>}\n    </form>\n  );\n}",
+    "redFlags": [
+      "Manually creating 4 different useState variables for every single form in React 19.",
+      "Not handling progressive enhancement or disabled states during pending action submissions."
+    ],
+    "proTips": [
+      "Combine useActionState with useOptimistic to instantly update the UI before the server mutation roundtrip finishes."
+    ]
+  },
+  {
+    "id": "q-ui-9",
+    "pillar": "ui",
+    "seniority": "Senior",
+    "tags": [
+      "Memoization",
+      "React Compiler",
+      "Performance",
+      "useCallback"
+    ],
+    "title": "React Memoization: React.memo, useMemo, and the React Compiler (React Forget)",
+    "pitch": "Historically, React developers manually memoized components with React.memo and expressions with useMemo/useCallback to avoid unnecessary re-renders caused by referential inequality of functions and objects. However, over-memoization adds memory overhead and dependency array maintenance bugs. The new React Compiler (React Forget) is an ahead-of-time auto-memoizing compiler that automatically injects fine-grained memoization at compile time, eliminating the need for manual useMemo and useCallback in modern React codebases.",
+    "deepDive": "Referential Equality and Re-Rendering:\n1. In JavaScript, '{} !== {}' and '(() => {}) !== (() => {})'.\n2. When a parent re-renders, every inline callback and object literal receives a brand-new memory address.\n3. If passed to a child wrapped in React.memo, the shallow prop comparison fails, forcing the child to re-render anyway.\n4. The Cost of Memoization:\n   - useMemo has an internal cost: allocating dependency arrays, comparing dependencies on every render, and holding cached values.\n   - For simple calculations (e.g. string formatting), useMemo is often slower than re-computing!\n5. The React Compiler Revolution:\n   - Converts React components into an optimized Intermediate Representation (IR).\n   - Identifies values and JSX subtrees that do not change and inserts memoization blocks automatically.",
+    "codeSnippet": "// Classic manual memoization pattern\nimport React, { useMemo, useCallback } from 'react';\n\nexport const ExpensiveGrid = React.memo(function ExpensiveGrid({ data, onRowClick }: {\n  data: RowItem[];\n  onRowClick: (id: string) => void;\n}) {\n  // Expensive sorting operation properly memoized\n  const sortedData = useMemo(() => {\n    return [...data].sort((a, b) => b.value - a.value);\n  }, [data]);\n\n  return (\n    <div>\n      {sortedData.map(row => (\n        <div key={row.id} onClick={() => onRowClick(row.id)}>\n          {row.name}: {row.value}\n        </div>\n      ))}\n    </div>\n  );\n});",
+    "redFlags": [
+      "Wrapping trivial calculations like 'const total = useMemo(() => a + b, [a, b])' in useMemo.",
+      "Omitting callback dependencies or passing unstable inline functions into React.memo components."
+    ],
+    "proTips": [
+      "Always measure before memoizing: use the React DevTools Profiler 'Highlight updates when components render' to find actual bottlenecks."
+    ]
+  },
+  {
+    "id": "q-ui-10",
+    "pillar": "ui",
+    "seniority": "Senior",
+    "tags": [
+      "Micro-Frontends",
+      "Module Federation",
+      "Architecture",
+      "TypeScript"
+    ],
+    "title": "Micro-Frontends and Webpack Module Federation in Decoupled ASP.NET Core Systems",
+    "pitch": "Micro-frontends decompose large monolithic single-page applications into independently developed, tested, and deployed frontend sub-applications. Webpack Module Federation allows micro-apps to dynamically share runtime dependencies (such as React, Zustand, and Design System components) at runtime without bundling them into every micro-app artifact. An ASP.NET Core host or edge gateway routes user sessions and supplies unified authentication context.",
+    "deepDive": "Module Federation Mechanics:\n1. Host vs Remote:\n   - Shell / Host: Renders the outer navigation shell, header, and handles global auth.\n   - Remotes: Independent micro-apps (e.g. Checkout, Catalog, Account Dashboard) hosted at separate URLs/CDNs.\n2. Shared Dependencies:\n   - 'shared: { react: { singleton: true, requiredVersion: \"^19.0.0\" } }' ensures that only a single instance of React exists in memory, preventing hook context collisions.\n3. Decoupled CI/CD:\n   - Teams can deploy the Checkout micro-app 10 times a day without rebuilding or redeploying the Catalog or Shell.",
+    "codeSnippet": "// webpack.config.js for Remote Micro-Frontend\nconst { ModuleFederationPlugin } = require('webpack').container;\n\nmodule.exports = {\n  plugins: [\n    new ModuleFederationPlugin({\n      name: 'ordersApp',\n      filename: 'remoteEntry.js',\n      exposes: {\n        './OrderHistoryWidget': './src/components/OrderHistoryWidget'\n      },\n      shared: {\n        react: { singleton: true, requiredVersion: '^19.0.0' },\n        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },\n        zustand: { singleton: true }\n      }\n    })\n  ]\n};",
+    "redFlags": [
+      "Loading multiple different versions of React in the same browser window (causes React hook crash errors).",
+      "Using iframes for micro-frontends (breaks responsive layout, accessibility, and smooth modal overlays)."
+    ],
+    "proTips": [
+      "Use Custom Events or a lightweight event bus for cross-micro-frontend communication to maintain loose coupling."
+    ]
+  },
+  {
+    "title": "JavaScript Closures, Lexical Scope, and Detached DOM Memory Leaks in Single-Page Apps",
+    "seniority": "Senior",
+    "tags": [
+      "Closures",
+      "Lexical Scope",
+      "Memory Leaks",
+      "Garbage Collection",
+      "Detached DOM"
+    ],
+    "pitch": "A closure is the combination of a function bundled together with references to its surrounding lexical environment (the scope chain). In modern single-page applications, closures power stateful callbacks, memoized hooks, and factory functions. However, if a closure references a large object or DOM element and is attached to a global event listener, timer (setInterval), or module-level cache, the garbage collector cannot reclaim that memory, resulting in 'Detached DOM Tree' memory leaks that degrade browser performance over time.",
+    "deepDive": "Engine Scope Chains & Memory Retention:\n1. Lexical Scope Mechanics:\n   - When a function is declared, the JavaScript engine assigns an internal [[Scopes]] property pointing to the parent Execution Context's Lexical Environment.\n   - Even after the outer function finishes executing, any inner function that retains a reference keeps the entire lexical scope object alive in the heap.\n2. The Detached DOM Memory Leak:\n   - A DOM element is removed from the active document tree via 'document.body.removeChild(el)'.\n   - However, if an event handler or timer callback holds a closure reference to 'el', the browser's Garbage Collector cannot free the element or any of its child nodes!\n   - This creates a 'Detached HTMLDivElement' holding megabytes of memory in Chrome DevTools Memory Heap Snapshots.",
+    "codeSnippet": "// ❌ LEAKY PATTERN: Closure retains reference to heavy DOM element in global interval\nfunction setupPollingWidget() {\n    const heavyContainer = document.getElementById('heavyWidget'); // DOM reference\n\n    setInterval(() => {\n        // Closure captures 'heavyContainer'\n        if (heavyContainer) {\n            heavyContainer.innerText = \"Updated: \" + new Date().toISOString();\n        }\n    }, 1000);\n}\n\n// ✅ SENIOR PATTERN: React cleanup ensures closure references are severed\nimport { useEffect, useRef } from 'react';\n\nexport function PollingWidget() {\n    const containerRef = useRef<HTMLDivElement>(null);\n\n    useEffect(() => {\n        const timer = setInterval(() => {\n            if (containerRef.current) {\n                containerRef.current.innerText = \"Updated: \" + new Date().toISOString();\n            }\n        }, 1000);\n\n        // CLEANUP FUNCTION: Clears timer when component unmounts, allowing GC!\n        return () => clearInterval(timer);\n    }, []);\n\n    return <div ref={containerRef} className=\"widget\" />;\n}",
+    "redFlags": [
+      "Defining setInterval or window.addEventListener inside React components without returning a cleanup function in useEffect.",
+      "Not knowing how to identify Detached DOM nodes using Chrome DevTools Heap Snapshots.",
+      "Believing that removing an element from the DOM with innerHTML = '' automatically garbage-collects its event listeners."
+    ],
+    "proTips": [
+      "Use WeakRef or WeakMap when caching objects associated with DOM elements or closures: Weak references do not prevent the Garbage Collector from freeing the underlying target."
+    ],
+    "id": "q-ui-11",
+    "pillar": "ui"
+  },
+  {
+    "title": "The Browser Event Loop: Call Stack, Microtasks (Promises), and Macrotasks (Timers/I/O)",
+    "seniority": "Senior",
+    "tags": [
+      "Event Loop",
+      "Microtasks",
+      "Macrotasks",
+      "Promise.then()",
+      "UI Freezing"
+    ],
+    "pitch": "JavaScript is single-threaded with a non-blocking event loop. The execution order is strictly prioritized: 1) Synchronous code runs on the Call Stack. 2) When the stack empties, the engine drains the entire Microtask Queue (Promise.then(), queueMicrotask(), MutationObserver). 3) The browser performs layout/repaint (if a screen refresh frame is due). 4) One single task from the Macrotask Queue (setTimeout, setInterval, I/O events) is dequeued. Because microtasks run continuously until empty, recursive promise chains starve the macrotask queue and completely freeze UI rendering.",
+    "deepDive": "Event Loop Priority Order:\n1. Microtasks vs Macrotasks:\n   - Microtasks: 'Promise.resolve().then()', 'queueMicrotask()', 'await' continuations.\n   - Macrotasks (Tasks): 'setTimeout', 'setInterval', 'setImmediate' (Node), DOM events, network I/O.\n2. The Starvation Hazard:\n   - When a microtask schedules another microtask, the engine immediately executes the new microtask before returning to the event loop.\n   - If microtasks run continuously in a loop, the browser NEVER reaches the Rendering Stage (60/120 FPS UI paint) and never runs macrotasks, causing the tab to hang.\n3. Execution Trace Puzzle:\n   - console.log('1');\n   - setTimeout(() => console.log('2'), 0);\n   - Promise.resolve().then(() => console.log('3'));\n   - console.log('4');\n   - Output: 1, 4, 3, 2 (Synchronous 1, 4 -> Microtask 3 -> Macrotask 2).",
+    "codeSnippet": "// Demonstrating Event Loop Order & Non-Blocking Yielding\nasync function processLargeDataset(items: number[]) {\n    console.log(\"Start processing\");\n\n    for (let i = 0; i < items.length; i++) {\n        // Expensive CPU computation\n        doHeavyMath(items[i]);\n\n        // ✅ SENIOR PATTERN: Yield control back to browser to allow UI re-rendering!\n        // Every 500 iterations, break out of microtask queue to allow 60fps paint\n        if (i % 500 === 0) {\n            await yieldToMain();\n        }\n    }\n\n    console.log(\"Finished processing\");\n}\n\n// Yields execution to the Macrotask queue via scheduler.yield() or setTimeout\nfunction yieldToMain(): Promise<void> {\n    if ('scheduler' in window && 'yield' in (window as any).scheduler) {\n        return (window as any).scheduler.yield();\n    }\n    return new Promise(resolve => setTimeout(resolve, 0));\n}",
+    "redFlags": [
+      "Stating that setTimeout(..., 0) executes immediately before resolved Promises.",
+      "Running heavy synchronous loops in the main browser thread that block the call stack and drop frame rates.",
+      "Not knowing the difference between the microtask queue and macrotask queue."
+    ],
+    "proTips": [
+      "Use modern 'scheduler.yield()' (or 'setTimeout(..., 0)') to chunk long tasks into discrete slices, allowing the browser to process clicks and maintain 60 FPS animations."
+    ],
+    "id": "q-ui-12",
+    "pillar": "ui"
+  },
+  {
+    "title": "Controlled vs. Uncontrolled Components: React State vs. useRef DOM Performance",
+    "seniority": "Senior",
+    "tags": [
+      "Controlled Components",
+      "Uncontrolled Components",
+      "useRef",
+      "Form Performance",
+      "Re-renders"
+    ],
+    "pitch": "Controlled components bind form inputs directly to React useState, updating state on every keystroke and making React the single source of truth; this simplifies conditional validation and instant UI updates but triggers re-rendering of the component on every character typed. Uncontrolled components keep internal state in the browser DOM and access values on submit using useRef; this eliminates per-keystroke re-renders and is essential for high-throughput inputs, canvas interactions, or large dynamic tables.",
+    "deepDive": "Architectural Trade-offs:\n1. Controlled Components (useState):\n   - Value is passed via prop 'value={text}' and changes are handled via 'onChange={e => setText(e.target.value)}'.\n   - Advantage: Instant validation, dynamic disabling of submit buttons, formatting inputs on the fly (e.g. credit card masks).\n   - Disadvantage: In a form with 50 inputs, typing triggers 50 re-render passes for the parent component unless child components are aggressively memoized.\n2. Uncontrolled Components (useRef / FormData):\n   - Value is managed by the browser DOM using 'defaultValue=\"foo\"'.\n   - Read values on submit: 'const value = inputRef.current.value;' or 'new FormData(formEvent.currentTarget)'.\n   - Advantage: Zero re-renders while typing. Peak input latency.\n3. React 19 Integration:\n   - React 19 Server Actions and 'useActionState' favor uncontrolled native form submissions with progressive enhancement.",
+    "codeSnippet": "import React, { useRef, useState } from 'react';\n\n// 1. Uncontrolled High-Performance Form (Zero typing re-renders)\nexport function UncontrolledSearchForm({ onSearch }: { onSearch: (query: string) => void }) {\n    const inputRef = useRef<HTMLInputElement>(null);\n\n    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {\n        e.preventDefault();\n        // Read directly from DOM on demand\n        if (inputRef.current) {\n            onSearch(inputRef.current.value);\n        }\n    };\n\n    return (\n        <form onSubmit={handleSubmit}>\n            <input ref={inputRef} defaultValue=\"\" placeholder=\"Search...\" />\n            <button type=\"submit\">Search</button>\n        </form>\n    );\n}\n\n// 2. React 19 Native FormData Form (Cleanest modern pattern)\nexport function ModernNativeForm({ onSubmitAction }: { onSubmitAction: (fd: FormData) => void }) {\n    return (\n        <form action={onSubmitAction}>\n            <input name=\"email\" type=\"email\" required />\n            <input name=\"password\" type=\"password\" required />\n            <button type=\"submit\">Sign In</button>\n        </form>\n    );\n}",
+    "redFlags": [
+      "Using controlled useState on every single input in massive 100-field forms, causing visible input lag on mobile devices.",
+      "Passing 'value' without an 'onChange' handler in React (causes read-only input warning in console).",
+      "Believing that uncontrolled components cannot have validation rules."
+    ],
+    "proTips": [
+      "For large complex forms, use libraries like React Hook Form: they leverage uncontrolled inputs with refs under the hood, delivering 60 FPS typing speed while providing full validation and dirty-state tracking."
+    ],
+    "id": "q-ui-13",
+    "pillar": "ui"
   },
   {
     "id": "q-cloud-1",
@@ -942,138 +1806,6 @@ window.INTERVIEW_QUESTIONS = [
     ],
     "proTips": [
       "Enable 'RequiresDuplicateDetection = true' and 'DuplicateDetectionHistoryTimeWindow = 10 minutes' on Azure Service Bus Queues to let Azure deduplicate retried messages via MessageId."
-    ]
-  },
-  {
-    "id": "q-csharp-11",
-    "pillar": "csharp",
-    "seniority": "Senior",
-    "tags": [
-      "Unsafe",
-      "Pointers",
-      "MemoryMarshal",
-      "SIMD"
-    ],
-    "title": "Unsafe Code, Native Pointers, and MemoryMarshal Zero-Copy Casts",
-    "pitch": "While C# is fundamentally a type-safe managed language, the 'unsafe' keyword and System.Runtime.InteropServices.MemoryMarshal allow developers to bypass CLR safety checks for ultra-high-throughput native interop, cryptographic operations, and SIMD hardware intrinsics. MemoryMarshal.Cast<TFrom, TTo>() allows zero-copy type reinterpretation of Span buffers without copying a single byte in memory.",
-    "deepDive": "Unsafe vs Safe Memory Operations:\n1. Pointers (fixed statement):\n   - The CLR GC moves objects during compaction.\n   - Using 'fixed (byte* p = buffer)' pins the managed array in memory, disabling GC movement for that block so raw pointers can be safely traversed.\n2. MemoryMarshal.Cast:\n   - Reinterprets a Span<byte> as a Span<int> or Span<Vector256<float>> without copying.\n   - Calculates the new length as: '(oldLength * sizeof(TFrom)) / sizeof(TTo)'.\n3. Hardware Intrinsics (SIMD):\n   - System.Runtime.Intrinsics.X86 (AVX2, AVX512) and Arm.Arm64.\n   - Performs Single Instruction Multiple Data operations, processing 8 or 16 numbers in a single CPU clock cycle.",
-    "codeSnippet": "using System.Runtime.InteropServices;\nusing System.Runtime.Intrinsics;\nusing System.Runtime.Intrinsics.X86;\n\npublic static class FastBufferUtilities\n{\n    // Zero-allocation byte-to-uint cast using MemoryMarshal\n    public static uint ComputeFastSum(ReadOnlySpan<byte> data)\n    {\n        // Reinterpret byte span as uint span (4 bytes per uint)\n        ReadOnlySpan<uint> uintSpan = MemoryMarshal.Cast<byte, uint>(data);\n        uint sum = 0;\n        for (int i = 0; i < uintSpan.Length; i++)\n        {\n            sum += uintSpan[i];\n        }\n        return sum;\n    }\n}",
-    "redFlags": [
-      "Using unsafe pointer arithmetic where Span<T> or ArrayPool<T> provides equivalent speed safely.",
-      "Pinning managed objects with 'fixed' for long periods, causing severe GC heap fragmentation."
-    ],
-    "proTips": [
-      "Always prefer MemoryMarshal and Unsafe.As<T>() over raw pointers: they are verified by Roslyn and preserve JIT optimization heuristics."
-    ]
-  },
-  {
-    "id": "q-aspnet-11",
-    "pillar": "aspnet",
-    "seniority": "Senior",
-    "tags": [
-      "SignalR",
-      "WebSockets",
-      "Real-Time",
-      "MessagePack"
-    ],
-    "title": "ASP.NET Core SignalR Scale-Out, MessagePack, and Azure SignalR Service",
-    "pitch": "ASP.NET Core SignalR simplifies real-time bidirectional communication by abstracting WebSockets, Server-Sent Events, and Long Polling. In high-traffic clusters, sticky sessions and memory constraints make hosting WebSockets on application pods unscalable. Azure SignalR Service offloads client connections entirely: backend web servers maintain only a lightweight multiplexed control channel. Replacing standard JSON with MessagePack serialization reduces network payloads by up to 70% and drastically cuts GC allocations.",
-    "deepDive": "Real-Time Architecture Nuances:\n1. Transport Fallbacks:\n   - WebSocket: Full-duplex persistent TCP connection (preferred).\n   - Server-Sent Events (SSE): Half-duplex (server-to-client push only; client sends via standard HTTP).\n   - Long Polling: Legacy fallback for restrictive enterprise proxies.\n2. Backplane Alternatives:\n   - Redis Backplane: Every broadcast to a group is fanned out to EVERY connected node in the cluster ($O(N \times M)$ overhead).\n   - Azure SignalR Service: Managed edge service terminating 100k+ WebSockets. Only routes messages to nodes with active subscribers.\n3. MessagePack Binary Protocol:\n   - By default, SignalR serializes messages to JSON text.\n   - Adding 'Microsoft.AspNetCore.SignalR.Protocols.MessagePack' transmits compact binary data, reducing CPU serialization overhead and mobile client bandwidth.",
-    "codeSnippet": "// Program.cs: SignalR with Azure SignalR Service and MessagePack\nbuilder.Services.AddSignalR()\n    .AddAzureSignalR(options =>\n    {\n        options.ConnectionString = builder.Configuration.GetConnectionString(\"AzureSignalR\");\n        options.ServerStickyMode = ServerStickyMode.Disabled;\n    })\n    .AddMessagePackProtocol(); // Binary high-efficiency protocol",
-    "redFlags": [
-      "Assuming SignalR requires sticky sessions when using Azure SignalR Service (Azure SignalR eliminates sticky session requirements).",
-      "Broadcasting 5MB payloads over SignalR instead of sending a lightweight notification with an HTTP download link."
-    ],
-    "proTips": [
-      "Implement Hub lifetime events ('OnConnectedAsync' and 'OnDisconnectedAsync') to manage user presence in Redis with automatic TTL timeouts."
-    ]
-  },
-  {
-    "id": "q-sql-11",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "EF Core",
-      "Compiled Queries",
-      "Batching",
-      "Raw SQL"
-    ],
-    "title": "EF Core Compiled Queries, Statement Batching, and Parameterized Raw SQL",
-    "pitch": "Every LINQ query executed in EF Core must compile the expression tree into a relational SQL statement and cache the query plan. For micro-second critical endpoints, EF.CompileAsyncQuery() pre-compiles the query into an invocable delegate, bypassing expression tree compilation on every request. Furthermore, modern EF Core automatically batches multiple INSERT/UPDATE/DELETE statements into a single network roundtrip, and provides ExecuteSqlInterpolated() for safe, parameterized raw SQL execution.",
-    "deepDive": "Mechanics of Compiled Queries:\n- Standard LINQ Execution:\n  1. Parse C# Expression Tree.\n  2. Compute Query Cache Key (based on shape and parameters).\n  3. Look up relational command in memory cache.\n  4. Generate and parameterize SQL string.\n- Compiled Query (EF.CompileAsyncQuery):\n  1. Evaluates steps 1-4 ONCE at startup.\n  2. Stores a compiled Func<DbContext, TParam, IAsyncEnumerable<TResult>> delegate.\n  3. Subsequent executions invoke the delegate directly, cutting query overhead by 50-70%.\n\nAutomatic Statement Batching:\nWhen calling SaveChangesAsync on 50 modified entities, EF Core bundles all 50 statements into a single TDS batch packet rather than issuing 50 sequential network roundtrips.",
-    "codeSnippet": "// High-performance static pre-compiled query delegate\npublic static class QueryCache\n{\n    public static readonly Func<AppDbContext, int, Task<UserSummaryDto?>> GetUserSummaryCompiled =\n        EF.CompileAsyncQuery((AppDbContext db, int id) =>\n            db.Users\n              .AsNoTracking()\n              .Where(u => u.Id == id)\n              .Select(u => new UserSummaryDto(u.Id, u.Email, u.Role))\n              .FirstOrDefault());\n}\n\n// In your high-frequency controller / endpoint:\npublic async Task<IResult> GetUser(int id, AppDbContext db)\n{\n    var user = await QueryCache.GetUserSummaryCompiled(db, id);\n    return user is not null ? TypedResults.Ok(user) : TypedResults.NotFound();\n}",
-    "redFlags": [
-      "Using string concatenation with db.Database.ExecuteSqlRaw() (creates critical SQL injection vulnerabilities!).",
-      "Over-optimizing with compiled queries on low-volume admin endpoints where standard LINQ is more readable."
-    ],
-    "proTips": [
-      "In EF Core 7+, use ExecuteUpdateAsync() and ExecuteDeleteAsync() to execute bulk mutations directly on the database without loading entities into memory first."
-    ]
-  },
-  {
-    "id": "q-frontend-8",
-    "pillar": "ui",
-    "seniority": "Senior",
-    "tags": [
-      "React 19",
-      "Server Actions",
-      "useActionState",
-      "Forms"
-    ],
-    "title": "React 19 Server Actions and Form State Management with useActionState",
-    "pitch": "React 19 introduced first-class Server Actions and hooks like useActionState and useFormStatus to standardize form handling and asynchronous mutations. Server Actions execute asynchronously on the server and can be invoked directly from HTML form action attributes. The useActionState hook encapsulates pending state, validation errors, and optimistic UI updates without manual useState, useEffect, or fetch boilerplate.",
-    "deepDive": "Evolution of Mutations in React:\n- Pre-React 19: Required manual onSubmit event handlers, e.preventDefault(), useState for isSubmitting, error, and response, and manual try/catch fetch logic.\n- React 19 Actions:\n  Functions that transition state asynchronously. When passed to an action prop or useActionState, React automatically manages the transition lifecycle, exposes isPending, and coordinates with Suspense and Error Boundaries.",
-    "codeSnippet": "import React, { useActionState } from 'react';\n\n// Action function handling API mutation\nasync function updateProfileScore(prevState: { error?: string; success?: boolean }, formData: FormData) {\n  const score = formData.get('score');\n  try {\n    const res = await fetch('/api/profile/score', {\n      method: 'POST',\n      body: JSON.stringify({ score }),\n      headers: { 'Content-Type': 'application/json' }\n    });\n    if (!res.ok) return { error: 'Failed to update score' };\n    return { success: true };\n  } catch (err: any) {\n    return { error: err.message };\n  }\n}\n\nexport function ProfileScoreEditor() {\n  const [state, formAction, isPending] = useActionState(updateProfileScore, {});\n\n  return (\n    <form action={formAction}>\n      <input type=\"number\" name=\"score\" defaultValue={100} disabled={isPending} />\n      <button type=\"submit\" disabled={isPending}>\n        {isPending ? 'Saving...' : 'Update Score'}\n      </button>\n      {state.error && <p className=\"error\">{state.error}</p>}\n      {state.success && <p className=\"success\">Saved successfully!</p>}\n    </form>\n  );\n}",
-    "redFlags": [
-      "Manually creating 4 different useState variables for every single form in React 19.",
-      "Not handling progressive enhancement or disabled states during pending action submissions."
-    ],
-    "proTips": [
-      "Combine useActionState with useOptimistic to instantly update the UI before the server mutation roundtrip finishes."
-    ]
-  },
-  {
-    "id": "q-frontend-9",
-    "pillar": "ui",
-    "seniority": "Senior",
-    "tags": [
-      "Memoization",
-      "React Compiler",
-      "Performance",
-      "useCallback"
-    ],
-    "title": "React Memoization: React.memo, useMemo, and the React Compiler (React Forget)",
-    "pitch": "Historically, React developers manually memoized components with React.memo and expressions with useMemo/useCallback to avoid unnecessary re-renders caused by referential inequality of functions and objects. However, over-memoization adds memory overhead and dependency array maintenance bugs. The new React Compiler (React Forget) is an ahead-of-time auto-memoizing compiler that automatically injects fine-grained memoization at compile time, eliminating the need for manual useMemo and useCallback in modern React codebases.",
-    "deepDive": "Referential Equality and Re-Rendering:\n1. In JavaScript, '{} !== {}' and '(() => {}) !== (() => {})'.\n2. When a parent re-renders, every inline callback and object literal receives a brand-new memory address.\n3. If passed to a child wrapped in React.memo, the shallow prop comparison fails, forcing the child to re-render anyway.\n4. The Cost of Memoization:\n   - useMemo has an internal cost: allocating dependency arrays, comparing dependencies on every render, and holding cached values.\n   - For simple calculations (e.g. string formatting), useMemo is often slower than re-computing!\n5. The React Compiler Revolution:\n   - Converts React components into an optimized Intermediate Representation (IR).\n   - Identifies values and JSX subtrees that do not change and inserts memoization blocks automatically.",
-    "codeSnippet": "// Classic manual memoization pattern\nimport React, { useMemo, useCallback } from 'react';\n\nexport const ExpensiveGrid = React.memo(function ExpensiveGrid({ data, onRowClick }: {\n  data: RowItem[];\n  onRowClick: (id: string) => void;\n}) {\n  // Expensive sorting operation properly memoized\n  const sortedData = useMemo(() => {\n    return [...data].sort((a, b) => b.value - a.value);\n  }, [data]);\n\n  return (\n    <div>\n      {sortedData.map(row => (\n        <div key={row.id} onClick={() => onRowClick(row.id)}>\n          {row.name}: {row.value}\n        </div>\n      ))}\n    </div>\n  );\n});",
-    "redFlags": [
-      "Wrapping trivial calculations like 'const total = useMemo(() => a + b, [a, b])' in useMemo.",
-      "Omitting callback dependencies or passing unstable inline functions into React.memo components."
-    ],
-    "proTips": [
-      "Always measure before memoizing: use the React DevTools Profiler 'Highlight updates when components render' to find actual bottlenecks."
-    ]
-  },
-  {
-    "id": "q-frontend-10",
-    "pillar": "ui",
-    "seniority": "Senior",
-    "tags": [
-      "Micro-Frontends",
-      "Module Federation",
-      "Architecture",
-      "TypeScript"
-    ],
-    "title": "Micro-Frontends and Webpack Module Federation in Decoupled ASP.NET Core Systems",
-    "pitch": "Micro-frontends decompose large monolithic single-page applications into independently developed, tested, and deployed frontend sub-applications. Webpack Module Federation allows micro-apps to dynamically share runtime dependencies (such as React, Zustand, and Design System components) at runtime without bundling them into every micro-app artifact. An ASP.NET Core host or edge gateway routes user sessions and supplies unified authentication context.",
-    "deepDive": "Module Federation Mechanics:\n1. Host vs Remote:\n   - Shell / Host: Renders the outer navigation shell, header, and handles global auth.\n   - Remotes: Independent micro-apps (e.g. Checkout, Catalog, Account Dashboard) hosted at separate URLs/CDNs.\n2. Shared Dependencies:\n   - 'shared: { react: { singleton: true, requiredVersion: \"^19.0.0\" } }' ensures that only a single instance of React exists in memory, preventing hook context collisions.\n3. Decoupled CI/CD:\n   - Teams can deploy the Checkout micro-app 10 times a day without rebuilding or redeploying the Catalog or Shell.",
-    "codeSnippet": "// webpack.config.js for Remote Micro-Frontend\nconst { ModuleFederationPlugin } = require('webpack').container;\n\nmodule.exports = {\n  plugins: [\n    new ModuleFederationPlugin({\n      name: 'ordersApp',\n      filename: 'remoteEntry.js',\n      exposes: {\n        './OrderHistoryWidget': './src/components/OrderHistoryWidget'\n      },\n      shared: {\n        react: { singleton: true, requiredVersion: '^19.0.0' },\n        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },\n        zustand: { singleton: true }\n      }\n    })\n  ]\n};",
-    "redFlags": [
-      "Loading multiple different versions of React in the same browser window (causes React hook crash errors).",
-      "Using iframes for micro-frontends (breaks responsive layout, accessibility, and smooth modal overlays)."
-    ],
-    "proTips": [
-      "Use Custom Events or a lightweight event bus for cross-micro-frontend communication to maintain loose coupling."
     ]
   },
   {
@@ -1187,289 +1919,27 @@ window.INTERVIEW_QUESTIONS = [
     ]
   },
   {
-    "id": "q-linq-1",
-    "pillar": "linq",
+    "title": "Zero-Trust Secret Management: Azure Key Vault vs. GitHub Actions OIDC Federated Credentials",
     "seniority": "Senior",
     "tags": [
-      "IEnumerable",
-      "IQueryable",
-      "Expression Trees",
-      "Deferred Execution"
+      "Azure Key Vault",
+      "GitHub OIDC",
+      "Workload Identity",
+      "Zero-Trust",
+      "DevSecOps"
     ],
-    "title": "IEnumerable<T> vs. IQueryable<T>: In-Memory Client Filtering vs SQL Expression Trees",
-    "pitch": "IEnumerable<T> operates in-memory on in-process collections using compiled delegates (Func<T, bool>). Every filtering operation evaluates in the CLR on the client machine. IQueryable<T> inherits from IEnumerable but evaluates out-of-process against an external data source (like SQL Server) using Expression Trees (Expression<Func<T, bool>>). The query provider parses the expression tree and translates it into native SQL, executing filtering directly on the database engine.",
-    "deepDive": "Under the Hood Differences:\n1. Method Signatures:\n   - Enumerable.Where takes Func<TSource, bool> (compiled C# IL delegate).\n   - Queryable.Where takes Expression<Func<TSource, bool>> (data structure representing code).\n2. The Fatal Performance Anti-Pattern:\n   - If an EF Core query is cast to IEnumerable<T> before applying Where or Take:\n     IEnumerable<Order> orders = dbContext.Orders; // Still IQueryable\n     var filtered = orders.Where(o => o.Status == \"Completed\").Take(10);\n   - Because Where() is invoked on IEnumerable, EF Core issues: SELECT * FROM Orders;\n   - All 5,000,000 order rows are transferred across the network to client RAM, where the CLR filters in-memory!\n   - Invoking Where() on IQueryable compiles to: SELECT TOP (10) * FROM Orders WHERE Status = 'Completed';\n3. When to use each:\n   - Use IQueryable while building the database query pipeline (paging, filtering, sorting, projection).\n   - Use IEnumerable once data has been materialized (.ToList(), .AsEnumerable()) for C# domain computations that SQL cannot express.",
-    "codeSnippet": "// ❌ JUNIOR MISTAKE: Pulls all 5 million rows into memory!\npublic List<OrderDto> BadGetOrders(AppDbContext db)\n{\n    IEnumerable<Order> query = db.Orders; // Casts to IEnumerable!\n    return query\n        .Where(o => o.Total > 500)       // Executes in C# memory, NOT in SQL!\n        .Take(20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToList();\n}\n\n// ✅ SENIOR PATTERN: Generates optimal SQL with WHERE and TOP\npublic async Task<List<OrderDto>> GoodGetOrdersAsync(AppDbContext db, CancellationToken ct)\n{\n    IQueryable<Order> query = db.Orders.AsNoTracking();\n    return await query\n        .Where(o => o.Total > 500)       // Translated to SQL: WHERE Total > 500\n        .Take(20)                        // Translated to SQL: TOP (20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToListAsync(ct);\n}",
+    "pitch": "Traditional CI/CD pipelines relied on long-lived Service Principal client secrets or connection strings stored in repository settings, exposing systems to credential expiration outages and exfiltration risks. Modern enterprise DevSecOps implements OpenID Connect (OIDC) Workload Identity Federation: GitHub Actions exchanges short-lived JWT tokens directly with Microsoft Entra ID (Azure AD), issuing temporary, scoped access tokens without storing any passwords or secrets. Applications in Azure use Managed Identities to fetch secrets and certificates from Azure Key Vault at runtime with automatic rotation.",
+    "deepDive": "Architecture of OIDC Federated Credentials:\n1. The Danger of Static Secrets:\n   - Passwords and client secrets stored in GitHub Repository Secrets must be manually rotated, expire unexpectedly, and can be extracted by compromised workflow scripts.\n2. OIDC Federation Handshake:\n   - Step 1: GitHub Actions runner requests an OIDC token from the GitHub token service with claims (repo, branch, environment).\n   - Step 2: The runner sends this token to Microsoft Entra ID (Azure AD).\n   - Step 3: Entra ID validates the token signature against GitHub's public keys and verifies the federated credential trust policy.\n   - Step 4: Entra ID returns a short-lived (1-hour) OAuth access token scoped strictly to the Azure subscription.\n3. Runtime Key Vault Access:\n   - Web App uses System-Assigned Managed Identity.\n   - Key Vault uses Azure RBAC ('Key Vault Secrets User').\n   - Zero secrets stored in appsettings.json or container environment variables!",
+    "codeSnippet": "# .github/workflows/deploy.yml\nname: Secure OIDC Azure Deployment\n\non:\n  push:\n    branches: [ main ]\n\npermissions:\n  id-token: write # Required for requesting the GitHub OIDC JWT token!\n  contents: read\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      # ✅ SENIOR PATTERN: Zero Long-Lived Secrets! Federated Credential Handshake\n      - name: Azure Login via OIDC\n        uses: azure/login@v2\n        with:\n          client-id: ${{ vars.AZURE_CLIENT_ID }}\n          tenant-id: ${{ vars.AZURE_TENANT_ID }}\n          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}\n\n      - name: Deploy Container to Azure App Service\n        uses: azure/webapps-deploy@v3\n        with:\n          app-name: 'prod-dotnet-api'\n          images: 'myacr.azurecr.io/api:${{ github.sha }}'",
     "redFlags": [
-      "Calling '.ToList()' or '.AsEnumerable()' early in an EF query pipeline before applying filters or pagination.",
-      "Stating that IQueryable and IEnumerable execute the same way."
+      "Storing SQL connection strings with plain-text passwords inside appsettings.json or GitHub Repository Secrets.",
+      "Using long-lived Service Principal client secrets that expire every 6-12 months and crash CI/CD builds.",
+      "Granting 'Key Vault Administrator' permissions instead of least-privilege 'Key Vault Secrets User' RBAC role."
     ],
     "proTips": [
-      "Keep method return types as IQueryable<T> inside Repository/Query specifications only if you want callers to append further SQL clauses; otherwise, return Task<List<TDto>> to prevent leaky query logic."
-    ]
-  },
-  {
-    "id": "q-linq-2",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "Deferred Execution",
-      "Multiple Enumeration",
-      "Re-evaluation",
-      "Yield"
+      "Always configure Azure Key Vault with Azure RBAC rather than legacy Vault Access Policies: RBAC integrates seamlessly with Entra ID Privileged Identity Management (PIM) and provides granular secret-level auditing."
     ],
-    "title": "LINQ Deferred Execution vs. Immediate Execution: The Multiple Enumeration Bug",
-    "pitch": "LINQ queries use deferred execution by default: defining a query does not execute it or allocate collection memory; execution occurs only when the sequence is iterated (via foreach, .ToList(), .Count(), etc.). However, this introduces the critical 'Multiple Enumeration' performance bug: iterating an unmaterialized deferred query multiple times causes the entire query (and underlying database roundtrip or calculation) to re-execute every single time.",
-    "deepDive": "Core Mechanics of Deferred Execution:\n1. Iterators & Yield:\n   - Operators like Where, Select, and Skip return custom iterator structs/classes implementing IEnumerator<T>.\n   - Code executes on each call to MoveNext().\n2. The Multiple Enumeration Hazard:\n   public void Process(IEnumerable<User> users)\n   {\n       if (users.Any()) // Enumeration 1: Runs SQL query or generator\n       {\n           int count = users.Count(); // Enumeration 2: Re-runs entire query!\n           foreach (var u in users) { ... } // Enumeration 3: Re-runs again!\n       }\n   }\n3. Immediate Execution Operators:\n   - Operators that produce a non-sequence value: Count(), Any(), First(), Single(), Sum(), Average().\n   - Operators that buffer into a collection: ToList(), ToArray(), ToDictionary(), ToLookup().",
-    "codeSnippet": "// ❌ MULTIPLE ENUMERATION: Re-executes HTTP/DB or LINQ stream twice\npublic void SendAlerts(IEnumerable<SensorReading> readings)\n{\n    // Multiple enumeration warning!\n    if (readings.Any(r => r.Temperature > 100))\n    {\n        var critical = readings.Where(r => r.Temperature > 100);\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count()); // Re-enumerates!\n    }\n}\n\n// ✅ MATERIALIZED EVALUATION: Single pass iteration\npublic void SendAlertsOptimal(IEnumerable<SensorReading> readings)\n{\n    // Materialize into memory once if multiple iterations are required\n    var critical = readings.Where(r => r.Temperature > 100).ToList();\n    if (critical.Count > 0)\n    {\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count);\n    }\n}",
-    "redFlags": [
-      "Ignoring JetBrains ReSharper / Roslyn 'Possible multiple enumeration of IEnumerable' compiler warnings.",
-      "Calling .ToList() prematurely on huge streams that only require a single streaming forward-pass."
-    ],
-    "proTips": [
-      "In .NET 6+, use 'reading.TryGetNonEnumeratedCount(out int count)' to check element count without forcing an enumeration if the sequence implements ICollection."
-    ]
-  },
-  {
-    "id": "q-linq-4",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "SelectMany",
-      "Cross Join",
-      "Hierarchy Flattening",
-      "Projection"
-    ],
-    "title": "SelectMany vs. Select: Flattening Hierarchies, 1:N Relationships, and Cross Joins",
-    "pitch": "Select() projects each element of a sequence into a new form, producing a 1-to-1 output sequence (IEnumerable<TOut>). SelectMany() projects each element to an intermediate sequence and flattens the resulting sequences into a single one-dimensional collection (1-to-many relationship). In relational databases and EF Core, SelectMany translates to an SQL CROSS APPLY or INNER JOIN, avoiding nested collection objects.",
-    "deepDive": "Understanding the Mechanics:\n1. Select:\n   - Input: List of Authors (each author has List<Book>).\n   - authors.Select(a => a.Books) returns IEnumerable<List<Book>> (a collection of collections).\n2. SelectMany:\n   - authors.SelectMany(a => a.Books) returns IEnumerable<Book> (a single flat list of all books from all authors).\n3. Cross Product / Cartesian Generation:\n   - SelectMany can take a second result selector to combine parent and child attributes:\n     authors.SelectMany(a => a.Books, (author, book) => new { author.Name, book.Title });\n4. EF Core Translation:\n   - Translates into SQL: 'FROM Authors a CROSS APPLY Books b' or 'INNER JOIN Books b ON a.Id = b.AuthorId'.",
-    "codeSnippet": "public class Department\n{\n    public string Name { get; set; } = \"\";\n    public List<Employee> Employees { get; set; } = new();\n}\n\npublic class ReportingService\n{\n    public List<EmployeeDto> GetAllActiveEmployees(List<Department> departments)\n    {\n        // Flattens departments into a single stream of active employees\n        return departments\n            .SelectMany(dept => dept.Employees)\n            .Where(emp => emp.IsActive)\n            .Select(emp => new EmployeeDto(emp.Id, emp.FullName, emp.Salary))\n            .ToList();\n    }\n}",
-    "redFlags": [
-      "Using nested foreach loops to append child items to a new List instead of a declarative SelectMany.",
-      "Confusing SelectMany with Concat or Union."
-    ],
-    "proTips": [
-      "SelectMany is the monadic 'bind' (flatMap) operation in functional programming, enabling railway-oriented programming when chaining Result<T> types."
-    ]
-  },
-  {
-    "id": "q-linq-5",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "GroupBy",
-      "ToLookup",
-      "ToDictionary",
-      "Memory"
-    ],
-    "title": "LINQ GroupBy vs. ToLookup vs. ToDictionary: Performance and Memory Trade-Offs",
-    "pitch": "GroupBy produces a deferred, lazy-evaluated sequence of IGrouping<TKey, TElement> where each group is streamed. ToLookup() immediately executes and creates an immutable 1-to-many lookup structure (ILookup<TKey, TElement>) where duplicate keys are supported and querying a missing key returns an empty sequence rather than throwing an exception. ToDictionary() creates a mutable 1-to-1 map where duplicate keys throw ArgumentException.",
-    "deepDive": "Comparison Table:\n1. GroupBy(k):\n   - Execution: Deferred (iterated on demand).\n   - Keys: Multiple values per key.\n   - Missing key: N/A (linear search through groups).\n2. ToLookup(k):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Multiple values per key.\n   - Missing key: Returns Enumerable.Empty<T>() (safe, never throws KeyNotFoundException).\n3. ToDictionary(k, v):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Strictly UNIQUE keys only!\n   - Missing key: Throws KeyNotFoundException unless using TryGetValue. Duplicate key on creation throws ArgumentException.",
-    "codeSnippet": "var orders = GetOrders();\n\n// 1. ToDictionary: Fails if duplicate CustomerId exists!\n// var dict = orders.ToDictionary(o => o.CustomerId); // 💥 ArgumentException!\n\n// 2. ToLookup: Ideal for 1-to-many in-memory indexing\nILookup<int, Order> ordersByCustomer = orders.ToLookup(o => o.CustomerId);\n\n// Safe lookup: Never throws KeyNotFoundException\nIEnumerable<Order> customerOrders = ordersByCustomer[999]; // Returns empty sequence if not found!\nConsole.WriteLine($\"Customer 999 order count: {customerOrders.Count()}\");",
-    "redFlags": [
-      "Using ToDictionary on columns with potential duplicates without grouping first.",
-      "Iterating GroupBy multiple times without materializing with ToLookup or ToList."
-    ],
-    "proTips": [
-      "When building in-memory multi-value caches, prefer ILookup<K, V> over Dictionary<K, List<V>> for cleaner, thread-safe, immutable reads."
-    ]
-  },
-  {
-    "id": "q-linq-6",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "Expression Trees",
-      "Roslyn",
-      "Dynamic LINQ",
-      "IQueryProvider"
-    ],
-    "title": "Expression Trees Under the Hood: Func<T, bool> vs. Expression<Func<T, bool>>",
-    "pitch": "In C#, a lambda passed to Func<T, bool> compiles into executable IL code (a delegate). When the identical lambda syntax is assigned to Expression<Func<T, bool>>, the Roslyn compiler lowers it into a tree data structure composed of Expression nodes (ParameterExpression, BinaryExpression, MemberExpression). This expression tree represents the code structure as data, allowing database providers like EF Core to inspect nodes at runtime and translate them into SQL.",
-    "deepDive": "Why Expression Trees are Essential for Senior .NET Developers:\n1. Inspection as Data:\n   - An Expression tree can be visited using the Visitor Pattern (ExpressionVisitor).\n   - EF Core walks the tree to translate 'user.Age > 18' into SQL 'WHERE [u].[Age] > 18'.\n2. Dynamic Query Generation:\n   - For advanced search screens with 15 optional filter inputs, instead of writing 15 nested if statements or string SQL concatenation, senior engineers dynamically combine Expression trees using Expression.AndAlso and Expression.Lambda.\n3. Compiling Expressions:\n   - You can compile an Expression tree back into an executable delegate at runtime via 'expr.Compile()', though compilation incurs high CPU overhead and should be cached.",
-    "codeSnippet": "// Programmatic Dynamic Filter Construction using Expression Trees\npublic static Expression<Func<T, bool>> CombineWithAnd<T>(\n    Expression<Func<T, bool>> first, \n    Expression<Func<T, bool>> second)\n{\n    var parameter = Expression.Parameter(typeof(T), \"x\");\n\n    // Replace parameters in both expressions with unified parameter\n    var leftVisitor = new ParameterReplacer(first.Parameters[0], parameter);\n    var left = leftVisitor.Visit(first.Body);\n\n    var rightVisitor = new ParameterReplacer(second.Parameters[0], parameter);\n    var right = rightVisitor.Visit(second.Body);\n\n    // Combine with logical AND: x => left && right\n    var body = Expression.AndAlso(left!, right!);\n    return Expression.Lambda<Func<T, bool>>(body, parameter);\n}\n\npublic class ParameterReplacer : ExpressionVisitor\n{\n    private readonly ParameterExpression _from, _to;\n    public ParameterReplacer(ParameterExpression from, ParameterExpression to) => (_from, _to) = (from, to);\n    protected override Expression VisitParameter(ParameterExpression node) => node == _from ? _to : base.VisitParameter(node);\n}",
-    "redFlags": [
-      "Compiling Expression trees in a tight loop with .Compile() (causes severe JIT CPU spikes).",
-      "Attempting to invoke arbitrary C# methods inside EF Core Expressions that have no SQL equivalent."
-    ],
-    "proTips": [
-      "Use System.Linq.Expressions with compiled lambdas for high-speed dynamic object mapping that matches manual assignment speed while avoiding Reflection overhead."
-    ]
-  },
-  {
-    "id": "q-efcore-5",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "Migrations",
-      "CI/CD",
-      "Bundle",
-      "Zero-Downtime"
-    ],
-    "title": "EF Core Migrations in CI/CD: Migration Bundles vs Database.Migrate() at Startup",
-    "pitch": "Calling 'context.Database.Migrate()' during application startup is dangerous in production: in horizontally scaled environments with multiple containers starting concurrently, race conditions corrupt the __EFMigrationsHistory table or cause deadlocks. The enterprise standard is using self-contained Migration Bundles (dotnet ef migrations bundle) executed as a dedicated gated step in CI/CD pipelines before application deployment, paired with expand/contract schema design for zero downtime.",
-    "deepDive": "Why Migrate() at Startup Fails at Scale:\n1. Concurrency Race: Multiple App Service or Kubernetes pods booting simultaneously execute ALTER TABLE at the same time.\n2. Permission Violation: Web app database users should have DML permissions (SELECT, INSERT, UPDATE, DELETE) only, NEVER DDL permissions (CREATE TABLE, ALTER TABLE, DROP TABLE).\n3. Health Check Failure: Migrations running on 100M-row tables cause startup timeouts and crash-loops.\n\nThe CI/CD Migration Bundle Pattern:\n1. Generate Bundle during CI build:\n   dotnet ef migrations bundle --output ./bundle.exe --self-contained -r linux-x64\n2. Execute in Release Pipeline:\n   Run bundle.exe against the staging/production database using elevated DBA credentials.\n3. Expand / Contract Pattern for Zero Downtime:\n   - Phase 1 (Expand): Add new nullable columns or tables. Deploy new code.\n   - Phase 2 (Backfill): Populate data asynchronously.\n   - Phase 3 (Contract): After old code is fully decommissioned, remove deprecated columns in a future migration.",
-    "codeSnippet": "# Azure DevOps Release Pipeline Migration Step\n- task: AzureCLI@2\n  displayName: 'Execute EF Core Migration Bundle'\n  inputs:\n    azureSubscription: 'Production-Azure-Connection'\n    scriptType: 'bash'\n    scriptLocation: 'inlineScript'\n    inlineScript: |\n      chmod +x $(Pipeline.Workspace)/drop/bundle\n      # Execute idempotent migration binary with elevated connection string\n      $(Pipeline.Workspace)/drop/bundle --connection \"$(PROD_DB_CONNECTION_STRING)\"",
-    "redFlags": [
-      "Running 'context.Database.EnsureCreated()' in production (bypasses migration history completely).",
-      "Renaming a column in a single migration on a live system without expand/contract (causes instant 500 errors for running containers)."
-    ],
-    "proTips": [
-      "Generate idempotent SQL scripts via 'dotnet ef migrations script --idempotent' to allow DBA inspection and auditing before deployment."
-    ]
-  },
-  {
-    "id": "q-linq-1",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "IEnumerable",
-      "IQueryable",
-      "Expression Trees",
-      "Deferred Execution"
-    ],
-    "title": "IEnumerable<T> vs. IQueryable<T>: In-Memory Client Filtering vs SQL Expression Trees",
-    "pitch": "IEnumerable<T> operates in-memory on in-process collections using compiled delegates (Func<T, bool>). Every filtering operation evaluates in the CLR on the client machine. IQueryable<T> inherits from IEnumerable but evaluates out-of-process against an external data source (like SQL Server) using Expression Trees (Expression<Func<T, bool>>). The query provider parses the expression tree and translates it into native SQL, executing filtering directly on the database engine.",
-    "deepDive": "Under the Hood Differences:\n1. Method Signatures:\n   - Enumerable.Where takes Func<TSource, bool> (compiled C# IL delegate).\n   - Queryable.Where takes Expression<Func<TSource, bool>> (data structure representing code).\n2. The Fatal Performance Anti-Pattern:\n   - If an EF Core query is cast to IEnumerable<T> before applying Where or Take:\n     IEnumerable<Order> orders = dbContext.Orders; // Still IQueryable\n     var filtered = orders.Where(o => o.Status == \"Completed\").Take(10);\n   - Because Where() is invoked on IEnumerable, EF Core issues: SELECT * FROM Orders;\n   - All 5,000,000 order rows are transferred across the network to client RAM, where the CLR filters in-memory!\n   - Invoking Where() on IQueryable compiles to: SELECT TOP (10) * FROM Orders WHERE Status = 'Completed';\n3. When to use each:\n   - Use IQueryable while building the database query pipeline (paging, filtering, sorting, projection).\n   - Use IEnumerable once data has been materialized (.ToList(), .AsEnumerable()) for C# domain computations that SQL cannot express.",
-    "codeSnippet": "// ❌ JUNIOR MISTAKE: Pulls all 5 million rows into memory!\npublic List<OrderDto> BadGetOrders(AppDbContext db)\n{\n    IEnumerable<Order> query = db.Orders; // Casts to IEnumerable!\n    return query\n        .Where(o => o.Total > 500)       // Executes in C# memory, NOT in SQL!\n        .Take(20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToList();\n}\n\n// ✅ SENIOR PATTERN: Generates optimal SQL with WHERE and TOP\npublic async Task<List<OrderDto>> GoodGetOrdersAsync(AppDbContext db, CancellationToken ct)\n{\n    IQueryable<Order> query = db.Orders.AsNoTracking();\n    return await query\n        .Where(o => o.Total > 500)       // Translated to SQL: WHERE Total > 500\n        .Take(20)                        // Translated to SQL: TOP (20)\n        .Select(o => new OrderDto(o.Id, o.Total))\n        .ToListAsync(ct);\n}",
-    "redFlags": [
-      "Calling '.ToList()' or '.AsEnumerable()' early in an EF query pipeline before applying filters or pagination.",
-      "Stating that IQueryable and IEnumerable execute the same way."
-    ],
-    "proTips": [
-      "Keep method return types as IQueryable<T> inside Repository/Query specifications only if you want callers to append further SQL clauses; otherwise, return Task<List<TDto>> to prevent leaky query logic."
-    ]
-  },
-  {
-    "id": "q-linq-2",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "Deferred Execution",
-      "Multiple Enumeration",
-      "Re-evaluation",
-      "Yield"
-    ],
-    "title": "LINQ Deferred Execution vs. Immediate Execution: The Multiple Enumeration Bug",
-    "pitch": "LINQ queries use deferred execution by default: defining a query does not execute it or allocate collection memory; execution occurs only when the sequence is iterated (via foreach, .ToList(), .Count(), etc.). However, this introduces the critical 'Multiple Enumeration' performance bug: iterating an unmaterialized deferred query multiple times causes the entire query (and underlying database roundtrip or calculation) to re-execute every single time.",
-    "deepDive": "Core Mechanics of Deferred Execution:\n1. Iterators & Yield:\n   - Operators like Where, Select, and Skip return custom iterator structs/classes implementing IEnumerator<T>.\n   - Code executes on each call to MoveNext().\n2. The Multiple Enumeration Hazard:\n   public void Process(IEnumerable<User> users)\n   {\n       if (users.Any()) // Enumeration 1: Runs SQL query or generator\n       {\n           int count = users.Count(); // Enumeration 2: Re-runs entire query!\n           foreach (var u in users) { ... } // Enumeration 3: Re-runs again!\n       }\n   }\n3. Immediate Execution Operators:\n   - Operators that produce a non-sequence value: Count(), Any(), First(), Single(), Sum(), Average().\n   - Operators that buffer into a collection: ToList(), ToArray(), ToDictionary(), ToLookup().",
-    "codeSnippet": "// ❌ MULTIPLE ENUMERATION: Re-executes HTTP/DB or LINQ stream twice\npublic void SendAlerts(IEnumerable<SensorReading> readings)\n{\n    // Multiple enumeration warning!\n    if (readings.Any(r => r.Temperature > 100))\n    {\n        var critical = readings.Where(r => r.Temperature > 100);\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count()); // Re-enumerates!\n    }\n}\n\n// ✅ MATERIALIZED EVALUATION: Single pass iteration\npublic void SendAlertsOptimal(IEnumerable<SensorReading> readings)\n{\n    // Materialize into memory once if multiple iterations are required\n    var critical = readings.Where(r => r.Temperature > 100).ToList();\n    if (critical.Count > 0)\n    {\n        _logger.LogWarning(\"Found {Count} critical readings\", critical.Count);\n    }\n}",
-    "redFlags": [
-      "Ignoring JetBrains ReSharper / Roslyn 'Possible multiple enumeration of IEnumerable' compiler warnings.",
-      "Calling .ToList() prematurely on huge streams that only require a single streaming forward-pass."
-    ],
-    "proTips": [
-      "In .NET 6+, use 'reading.TryGetNonEnumeratedCount(out int count)' to check element count without forcing an enumeration if the sequence implements ICollection."
-    ]
-  },
-  {
-    "id": "q-linq-4",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "SelectMany",
-      "Cross Join",
-      "Hierarchy Flattening",
-      "Projection"
-    ],
-    "title": "SelectMany vs. Select: Flattening Hierarchies, 1:N Relationships, and Cross Joins",
-    "pitch": "Select() projects each element of a sequence into a new form, producing a 1-to-1 output sequence (IEnumerable<TOut>). SelectMany() projects each element to an intermediate sequence and flattens the resulting sequences into a single one-dimensional collection (1-to-many relationship). In relational databases and EF Core, SelectMany translates to an SQL CROSS APPLY or INNER JOIN, avoiding nested collection objects.",
-    "deepDive": "Understanding the Mechanics:\n1. Select:\n   - Input: List of Authors (each author has List<Book>).\n   - authors.Select(a => a.Books) returns IEnumerable<List<Book>> (a collection of collections).\n2. SelectMany:\n   - authors.SelectMany(a => a.Books) returns IEnumerable<Book> (a single flat list of all books from all authors).\n3. Cross Product / Cartesian Generation:\n   - SelectMany can take a second result selector to combine parent and child attributes:\n     authors.SelectMany(a => a.Books, (author, book) => new { author.Name, book.Title });\n4. EF Core Translation:\n   - Translates into SQL: 'FROM Authors a CROSS APPLY Books b' or 'INNER JOIN Books b ON a.Id = b.AuthorId'.",
-    "codeSnippet": "public class Department\n{\n    public string Name { get; set; } = \"\";\n    public List<Employee> Employees { get; set; } = new();\n}\n\npublic class ReportingService\n{\n    public List<EmployeeDto> GetAllActiveEmployees(List<Department> departments)\n    {\n        // Flattens departments into a single stream of active employees\n        return departments\n            .SelectMany(dept => dept.Employees)\n            .Where(emp => emp.IsActive)\n            .Select(emp => new EmployeeDto(emp.Id, emp.FullName, emp.Salary))\n            .ToList();\n    }\n}",
-    "redFlags": [
-      "Using nested foreach loops to append child items to a new List instead of a declarative SelectMany.",
-      "Confusing SelectMany with Concat or Union."
-    ],
-    "proTips": [
-      "SelectMany is the monadic 'bind' (flatMap) operation in functional programming, enabling railway-oriented programming when chaining Result<T> types."
-    ]
-  },
-  {
-    "id": "q-linq-5",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "GroupBy",
-      "ToLookup",
-      "ToDictionary",
-      "Memory"
-    ],
-    "title": "LINQ GroupBy vs. ToLookup vs. ToDictionary: Performance and Memory Trade-Offs",
-    "pitch": "GroupBy produces a deferred, lazy-evaluated sequence of IGrouping<TKey, TElement> where each group is streamed. ToLookup() immediately executes and creates an immutable 1-to-many lookup structure (ILookup<TKey, TElement>) where duplicate keys are supported and querying a missing key returns an empty sequence rather than throwing an exception. ToDictionary() creates a mutable 1-to-1 map where duplicate keys throw ArgumentException.",
-    "deepDive": "Comparison Table:\n1. GroupBy(k):\n   - Execution: Deferred (iterated on demand).\n   - Keys: Multiple values per key.\n   - Missing key: N/A (linear search through groups).\n2. ToLookup(k):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Multiple values per key.\n   - Missing key: Returns Enumerable.Empty<T>() (safe, never throws KeyNotFoundException).\n3. ToDictionary(k, v):\n   - Execution: Immediate (materialized in RAM).\n   - Keys: Strictly UNIQUE keys only!\n   - Missing key: Throws KeyNotFoundException unless using TryGetValue. Duplicate key on creation throws ArgumentException.",
-    "codeSnippet": "var orders = GetOrders();\n\n// 1. ToDictionary: Fails if duplicate CustomerId exists!\n// var dict = orders.ToDictionary(o => o.CustomerId); // 💥 ArgumentException!\n\n// 2. ToLookup: Ideal for 1-to-many in-memory indexing\nILookup<int, Order> ordersByCustomer = orders.ToLookup(o => o.CustomerId);\n\n// Safe lookup: Never throws KeyNotFoundException\nIEnumerable<Order> customerOrders = ordersByCustomer[999]; // Returns empty sequence if not found!\nConsole.WriteLine($\"Customer 999 order count: {customerOrders.Count()}\");",
-    "redFlags": [
-      "Using ToDictionary on columns with potential duplicates without grouping first.",
-      "Iterating GroupBy multiple times without materializing with ToLookup or ToList."
-    ],
-    "proTips": [
-      "When building in-memory multi-value caches, prefer ILookup<K, V> over Dictionary<K, List<V>> for cleaner, thread-safe, immutable reads."
-    ]
-  },
-  {
-    "id": "q-linq-6",
-    "pillar": "linq",
-    "seniority": "Senior",
-    "tags": [
-      "Expression Trees",
-      "Roslyn",
-      "Dynamic LINQ",
-      "IQueryProvider"
-    ],
-    "title": "Expression Trees Under the Hood: Func<T, bool> vs. Expression<Func<T, bool>>",
-    "pitch": "In C#, a lambda passed to Func<T, bool> compiles into executable IL code (a delegate). When the identical lambda syntax is assigned to Expression<Func<T, bool>>, the Roslyn compiler lowers it into a tree data structure composed of Expression nodes (ParameterExpression, BinaryExpression, MemberExpression). This expression tree represents the code structure as data, allowing database providers like EF Core to inspect nodes at runtime and translate them into SQL.",
-    "deepDive": "Why Expression Trees are Essential for Senior .NET Developers:\n1. Inspection as Data:\n   - An Expression tree can be visited using the Visitor Pattern (ExpressionVisitor).\n   - EF Core walks the tree to translate 'user.Age > 18' into SQL 'WHERE [u].[Age] > 18'.\n2. Dynamic Query Generation:\n   - For advanced search screens with 15 optional filter inputs, instead of writing 15 nested if statements or string SQL concatenation, senior engineers dynamically combine Expression trees using Expression.AndAlso and Expression.Lambda.\n3. Compiling Expressions:\n   - You can compile an Expression tree back into an executable delegate at runtime via 'expr.Compile()', though compilation incurs high CPU overhead and should be cached.",
-    "codeSnippet": "// Programmatic Dynamic Filter Construction using Expression Trees\npublic static Expression<Func<T, bool>> CombineWithAnd<T>(\n    Expression<Func<T, bool>> first, \n    Expression<Func<T, bool>> second)\n{\n    var parameter = Expression.Parameter(typeof(T), \"x\");\n\n    // Replace parameters in both expressions with unified parameter\n    var leftVisitor = new ParameterReplacer(first.Parameters[0], parameter);\n    var left = leftVisitor.Visit(first.Body);\n\n    var rightVisitor = new ParameterReplacer(second.Parameters[0], parameter);\n    var right = rightVisitor.Visit(second.Body);\n\n    // Combine with logical AND: x => left && right\n    var body = Expression.AndAlso(left!, right!);\n    return Expression.Lambda<Func<T, bool>>(body, parameter);\n}\n\npublic class ParameterReplacer : ExpressionVisitor\n{\n    private readonly ParameterExpression _from, _to;\n    public ParameterReplacer(ParameterExpression from, ParameterExpression to) => (_from, _to) = (from, to);\n    protected override Expression VisitParameter(ParameterExpression node) => node == _from ? _to : base.VisitParameter(node);\n}",
-    "redFlags": [
-      "Compiling Expression trees in a tight loop with .Compile() (causes severe JIT CPU spikes).",
-      "Attempting to invoke arbitrary C# methods inside EF Core Expressions that have no SQL equivalent."
-    ],
-    "proTips": [
-      "Use System.Linq.Expressions with compiled lambdas for high-speed dynamic object mapping that matches manual assignment speed while avoiding Reflection overhead."
-    ]
-  },
-  {
-    "id": "q-efcore-5",
-    "pillar": "efcore",
-    "seniority": "Senior",
-    "tags": [
-      "Migrations",
-      "CI/CD",
-      "Bundle",
-      "Zero-Downtime"
-    ],
-    "title": "EF Core Migrations in CI/CD: Migration Bundles vs Database.Migrate() at Startup",
-    "pitch": "Calling 'context.Database.Migrate()' during application startup is dangerous in production: in horizontally scaled environments with multiple containers starting concurrently, race conditions corrupt the __EFMigrationsHistory table or cause deadlocks. The enterprise standard is using self-contained Migration Bundles (dotnet ef migrations bundle) executed as a dedicated gated step in CI/CD pipelines before application deployment, paired with expand/contract schema design for zero downtime.",
-    "deepDive": "Why Migrate() at Startup Fails at Scale:\n1. Concurrency Race: Multiple App Service or Kubernetes pods booting simultaneously execute ALTER TABLE at the same time.\n2. Permission Violation: Web app database users should have DML permissions (SELECT, INSERT, UPDATE, DELETE) only, NEVER DDL permissions (CREATE TABLE, ALTER TABLE, DROP TABLE).\n3. Health Check Failure: Migrations running on 100M-row tables cause startup timeouts and crash-loops.\n\nThe CI/CD Migration Bundle Pattern:\n1. Generate Bundle during CI build:\n   dotnet ef migrations bundle --output ./bundle.exe --self-contained -r linux-x64\n2. Execute in Release Pipeline:\n   Run bundle.exe against the staging/production database using elevated DBA credentials.\n3. Expand / Contract Pattern for Zero Downtime:\n   - Phase 1 (Expand): Add new nullable columns or tables. Deploy new code.\n   - Phase 2 (Backfill): Populate data asynchronously.\n   - Phase 3 (Contract): After old code is fully decommissioned, remove deprecated columns in a future migration.",
-    "codeSnippet": "# Azure DevOps Release Pipeline Migration Step\n- task: AzureCLI@2\n  displayName: 'Execute EF Core Migration Bundle'\n  inputs:\n    azureSubscription: 'Production-Azure-Connection'\n    scriptType: 'bash'\n    scriptLocation: 'inlineScript'\n    inlineScript: |\n      chmod +x $(Pipeline.Workspace)/drop/bundle\n      # Execute idempotent migration binary with elevated connection string\n      $(Pipeline.Workspace)/drop/bundle --connection \"$(PROD_DB_CONNECTION_STRING)\"",
-    "redFlags": [
-      "Running 'context.Database.EnsureCreated()' in production (bypasses migration history completely).",
-      "Renaming a column in a single migration on a live system without expand/contract (causes instant 500 errors for running containers)."
-    ],
-    "proTips": [
-      "Generate idempotent SQL scripts via 'dotnet ef migrations script --idempotent' to allow DBA inspection and auditing before deployment."
-    ]
-  },
-  {
-    "id": "q-sql-6",
-    "pillar": "sql",
-    "seniority": "Senior",
-    "tags": [
-      "Normalization",
-      "Denormalization",
-      "OLTP vs OLAP",
-      "Database Design"
-    ],
-    "title": "Relational Normalization (1NF through 3NF/BCNF) vs. Pragmatic Denormalization",
-    "pitch": "Normalization organizes relational schemas to minimize data redundancy and eliminate insert, update, and delete anomalies by ensuring every non-key attribute depends on 'the key, the whole key, and nothing but the key' (3NF/BCNF). In high-throughput OLTP systems, 3NF ensures atomic, consistent writes. However, in read-heavy architectures with massive JOIN overhead, senior engineers pragmatically apply Denormalization (materialized views, read-model projections, and pre-aggregated summary tables) to trade write complexity for sub-millisecond query performance.",
-    "deepDive": "The Normal Forms Breakdown:\n1. 1NF (First Normal Form): Atomic values only (no repeating groups, comma-separated lists, or arrays in a column).\n2. 2NF (Second Normal Form): 1NF + No partial key dependencies (every non-key column must depend on the FULL composite primary key).\n3. 3NF (Third Normal Form): 2NF + No transitive dependencies (non-key columns must not depend on other non-key columns).\n4. BCNF (Boyce-Codd Normal Form): A stricter version of 3NF where every determinant must be a candidate key.\n\nPragmatic Denormalization Patterns in Modern .NET:\n1. Summary Tables & Pre-Aggregation: Maintaining 'DailySalesSummary' updated asynchronously via background jobs or triggers.\n2. Read-Model Projections (CQRS): Keeping normalized relational tables for write aggregates, while projecting denormalized JSON or DTO tables for read screens.\n3. Indexed / Materialized Views: SQL Server automatically maintains the view output on disk when underlying tables change, allowing lightning-fast index seeks on complex aggregations.",
-    "codeSnippet": "-- SQL Server Indexed View (Materialized Denormalization)\nCREATE VIEW dbo.vw_CustomerOrderTotals\nWITH SCHEMABINDING -- Required for indexing\nAS\nSELECT \n    c.CustomerId,\n    c.CustomerName,\n    COUNT_BIG(*) AS OrderCount,\n    SUM(ISNULL(o.TotalAmount, 0)) AS LifetimeSpend\nFROM dbo.Customers c\nINNER JOIN dbo.Orders o ON c.CustomerId = o.CustomerId\nGROUP BY c.CustomerId, c.CustomerName;\nGO\n\n-- Create unique clustered index to materialize view on disk\nCREATE UNIQUE CLUSTERED INDEX CIX_vw_CustomerOrderTotals \nON dbo.vw_CustomerOrderTotals (CustomerId);",
-    "redFlags": [
-      "Prematurely denormalizing tables during initial schema design before identifying read bottlenecks.",
-      "Denormalizing transactional write models without establishing mechanisms to prevent data divergence."
-    ],
-    "proTips": [
-      "Use SQL Server Indexed Views with SCHEMABINDING for read-heavy aggregates: the query optimizer can automatically substitute the view index even when the query targets the underlying base tables!"
-    ]
+    "id": "q-cloud-11",
+    "pillar": "cloud"
   }
 ];

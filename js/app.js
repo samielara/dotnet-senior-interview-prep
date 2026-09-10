@@ -99,9 +99,25 @@
     const hudXpTotal = document.getElementById('hudXpTotal');
     const hudXpNext = document.getElementById('hudXpNext');
     const hudXpFill = document.getElementById('hudXpFill');
+    const hudCompletedCount = document.getElementById('hudCompletedCount');
+    const hudMasteredCount = document.getElementById('hudMasteredCount');
+    const hudTotalQuestionsCount = document.getElementById('hudTotalQuestionsCount');
+    const hudTotalFlashcardsCount = document.getElementById('hudTotalFlashcardsCount');
+    const badgeVaultCount = document.getElementById('badgeVaultCount');
+    const badgeCardsCount = document.getElementById('badgeCardsCount');
 
     if (hudRankBadge) hudRankBadge.textContent = currentRank.name;
     if (hudXpTotal) hudXpTotal.textContent = `${state.xp.toLocaleString()} XP`;
+
+    const totalQuestions = window.INTERVIEW_QUESTIONS ? window.INTERVIEW_QUESTIONS.length : 85;
+    const totalCards = window.INTERVIEW_FLASHCARDS ? window.INTERVIEW_FLASHCARDS.length : 56;
+
+    if (hudCompletedCount) hudCompletedCount.textContent = Object.keys(state.completedQuestions).length;
+    if (hudMasteredCount) hudMasteredCount.textContent = Object.keys(state.masteredCards).length;
+    if (hudTotalQuestionsCount) hudTotalQuestionsCount.textContent = totalQuestions;
+    if (hudTotalFlashcardsCount) hudTotalFlashcardsCount.textContent = totalCards;
+    if (badgeVaultCount) badgeVaultCount.textContent = totalQuestions;
+    if (badgeCardsCount) badgeCardsCount.textContent = totalCards;
 
     if (currentRank.maxXp === Infinity) {
       if (hudXpNext) hudXpNext.textContent = 'MAX RANK';
@@ -848,6 +864,17 @@
 
     openModuleVault: function (pillar) {
       state.vaultFilters.pillar = pillar;
+      state.vaultFilters.search = '';
+      state.vaultFilters.seniority = 'all';
+      state.vaultFilters.bookmarkedOnly = false;
+      state.vaultFilters.completedOnly = false;
+
+      const searchInput = document.getElementById('vaultSearchInput');
+      if (searchInput) searchInput.value = '';
+      document.querySelectorAll('.seniority-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.seniority === 'all');
+      });
+
       switchView('vault');
       document.querySelectorAll('#pillarFiltersRow .filter-pill').forEach(pill => {
         pill.classList.toggle('active', pill.dataset.pillar === pillar);
