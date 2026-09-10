@@ -128,26 +128,44 @@
          VIEW 0: SIMPLIFIED CURRICULUM HUB (LANDING PAGE)
          ---------------------------------------------------------------------- -->
     <section id="view-hub" class="view-panel active">
-      <!-- 3D Constellation Canvas (Ambient background layer, zero layout height displacement) -->
-      <div class="hero-canvas-viewport">
-        <canvas id="three-bg-canvas" class="three-hero-canvas"></canvas>
-      </div>
+      <!-- 2026 Atmospheric Glow Effect (Pure CSS, 0 layout shifts, 0 WebGL overhead) -->
+      <div class="aurora-glow-backdrop"></div>
+      <div class="dot-matrix-overlay"></div>
 
       <div class="curriculum-hero">
-        <div class="hero-pill-badge">
-          <span class="hero-pill-icon">⚡</span>
-          <span class="hero-pill-text">2026 FULL-STACK .NET INTERVIEW CURRICULUM</span>
+        <div class="hero-badge-pill">
+          <span class="pulse-indicator"></span>
+          <span class="hero-pill-text">2026 FULL-STACK ROADMAP</span>
+          <span class="hero-pill-divider">•</span>
+          <span class="hero-pill-sub">96 Curated Senior Rounds</span>
         </div>
-        <h1 class="hero-main-title">Full-Stack .NET Interview Mastery</h1>
+
+        <h1 class="hero-main-title">
+          Crack Your .NET Interview.<br>
+          <span class="title-gradient-accent">At Any Seniority Level.</span>
+        </h1>
+
         <p class="hero-main-subtitle">
-          Master C#, ASP.NET Core 9, EF Core, SQL Server, React 19, and Cloud Architecture through 96 curated interview scenarios, real-world refactors, and live coding challenges.
+          Master Roslyn compiler internals, modern ASP.NET Core 9, EF Core memory tuning, SQL deadlock graphs, and React 19 architecture. Select your target seniority below to calibrate your preparation.
         </p>
-        <div class="curriculum-stats-strip">
-          <div class="curriculum-stat-item"><span>🎓</span> <strong>96</strong> Questions</div>
-          <div class="curriculum-stat-item"><span>💡</span> <strong>Teenager Analogies</strong></div>
-          <div class="curriculum-stat-item"><span>💻</span> <strong>15</strong> Coding Labs</div>
-          <div class="curriculum-stat-item"><span>⚡</span> <strong>96</strong> Flashcards</div>
-          <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Exam</div>
+
+        <div class="hero-metric-strip">
+          <div class="metric-chip">
+            <span class="metric-icon">🎯</span>
+            <span class="metric-label"><strong>96</strong> Real Scenarios</span>
+          </div>
+          <div class="metric-chip">
+            <span class="metric-icon">💻</span>
+            <span class="metric-label"><strong>15</strong> In-Browser Labs</span>
+          </div>
+          <div class="metric-chip">
+            <span class="metric-icon">📐</span>
+            <span class="metric-label"><strong>4</strong> System Blueprints</span>
+          </div>
+          <div class="metric-chip">
+            <span class="metric-icon">⚡</span>
+            <span class="metric-label"><strong>96</strong> Flashcards</span>
+          </div>
         </div>
       </div>
 
@@ -155,67 +173,56 @@
            INITIAL VIEW: 3-TIER EXPERIENCE SELECTION (DEFAULT LANDING VIEW)
            ==================================================================== -->
       <div id="tierSelectionView" class="tier-selection-container">
-        <div class="tier-selection-header">
-          <div class="section-kicker">STEP 1 • CHOOSE YOUR LEVEL</div>
-          <h2 class="tier-selection-title">Select Your Experience Level to Begin</h2>
-          <p class="tier-selection-subtitle">
-            Curated questions, system architectures, and live coding rounds calibrated specifically to your target seniority.
-          </p>
-        </div>
-
         <div class="tier-selection-grid">
           <!-- Tier 1: Entry-Level -->
-          <div class="tier-card tier-card-entry tilt-card" onclick="window.AppController.selectExperienceLevel('Entry')">
-            <div class="tier-ribbon-tag tier-tag-green">ENTRY TRACK</div>
+          <div class="tier-card tier-card-entry" onclick="window.AppController.selectExperienceLevel('Entry')">
             <div class="tier-card-top-content">
               <div class="tier-card-header">
-                <div class="tier-icon-wrap">🌱</div>
-                <span class="tier-level-tag">Junior • 0–2 YOE</span>
+                <span class="tier-tag-badge tag-green">🌱 0–2 YOE • JUNIOR</span>
+                <span class="tier-comp-badge">27 Questions</span>
               </div>
-              <h3 class="tier-title">Entry-Level Questions</h3>
-              <div class="tier-subtitle">Junior Developer • Associate • New Grad</div>
+              <h3 class="tier-title">Entry-Level Track</h3>
               <p class="tier-desc">
-                Core language fundamentals, the 4 OOP pillars, class vs. struct memory mechanics, basic SQL joins, and React state flow.
+                Core language foundations, OOP pillars, value vs. reference memory, SQL joins, and React state mechanics.
               </p>
-              <ul class="tier-bullets">
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> The 4 OOP Pillars &amp; Access Modifiers</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Interface vs. Abstract Class Mechanics</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Class vs. Struct (Stack vs. Heap Memory)</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> INNER vs. LEFT JOIN &amp; Basic Indexing</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> React Props vs. State &amp; Pipelines</li>
-              </ul>
+              <div class="tier-topics-wrap">
+                <span class="topic-chip">4 OOP Pillars</span>
+                <span class="topic-chip">Interface vs Abstract</span>
+                <span class="topic-chip">Stack vs Heap</span>
+                <span class="topic-chip">INNER vs LEFT JOIN</span>
+                <span class="topic-chip">React State Flow</span>
+              </div>
             </div>
             <div class="tier-card-bottom-content">
-              <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Entry')">
+              <button class="tier-action-btn btn-entry" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Entry')">
                 <span>Start Entry Track (27 Qs)</span>
                 <span class="btn-arrow">→</span>
               </button>
             </div>
           </div>
 
-          <!-- Tier 2: Mid-Level -->
-          <div class="tier-card tier-card-mid tilt-card featured-tier-card" onclick="window.AppController.selectExperienceLevel('Mid')">
-            <div class="tier-ribbon-tag tier-tag-indigo">⭐ MOST POPULAR • 3-5 YOE</div>
+          <!-- Tier 2: Mid-Level (Featured 2026 Bento Card) -->
+          <div class="tier-card tier-card-mid featured-card" onclick="window.AppController.selectExperienceLevel('Mid')">
+            <div class="featured-banner">⭐ MOST POPULAR FOR 3–5 YOE</div>
             <div class="tier-card-top-content">
               <div class="tier-card-header">
-                <div class="tier-icon-wrap">⚡</div>
-                <span class="tier-level-tag">Engineer • 3–5 YOE</span>
+                <span class="tier-tag-badge tag-indigo">⚡ 3–5 YOE • ENGINEER</span>
+                <span class="tier-comp-badge">39 Questions</span>
               </div>
-              <h3 class="tier-title">Mid-Level Questions</h3>
-              <div class="tier-subtitle">Software Engineer • Full-Stack Developer</div>
+              <h3 class="tier-title">Mid-Level Track</h3>
               <p class="tier-desc">
-                Clean architecture principles, ASP.NET Core DI lifetimes, EF Core query performance, SARGable SQL, and TypeScript generics.
+                Clean architecture, ASP.NET Core DI lifetimes, EF Core AsNoTracking, SARGable SQL indexes, and Docker CI/CD.
               </p>
-              <ul class="tier-bullets">
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> SOLID Principles with Real-World Refactors</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> ASP.NET Core DI Lifetimes &amp; Middleware</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> EF Core AsNoTracking &amp; N+1 Elimination</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Covering Indexes &amp; SARGable Query Tuning</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Docker Multi-Stage Builds &amp; CI/CD Drops</li>
-              </ul>
+              <div class="tier-topics-wrap">
+                <span class="topic-chip">SOLID Refactors</span>
+                <span class="topic-chip">DI Scope / Captive</span>
+                <span class="topic-chip">EF Core N+1 Tuning</span>
+                <span class="topic-chip">Covering Indexes</span>
+                <span class="topic-chip">Docker Multi-Stage</span>
+              </div>
             </div>
             <div class="tier-card-bottom-content">
-              <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Mid')">
+              <button class="tier-action-btn btn-mid" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Mid')">
                 <span>Start Mid Track (39 Qs)</span>
                 <span class="btn-arrow">→</span>
               </button>
@@ -223,32 +230,64 @@
           </div>
 
           <!-- Tier 3: Senior-Level -->
-          <div class="tier-card tier-card-senior tilt-card" onclick="window.AppController.selectExperienceLevel('Senior')">
-            <div class="tier-ribbon-tag tier-tag-amber">👑 ARCHITECT ROUND • 5-8+ YOE</div>
+          <div class="tier-card tier-card-senior" onclick="window.AppController.selectExperienceLevel('Senior')">
             <div class="tier-card-top-content">
               <div class="tier-card-header">
-                <div class="tier-icon-wrap">🚀</div>
-                <span class="tier-level-tag">Senior / Lead • 5–8+ YOE</span>
+                <span class="tier-tag-badge tag-amber">👑 5–8+ YOE • ARCHITECT</span>
+                <span class="tier-comp-badge">30 Questions</span>
               </div>
-              <h3 class="tier-title">Senior-Level Questions</h3>
-              <div class="tier-subtitle">Senior Engineer • Tech Lead • Architect</div>
+              <h3 class="tier-title">Senior &amp; Lead Track</h3>
               <p class="tier-desc">
-                Roslyn async state machines, CLR garbage collection internals, distributed locking, deadlocks, and zero-downtime releases.
+                Roslyn async state machines, CLR GC internals (LOH/POH), SQL deadlock graphs, distributed sagas, and zero-downtime releases.
               </p>
-              <ul class="tier-bullets">
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Task vs. ValueTask &amp; Roslyn State Machine</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> CLR Garbage Collection (LOH, POH, Gen 0/1/2)</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> SQL Deadlocks, Isolation &amp; sp_getapplock</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Idempotency-Key &amp; Distributed Sagas</li>
-                <li class="tier-bullet-item"><span class="bullet-dot"></span> Zero-Downtime Releases &amp; Slot Swaps</li>
-              </ul>
+              <div class="tier-topics-wrap">
+                <span class="topic-chip">Task vs ValueTask</span>
+                <span class="topic-chip">Roslyn MoveNext()</span>
+                <span class="topic-chip">CLR GC Generational</span>
+                <span class="topic-chip">Deadlock &amp; Sagas</span>
+                <span class="topic-chip">Blue/Green Swaps</span>
+              </div>
             </div>
             <div class="tier-card-bottom-content">
-              <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Senior')">
+              <button class="tier-action-btn btn-senior" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Senior')">
                 <span>Start Senior Track (30 Qs)</span>
                 <span class="btn-arrow">→</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- 2026 Bento Feature Strip (What Candidates Get) -->
+        <div class="landing-bento-grid">
+          <div class="bento-box">
+            <div class="bento-icon">🎯</div>
+            <h4>20-Second "Say It" Answers</h4>
+            <p>Punchy, high-impact verbal answers to instantly nail technical phone screens without rambling.</p>
+          </div>
+          <div class="bento-box">
+            <div class="bento-icon">💡</div>
+            <h4>Teenager Mental Models</h4>
+            <p>Memorable real-world analogies (nightclub bouncers, ATM balance) that make complex concepts effortless to recall.</p>
+          </div>
+          <div class="bento-box">
+            <div class="bento-icon">📐</div>
+            <h4>Visual Blueprints</h4>
+            <p>96 ASCII and SVG memory flowcharts, B-tree indexes, and request lifecycles inside every question card.</p>
+          </div>
+          <div class="bento-box">
+            <div class="bento-icon">🔬</div>
+            <h4>Roslyn &amp; CLR Internals</h4>
+            <p>Deep-dive compiler state machines, heap layout diagrams, and IL execution mechanics for senior evaluation.</p>
+          </div>
+          <div class="bento-box">
+            <div class="bento-icon">⚠️</div>
+            <h4>Junior Red Flags vs. Pro Tips</h4>
+            <p>Avoid career-limiting candidate mistakes and showcase senior-level architectural trade-offs.</p>
+          </div>
+          <div class="bento-box">
+            <div class="bento-icon">💻</div>
+            <h4>15 Live Coding Challenges</h4>
+            <p>In-browser code editor with instant test runner covering Top 10 algorithmic problems and senior refactors.</p>
           </div>
         </div>
       </div>
@@ -1153,11 +1192,9 @@
   </nav>
 
   <!-- ========================================================================
-       EXTERNAL ANIMATION, 3D & SYNTAX PLUGINS (GSAP, Three.js, Vanilla-Tilt, Prism)
+       EXTERNAL ANIMATION & SYNTAX PLUGINS (GSAP & Prism)
        ======================================================================== -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
