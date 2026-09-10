@@ -652,6 +652,232 @@
     }
   }
 
+  // --- MODERN VISUAL ARCHITECTURE BLUEPRINT PARSER & RENDERER ---
+  function parseVisualBlueprint(diagText, q) {
+    if (!diagText) return '';
+    const lines = diagText.trim().split('\n');
+
+    const hasBox = diagText.includes('┌');
+    const hasArrows = diagText.includes('──►') || diagText.includes('-->') || diagText.includes('──>') || diagText.includes('->');
+
+    if (hasBox) {
+      return renderBoxBlueprint(diagText, lines, q);
+    }
+    if (hasArrows) {
+      return renderFlowOrMappingBlueprint(diagText, lines, q);
+    }
+    return renderComparisonBlueprint(diagText, lines, q);
+  }
+
+  function renderBoxBlueprint(raw, lines, q) {
+    let title = '';
+    let tableHeaderCols = [];
+    let tableRows = [];
+    let postBoxLines = [];
+    let insideBox = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('┌')) {
+        insideBox = true;
+        continue;
+      }
+      if (line.startsWith('└')) {
+        insideBox = false;
+        postBoxLines = lines.slice(i + 1).filter(l => l.trim().length > 0);
+        break;
+      }
+      if (insideBox) {
+        if (line.startsWith('├')) {
+          continue;
+        }
+        if (line.startsWith('│')) {
+          const cleanContent = line.replace(/^│/, '').replace(/│$/, '');
+          const parts = cleanContent.split('│').map(p => p.trim());
+          if (parts.length === 1 && !title && !tableHeaderCols.length) {
+            title = parts[0];
+          } else if (!tableHeaderCols.length) {
+            tableHeaderCols = parts;
+          } else {
+            tableRows.push(parts);
+          }
+        }
+      }
+    }
+
+    let html = `<div class="modern-blueprint-wrap">`;
+
+    if (title) {
+      html += `
+        <div class="blueprint-root-header">
+          <span class="blueprint-root-pill">SYSTEM ARCHITECTURE CONCEPT</span>
+          <h3 class="blueprint-root-title">${escapeHtml(title)}</h3>
+        </div>
+      `;
+    }
+
+    if (tableHeaderCols.length > 0) {
+      const colCount = Math.min(tableHeaderCols.length, 4);
+      html += `<div class="blueprint-bento-grid grid-cols-${colCount}">`;
+      tableHeaderCols.forEach((colName, colIdx) => {
+        const colSubItems = tableRows.map(r => r[colIdx] || '').filter(Boolean);
+        const accentThemes = ['theme-indigo', 'theme-cyan', 'theme-emerald', 'theme-amber'];
+        const themeClass = accentThemes[colIdx % accentThemes.length];
+
+        html += `
+          <div class="blueprint-node-card ${themeClass}">
+            <div class="node-card-badge">PART 0${colIdx + 1}</div>
+            <h4 class="node-card-title">${escapeHtml(colName)}</h4>
+            <div class="node-card-body">
+              ${colSubItems.map(item => `<div class="node-card-detail">${escapeHtml(item)}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    if (postBoxLines.length > 0) {
+      html += `<div class="blueprint-mapping-panel">`;
+      const firstLine = postBoxLines[0].trim();
+      if (firstLine.endsWith(':')) {
+        html += `<div class="mapping-panel-title">💡 ${escapeHtml(firstLine)}</div>`;
+        postBoxLines.slice(1).forEach(l => {
+          html += renderMappingLine(l);
+        });
+      } else {
+        postBoxLines.forEach(l => {
+          html += renderMappingLine(l);
+        });
+      }
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  function renderFlowOrMappingBlueprint(raw, lines, q) {
+    let title = '';
+    let mappingLines = [];
+
+    const first = lines[0].trim();
+    let startIdx = 0;
+    if (first.endsWith(':')) {
+      title = first.slice(0, -1);
+      startIdx = 1;
+    }
+
+    lines.slice(startIdx).forEach(l => {
+      if (l.trim()) mappingLines.push(l);
+    });
+
+    let html = `<div class="modern-blueprint-wrap">`;
+    if (title) {
+      html += `
+        <div class="blueprint-root-header">
+          <span class="blueprint-root-pill">FLOWCHART &amp; MAPPINGS</span>
+          <h3 class="blueprint-root-title">${escapeHtml(title)}</h3>
+        </div>
+      `;
+    }
+
+    html += `<div class="blueprint-flow-container">`;
+    mappingLines.forEach(l => {
+      html += renderMappingLine(l);
+    });
+    html += `</div></div>`;
+    return html;
+  }
+
+  function renderComparisonBlueprint(raw, lines, q) {
+    let title = '';
+    let contentLines = [];
+
+    const first = lines[0].trim();
+    let startIdx = 0;
+    if (first.endsWith(':')) {
+      title = first.slice(0, -1);
+      startIdx = 1;
+    }
+
+    lines.slice(startIdx).forEach(l => {
+      if (l.trim()) contentLines.push(l);
+    });
+
+    let html = `<div class="modern-blueprint-wrap">`;
+    if (title) {
+      html += `
+        <div class="blueprint-root-header">
+          <span class="blueprint-root-pill">COMPARISON MATRIX</span>
+          <h3 class="blueprint-root-title">${escapeHtml(title)}</h3>
+        </div>
+      `;
+    }
+
+    html += `<div class="blueprint-comparison-grid">`;
+    contentLines.forEach(l => {
+      const trimmed = l.trim();
+      if (!trimmed) return;
+      const isHazard = trimmed.toLowerCase().startsWith('hazard:');
+      if (isHazard) {
+        html += `
+          <div class="blueprint-hazard-callout">
+            <span class="hazard-badge">⚠️ CRITICAL ARCHITECTURAL HAZARD</span>
+            <p class="hazard-text">${escapeHtml(trimmed.replace(/^hazard:\s*/i, ''))}</p>
+          </div>
+        `;
+      } else if (trimmed.includes(':')) {
+        const [key, ...rest] = trimmed.split(':');
+        html += `
+          <div class="blueprint-comparison-card">
+            <div class="comp-card-badge">${escapeHtml(key.trim())}</div>
+            <div class="comp-card-desc">${escapeHtml(rest.join(':').trim())}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="blueprint-comparison-card">
+            <div class="comp-card-desc">${escapeHtml(trimmed)}</div>
+          </div>
+        `;
+      }
+    });
+    html += `</div></div>`;
+    return html;
+  }
+
+  let lastMappingSource = '';
+  function renderMappingLine(line) {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+
+    const arrowRegex = /(?:──►|-->|──>|->)/;
+    if (arrowRegex.test(trimmed)) {
+      const parts = trimmed.split(arrowRegex).map(p => p.trim());
+      let source = parts[0];
+      const target = parts.slice(1).join(' ➔ ');
+      if (!source && lastMappingSource) {
+        source = `↳ ${lastMappingSource}`;
+      } else if (source) {
+        lastMappingSource = source;
+      }
+      return `
+        <div class="blueprint-mapping-row">
+          ${source ? `<span class="mapping-source-chip">${escapeHtml(source)}</span>` : ''}
+          <span class="mapping-arrow-icon">➔</span>
+          <span class="mapping-target-chip">${escapeHtml(target)}</span>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="blueprint-mapping-row single-row">
+        <span class="mapping-plain-text">${escapeHtml(trimmed)}</span>
+      </div>
+    `;
+  }
+
   // --- VIEW 1: QUESTION VAULT ---
   function renderQuestionVault() {
     const container = document.getElementById('questionsContainer');
@@ -833,10 +1059,21 @@
 
               ${q.visualDiagram ? `
               <!-- Visual Architecture Blueprint & Mental Model -->
-              <div class="section-box visual-box tab-section-visual">
-                <span class="section-box-title">📐 Visual Architecture Blueprint &amp; Mental Model</span>
+              <div class="section-box visual-box tab-section-visual" id="visual-box-${q.id}">
+                <div class="visual-box-header">
+                  <span class="section-box-title" style="margin-bottom: 0;">📐 Interactive Architecture Blueprint &amp; Model</span>
+                  <div class="visual-view-toggle">
+                    <button class="view-toggle-btn active" id="btn-modern-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', 'modern')">🎨 Modern Blueprint</button>
+                    <button class="view-toggle-btn" id="btn-ascii-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', 'ascii')">⌨️ Raw Terminal</button>
+                  </div>
+                </div>
                 <div class="visual-diagram-container">
-                  <pre class="visual-diagram-ascii">${escapeHtml(q.visualDiagram)}</pre>
+                  <div class="modern-diagram-view" id="modern-diag-${q.id}">
+                    ${parseVisualBlueprint(q.visualDiagram, q)}
+                  </div>
+                  <div class="ascii-diagram-view" id="ascii-diag-${q.id}" style="display: none;">
+                    <pre class="visual-diagram-ascii">${escapeHtml(q.visualDiagram)}</pre>
+                  </div>
                 </div>
               </div>
               ` : ''}
@@ -1576,6 +1813,26 @@
 
     stepToQuestion: function (qId, direction) {
       stepToQuestion(qId, direction);
+    },
+
+    toggleBlueprintView: function (qId, view) {
+      const modernEl = document.getElementById(`modern-diag-${qId}`);
+      const asciiEl = document.getElementById(`ascii-diag-${qId}`);
+      const btnModern = document.getElementById(`btn-modern-${qId}`);
+      const btnAscii = document.getElementById(`btn-ascii-${qId}`);
+
+      if (view === 'modern') {
+        if (modernEl) modernEl.style.display = 'block';
+        if (asciiEl) asciiEl.style.display = 'none';
+        if (btnModern) btnModern.classList.add('active');
+        if (btnAscii) btnAscii.classList.remove('active');
+      } else {
+        if (modernEl) modernEl.style.display = 'none';
+        if (asciiEl) asciiEl.style.display = 'block';
+        if (btnModern) btnModern.classList.remove('active');
+        if (btnAscii) btnAscii.classList.add('active');
+      }
+      window.SoundEngine.playFlip();
     },
 
     toggleBookmark: function (qId) {
