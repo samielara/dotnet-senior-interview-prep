@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dotnet-senior-prep-v4';
+const CACHE_NAME = 'dotnet-senior-prep-v5';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const PRECACHE_ASSETS = [
   './manifest.json',
   './icons/icon.svg',
   './js/audio.js',
+  './js/three-car-visualizer.js',
   './js/app.js',
   './js/data/questions.js',
   './js/data/challenges.js',

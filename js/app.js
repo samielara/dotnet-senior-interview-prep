@@ -1105,12 +1105,18 @@
                 <div class="visual-box-header">
                   <span class="section-box-title" style="margin-bottom: 0;">📐 Interactive Architecture Blueprint &amp; Model</span>
                   <div class="visual-view-toggle">
-                    <button class="view-toggle-btn active" id="btn-modern-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', 'modern')">🎨 Modern Blueprint</button>
+                    ${q.id === 'q-csharp-1' ? `<button class="view-toggle-btn active" id="btn-3d-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', '3d')">🚀 3D Car Model</button>` : ''}
+                    <button class="view-toggle-btn ${q.id === 'q-csharp-1' ? '' : 'active'}" id="btn-modern-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', 'modern')">🎨 Bento Blueprint</button>
                     <button class="view-toggle-btn" id="btn-ascii-${q.id}" onclick="window.AppController.toggleBlueprintView('${q.id}', 'ascii')">⌨️ Raw Terminal</button>
                   </div>
                 </div>
                 <div class="visual-diagram-container">
-                  <div class="modern-diagram-view" id="modern-diag-${q.id}">
+                  ${q.id === 'q-csharp-1' ? `
+                  <div class="three-3d-view" id="three-view-${q.id}">
+                    <div id="three-car-viewport-${q.id}"></div>
+                  </div>
+                  ` : ''}
+                  <div class="modern-diagram-view" id="modern-diag-${q.id}" style="${q.id === 'q-csharp-1' ? 'display: none;' : ''}">
                     ${parseVisualBlueprint(q.visualDiagram, q)}
                   </div>
                   <div class="ascii-diagram-view" id="ascii-diag-${q.id}" style="display: none;">
@@ -1826,6 +1832,16 @@
             bTitle.style.display = 'inline';
             bTitle.textContent = q.title;
           }
+
+          // Auto-mount 3D Car Visualizer if Question 1
+          if (qId === 'q-csharp-1') {
+            setTimeout(() => {
+              const container = document.getElementById(`three-car-viewport-${qId}`);
+              if (container && window.CarVisualizer3D) {
+                window.CarVisualizer3D.attach(container);
+              }
+            }, 120);
+          }
         } else if (bTitle && bSep) {
           bSep.style.display = 'none';
           bTitle.style.display = 'none';
@@ -1858,20 +1874,36 @@
     },
 
     toggleBlueprintView: function (qId, view) {
+      const threeEl = document.getElementById(`three-view-${qId}`);
       const modernEl = document.getElementById(`modern-diag-${qId}`);
       const asciiEl = document.getElementById(`ascii-diag-${qId}`);
+
+      const btn3D = document.getElementById(`btn-3d-${qId}`);
       const btnModern = document.getElementById(`btn-modern-${qId}`);
       const btnAscii = document.getElementById(`btn-ascii-${qId}`);
 
-      if (view === 'modern') {
+      if (btn3D) btn3D.classList.remove('active');
+      if (btnModern) btnModern.classList.remove('active');
+      if (btnAscii) btnAscii.classList.remove('active');
+
+      if (threeEl) threeEl.style.display = 'none';
+      if (modernEl) modernEl.style.display = 'none';
+      if (asciiEl) asciiEl.style.display = 'none';
+
+      if (view === '3d') {
+        if (threeEl) {
+          threeEl.style.display = 'block';
+          const container = document.getElementById(`three-car-viewport-${qId}`);
+          if (container && window.CarVisualizer3D) {
+            window.CarVisualizer3D.attach(container);
+          }
+        }
+        if (btn3D) btn3D.classList.add('active');
+      } else if (view === 'modern') {
         if (modernEl) modernEl.style.display = 'block';
-        if (asciiEl) asciiEl.style.display = 'none';
         if (btnModern) btnModern.classList.add('active');
-        if (btnAscii) btnAscii.classList.remove('active');
       } else {
-        if (modernEl) modernEl.style.display = 'none';
         if (asciiEl) asciiEl.style.display = 'block';
-        if (btnModern) btnModern.classList.remove('active');
         if (btnAscii) btnAscii.classList.add('active');
       }
       window.SoundEngine.playFlip();

@@ -22,6 +22,7 @@ global.document = {
 
 const files = [
   'js/audio.js',
+  'js/three-car-visualizer.js',
   'js/data/questions.js',
   'js/data/challenges.js',
   'js/data/architectures.js',
