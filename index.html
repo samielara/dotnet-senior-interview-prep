@@ -128,18 +128,26 @@
          VIEW 0: SIMPLIFIED CURRICULUM HUB (LANDING PAGE)
          ---------------------------------------------------------------------- -->
     <section id="view-hub" class="view-panel active">
-      <div class="curriculum-hero">
+      <!-- 3D Constellation Canvas (Ambient background layer, zero layout height displacement) -->
+      <div class="hero-canvas-viewport">
         <canvas id="three-bg-canvas" class="three-hero-canvas"></canvas>
-        <h1>Full-Stack .NET Interview Mastery</h1>
-        <p>
-          The definitive preparation platform for Full-Stack .NET Developers. Master core OOP fundamentals, Roslyn internals, modern Web APIs, high-performance SQL, and production architecture questions.
+      </div>
+
+      <div class="curriculum-hero">
+        <div class="hero-pill-badge">
+          <span class="hero-pill-icon">⚡</span>
+          <span class="hero-pill-text">2026 FULL-STACK .NET INTERVIEW CURRICULUM</span>
+        </div>
+        <h1 class="hero-main-title">Full-Stack .NET Interview Mastery</h1>
+        <p class="hero-main-subtitle">
+          Master C#, ASP.NET Core 9, EF Core, SQL Server, React 19, and Cloud Architecture through 96 curated interview scenarios, real-world refactors, and live coding challenges.
         </p>
         <div class="curriculum-stats-strip">
-          <div class="curriculum-stat-item"><span>🎓</span> <strong>96</strong> High-Frequency Questions</div>
-          <div class="curriculum-stat-item"><span>💡</span> <strong>Teenager Analogies</strong> in Every Card</div>
-          <div class="curriculum-stat-item"><span>💻</span> <strong>Top 10</strong> Live Coding Challenges</div>
-          <div class="curriculum-stat-item"><span>⚡</span> <strong>96</strong> Spaced Flashcards</div>
-          <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Interview Simulator</div>
+          <div class="curriculum-stat-item"><span>🎓</span> <strong>96</strong> Questions</div>
+          <div class="curriculum-stat-item"><span>💡</span> <strong>Teenager Analogies</strong></div>
+          <div class="curriculum-stat-item"><span>💻</span> <strong>15</strong> Coding Labs</div>
+          <div class="curriculum-stat-item"><span>⚡</span> <strong>96</strong> Flashcards</div>
+          <div class="curriculum-stat-item"><span>⏱️</span> <strong>Real-time</strong> Mock Exam</div>
         </div>
       </div>
 
@@ -148,16 +156,18 @@
            ==================================================================== -->
       <div id="tierSelectionView" class="tier-selection-container">
         <div class="tier-selection-header">
+          <div class="section-kicker">STEP 1 • CHOOSE YOUR LEVEL</div>
           <h2 class="tier-selection-title">Select Your Experience Level to Begin</h2>
           <p class="tier-selection-subtitle">
-            Choose your target interview tier to unlock a tailored curriculum and questions calibrated specifically to your technical rounds.
+            Curated questions, system architectures, and live coding rounds calibrated specifically to your target seniority.
           </p>
         </div>
 
         <div class="tier-selection-grid">
           <!-- Tier 1: Entry-Level -->
           <div class="tier-card tier-card-entry tilt-card" onclick="window.AppController.selectExperienceLevel('Entry')">
-            <div>
+            <div class="tier-ribbon-tag tier-tag-green">ENTRY TRACK</div>
+            <div class="tier-card-top-content">
               <div class="tier-card-header">
                 <div class="tier-icon-wrap">🌱</div>
                 <span class="tier-level-tag">Junior • 0–2 YOE</span>
@@ -168,24 +178,25 @@
                 Core language fundamentals, the 4 OOP pillars, class vs. struct memory mechanics, basic SQL joins, and React state flow.
               </p>
               <ul class="tier-bullets">
-                <li class="tier-bullet-item">The 4 OOP Pillars &amp; Access Modifiers</li>
-                <li class="tier-bullet-item">Interface vs. Abstract Class Mechanics</li>
-                <li class="tier-bullet-item">Class vs. Struct (Stack vs. Heap Memory)</li>
-                <li class="tier-bullet-item">INNER vs. LEFT JOIN &amp; Basic Indexing</li>
-                <li class="tier-bullet-item">React Props vs. State &amp; Basic Pipelines</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> The 4 OOP Pillars &amp; Access Modifiers</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Interface vs. Abstract Class Mechanics</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Class vs. Struct (Stack vs. Heap Memory)</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> INNER vs. LEFT JOIN &amp; Basic Indexing</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> React Props vs. State &amp; Pipelines</li>
               </ul>
             </div>
-            <div>
+            <div class="tier-card-bottom-content">
               <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Entry')">
-                <span>Start Entry-Level Prep (27 Qs)</span>
-                <span>→</span>
+                <span>Start Entry Track (27 Qs)</span>
+                <span class="btn-arrow">→</span>
               </button>
             </div>
           </div>
 
           <!-- Tier 2: Mid-Level -->
-          <div class="tier-card tier-card-mid tilt-card" onclick="window.AppController.selectExperienceLevel('Mid')">
-            <div>
+          <div class="tier-card tier-card-mid tilt-card featured-tier-card" onclick="window.AppController.selectExperienceLevel('Mid')">
+            <div class="tier-ribbon-tag tier-tag-indigo">⭐ MOST POPULAR • 3-5 YOE</div>
+            <div class="tier-card-top-content">
               <div class="tier-card-header">
                 <div class="tier-icon-wrap">⚡</div>
                 <span class="tier-level-tag">Engineer • 3–5 YOE</span>
@@ -196,24 +207,25 @@
                 Clean architecture principles, ASP.NET Core DI lifetimes, EF Core query performance, SARGable SQL, and TypeScript generics.
               </p>
               <ul class="tier-bullets">
-                <li class="tier-bullet-item">SOLID Principles with Real-World Refactors</li>
-                <li class="tier-bullet-item">ASP.NET Core DI Lifetimes &amp; Middleware</li>
-                <li class="tier-bullet-item">EF Core AsNoTracking &amp; N+1 Elimination</li>
-                <li class="tier-bullet-item">Covering Indexes &amp; SARGable Query Tuning</li>
-                <li class="tier-bullet-item">Docker Multi-Stage Builds &amp; CI/CD Drops</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> SOLID Principles with Real-World Refactors</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> ASP.NET Core DI Lifetimes &amp; Middleware</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> EF Core AsNoTracking &amp; N+1 Elimination</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Covering Indexes &amp; SARGable Query Tuning</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Docker Multi-Stage Builds &amp; CI/CD Drops</li>
               </ul>
             </div>
-            <div>
+            <div class="tier-card-bottom-content">
               <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Mid')">
-                <span>Start Mid-Level Prep (39 Qs)</span>
-                <span>→</span>
+                <span>Start Mid Track (39 Qs)</span>
+                <span class="btn-arrow">→</span>
               </button>
             </div>
           </div>
 
           <!-- Tier 3: Senior-Level -->
           <div class="tier-card tier-card-senior tilt-card" onclick="window.AppController.selectExperienceLevel('Senior')">
-            <div>
+            <div class="tier-ribbon-tag tier-tag-amber">👑 ARCHITECT ROUND • 5-8+ YOE</div>
+            <div class="tier-card-top-content">
               <div class="tier-card-header">
                 <div class="tier-icon-wrap">🚀</div>
                 <span class="tier-level-tag">Senior / Lead • 5–8+ YOE</span>
@@ -224,17 +236,17 @@
                 Roslyn async state machines, CLR garbage collection internals, distributed locking, deadlocks, and zero-downtime releases.
               </p>
               <ul class="tier-bullets">
-                <li class="tier-bullet-item">Task vs. ValueTask &amp; Roslyn State Machine</li>
-                <li class="tier-bullet-item">CLR Garbage Collection (LOH, POH, Gen 0/1/2)</li>
-                <li class="tier-bullet-item">SQL Deadlocks, Isolation Levels &amp; sp_getapplock</li>
-                <li class="tier-bullet-item">Idempotency-Key &amp; Distributed Sagas</li>
-                <li class="tier-bullet-item">Zero-Downtime Deployment &amp; Slot Swaps</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Task vs. ValueTask &amp; Roslyn State Machine</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> CLR Garbage Collection (LOH, POH, Gen 0/1/2)</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> SQL Deadlocks, Isolation &amp; sp_getapplock</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Idempotency-Key &amp; Distributed Sagas</li>
+                <li class="tier-bullet-item"><span class="bullet-dot"></span> Zero-Downtime Releases &amp; Slot Swaps</li>
               </ul>
             </div>
-            <div>
+            <div class="tier-card-bottom-content">
               <button class="tier-btn" onclick="event.stopPropagation(); window.AppController.selectExperienceLevel('Senior')">
-                <span>Start Senior-Level Prep (30 Qs)</span>
-                <span>→</span>
+                <span>Start Senior Track (30 Qs)</span>
+                <span class="btn-arrow">→</span>
               </button>
             </div>
           </div>

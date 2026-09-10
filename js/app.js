@@ -227,9 +227,23 @@
     if (!selected) {
       tierSelectionView.style.display = 'block';
       tailoredModulesView.style.display = 'none';
+      if (window.gsap) {
+        window.gsap.fromTo('.tier-card',
+          { opacity: 0, y: 30, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.55, stagger: 0.12, ease: 'back.out(1.4)' }
+        );
+      }
+      setTimeout(initTiltCards, 100);
     } else {
       tierSelectionView.style.display = 'none';
       tailoredModulesView.style.display = 'block';
+      if (window.gsap) {
+        window.gsap.fromTo('.module-card',
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.45, stagger: 0.08, ease: 'power2.out' }
+        );
+      }
+      setTimeout(initTiltCards, 100);
 
       // Update Active Tier Badge and summary
       const badge = document.getElementById('activeTierBadge');
@@ -1054,44 +1068,58 @@
     if (!canvas || !window.THREE) return;
 
     try {
-      const parent = canvas.parentElement;
-      const width = parent.clientWidth || window.innerWidth;
-      const height = parent.clientHeight || 320;
+      const parent = canvas.parentElement || document.querySelector('.hero-canvas-viewport');
+      const getWidth = () => (parent && parent.clientWidth) || window.innerWidth;
+      const getHeight = () => (parent && parent.clientHeight) || 480;
+
+      let width = getWidth();
+      let height = getHeight();
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-      camera.position.z = 25;
+      const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
+      camera.position.z = 28;
 
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-      // Geometric wireframe icosahedron
-      const geometry = new THREE.IcosahedronGeometry(12, 1);
-      const material = new THREE.MeshBasicMaterial({
+      // Outer Icosahedron Ring (Electric Indigo)
+      const geo1 = new THREE.IcosahedronGeometry(11, 1);
+      const mat1 = new THREE.MeshBasicMaterial({
         color: 0x6366f1,
         wireframe: true,
         transparent: true,
-        opacity: 0.15
+        opacity: 0.18
       });
-      const sphere = new THREE.Mesh(geometry, material);
-      scene.add(sphere);
+      const mesh1 = new THREE.Mesh(geo1, mat1);
+      scene.add(mesh1);
 
-      // Starfield / particle points
-      const pointsGeometry = new THREE.BufferGeometry();
-      const count = 96;
+      // Inner Octahedron Core (Vibrant Cyan)
+      const geo2 = new THREE.OctahedronGeometry(6, 0);
+      const mat2 = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25
+      });
+      const mesh2 = new THREE.Mesh(geo2, mat2);
+      scene.add(mesh2);
+
+      // Constellation Starfield Points (Dual-Hue Glowing Nodes)
+      const pointsGeo = new THREE.BufferGeometry();
+      const count = 120;
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 45;
+        positions[i] = (Math.random() - 0.5) * 55;
       }
-      pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const pointsMaterial = new THREE.PointsMaterial({
-        size: 1.4,
-        color: 0x38bdf8,
+      pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const pointsMat = new THREE.PointsMaterial({
+        size: 1.6,
+        color: 0x818cf8,
         transparent: true,
-        opacity: 0.4
+        opacity: 0.55
       });
-      const pointsMesh = new THREE.Points(pointsGeometry, pointsMaterial);
+      const pointsMesh = new THREE.Points(pointsGeo, pointsMat);
       scene.add(pointsMesh);
 
       let mouseX = 0;
@@ -1103,22 +1131,24 @@
 
       function animate() {
         requestAnimationFrame(animate);
-        sphere.rotation.x += 0.0012;
-        sphere.rotation.y += 0.0018;
-        pointsMesh.rotation.x -= 0.0008;
-        pointsMesh.rotation.y += 0.0012;
+        mesh1.rotation.x += 0.0009;
+        mesh1.rotation.y += 0.0014;
+        mesh2.rotation.x -= 0.0015;
+        mesh2.rotation.y -= 0.0018;
+        pointsMesh.rotation.y += 0.0006;
 
-        sphere.position.x += (mouseX * 1.5 - sphere.position.x) * 0.03;
-        sphere.position.y += (mouseY * 1.5 - sphere.position.y) * 0.03;
+        mesh1.position.x += (mouseX * 1.8 - mesh1.position.x) * 0.03;
+        mesh1.position.y += (mouseY * 1.8 - mesh1.position.y) * 0.03;
+        mesh2.position.x = mesh1.position.x * 0.7;
+        mesh2.position.y = mesh1.position.y * 0.7;
 
         renderer.render(scene, camera);
       }
       animate();
 
       window.addEventListener('resize', () => {
-        if (!parent) return;
-        const w = parent.clientWidth;
-        const h = parent.clientHeight || 320;
+        const w = getWidth();
+        const h = getHeight();
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
