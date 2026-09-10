@@ -13,6 +13,8 @@
     xp: 0,
     completedQuestions: {},
     bookmarkedQuestions: {},
+    questionMastery: {},
+    revealedHints: {},
     masteredCards: {},
     reviewCards: {},
     completedChallenges: {},
@@ -41,6 +43,8 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         state = { ...state, ...parsed };
+        state.questionMastery = state.questionMastery || {};
+        state.revealedHints = state.revealedHints || {};
       }
     } catch (e) {
       console.error('Failed to load state from localStorage:', e);
@@ -53,6 +57,8 @@
         xp: state.xp,
         completedQuestions: state.completedQuestions,
         bookmarkedQuestions: state.bookmarkedQuestions,
+        questionMastery: state.questionMastery,
+        revealedHints: state.revealedHints,
         masteredCards: state.masteredCards,
         reviewCards: state.reviewCards,
         completedChallenges: state.completedChallenges,
@@ -328,7 +334,322 @@
       }
     }
 
-    initTiltCards();
+    renderAllUnitMastery();
+  }
+
+  // --- KHAN ACADEMY UNIT MASTERY & SYLLABUS ENGINE ---
+  function calculateUnitMastery(pillar) {
+    const questions = window.INTERVIEW_QUESTIONS || [];
+    const unitQuestions = questions.filter(q => q.pillar === pillar);
+    if (!unitQuestions.length) return { score: 0, level: 'Not Started', badgeClass: 'badge-notstarted', count: 0, mastered: 0, practiced: 0 };
+
+    let mastered = 0;
+    let practiced = 0;
+    unitQuestions.forEach(q => {
+      const m = state.questionMastery[q.id];
+      if (m === 'mastered') mastered++;
+      else if (m === 'practiced' || state.completedQuestions[q.id]) practiced++;
+    });
+
+    const score = Math.min(100, Math.round(((mastered * 1.0 + practiced * 0.5) / unitQuestions.length) * 100));
+
+    let level = 'Not Started';
+    let badgeClass = 'badge-notstarted';
+    if (score >= 90) {
+      level = 'Mastered ⭐';
+      badgeClass = 'badge-mastered';
+    } else if (score >= 50) {
+      level = 'Proficient';
+      badgeClass = 'badge-proficient';
+    } else if (score > 0) {
+      level = 'Practicing';
+      badgeClass = 'badge-practicing';
+    }
+
+    return { score, level, badgeClass, count: unitQuestions.length, mastered, practiced };
+  }
+
+  function renderAllUnitMastery() {
+    const pillars = ['csharp', 'aspnet', 'efcore', 'sql', 'ui', 'cloud'];
+    pillars.forEach(p => {
+      const stats = calculateUnitMastery(p);
+      const levelEl = document.getElementById(`${p}MasteryLevel`);
+      const scoreEl = document.getElementById(`${p}MasteryScore`);
+      const fillEl = document.getElementById(`${p}MasteryFill`);
+      const countEl = document.getElementById(`${p}SyllabusCount`);
+
+      if (levelEl) {
+        levelEl.textContent = stats.level;
+        levelEl.className = `khan-mastery-level-badge ${stats.badgeClass}`;
+      }
+      if (scoreEl) {
+        scoreEl.textContent = `${stats.score}% (${stats.mastered}/${stats.count} Mastered)`;
+      }
+      if (fillEl) {
+        fillEl.style.width = `${stats.score}%`;
+      }
+      if (countEl) {
+        countEl.textContent = `${stats.count} Lessons`;
+      }
+    });
+  }
+
+  function toggleUnitSyllabus(pillar) {
+    const drawer = document.getElementById(`${pillar}SyllabusDrawer`);
+    const arrow = document.getElementById(`${pillar}SyllabusArrow`);
+    if (!drawer) return;
+
+    const isVisible = drawer.style.display !== 'none';
+    if (isVisible) {
+      drawer.style.display = 'none';
+      if (arrow) arrow.textContent = '▼';
+    } else {
+      drawer.style.display = 'block';
+      if (arrow) arrow.textContent = '▲';
+
+      const questions = window.INTERVIEW_QUESTIONS || [];
+      const unitQuestions = questions.filter(q => q.pillar === pillar);
+
+      drawer.innerHTML = `
+        <div class="syllabus-list">
+          ${unitQuestions.map((q, idx) => {
+            const mastery = state.questionMastery[q.id];
+            let statusIcon = '⚪';
+            let statusClass = 'unstarted';
+            if (mastery === 'mastered') {
+              statusIcon = '⭐';
+              statusClass = 'mastered';
+            } else if (mastery === 'practiced' || state.completedQuestions[q.id]) {
+              statusIcon = '🟡';
+              statusClass = 'practiced';
+            } else if (mastery === 'review') {
+              statusIcon = '🔴';
+              statusClass = 'review';
+            }
+
+            return `
+              <div class="syllabus-item" onclick="window.AppController.jumpToSyllabusQuestion('${q.pillar}', '${q.id}')">
+                <div class="syllabus-item-left">
+                  <span class="syllabus-status-dot ${statusClass}">${statusIcon}</span>
+                  <span class="syllabus-lesson-num">${idx + 1}.</span>
+                  <span class="syllabus-lesson-title">${escapeHtml(q.title)}</span>
+                </div>
+                <div class="syllabus-item-right">
+                  <span class="seniority-badge badge-${q.seniority.toLowerCase()}">${q.seniority}</span>
+                  <span class="syllabus-jump-arrow">→</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+  }
+
+  function jumpToSyllabusQuestion(pillar, qId) {
+    state.vaultFilters.pillar = pillar;
+    state.vaultFilters.search = '';
+    state.vaultFilters.seniority = 'all';
+    state.vaultFilters.bookmarkedOnly = false;
+    state.vaultFilters.completedOnly = false;
+
+    switchView('vault');
+    document.querySelectorAll('#pillarFiltersRow .filter-pill').forEach(pill => {
+      pill.classList.toggle('active', pill.dataset.pillar === pillar);
+    });
+    renderQuestionVault();
+
+    setTimeout(() => {
+      const card = document.getElementById(`card-${qId}`);
+      if (card) {
+        card.classList.add('expanded');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        const bTitle = document.getElementById('breadcrumbQuestionTitle');
+        const bSep = document.getElementById('breadcrumbQuestionSep');
+        const q = (window.INTERVIEW_QUESTIONS || []).find(item => item.id === qId);
+        if (q && bTitle && bSep) {
+          bSep.style.display = 'inline';
+          bTitle.style.display = 'inline';
+          bTitle.textContent = q.title;
+        }
+      }
+    }, 150);
+  }
+
+  // --- KHAN ACADEMY PROGRESSIVE HINT DISCLOSURE ---
+  function renderRevealedHintsHtml(q, count) {
+    if (!count || count === 0) return '';
+    let html = '';
+
+    if (count >= 1) {
+      html += `
+        <div class="khan-hint-box hint-level-1">
+          <div class="hint-badge-tag">💡 HINT 1 OF 3 • REAL-WORLD INTUITION &amp; ANALOGY</div>
+          <p class="hint-text">${escapeHtml(q.analogy || ("Focus on the core trade-off: " + q.tags.join(', ')))}</p>
+        </div>
+      `;
+    }
+    if (count >= 2) {
+      const sentences = q.deepDive.split('. ');
+      const keyRule = sentences.slice(0, 2).join('. ') + (sentences.length > 2 ? '.' : '');
+      html += `
+        <div class="khan-hint-box hint-level-2">
+          <div class="hint-badge-tag">🔬 HINT 2 OF 3 • INTERNAL CLR / ARCHITECTURAL MECHANISM</div>
+          <p class="hint-text">${escapeHtml(keyRule)}</p>
+        </div>
+      `;
+    }
+    if (count >= 3) {
+      html += `
+        <div class="khan-hint-box hint-level-3">
+          <div class="hint-badge-tag">🎯 HINT 3 OF 3 • COMPLETE 20-SECOND VERBAL SOLUTION</div>
+          <p class="hint-text">${escapeHtml(q.pitch)}</p>
+        </div>
+      `;
+    }
+    return html;
+  }
+
+  function revealHint(qId) {
+    state.revealedHints[qId] = (state.revealedHints[qId] || 0) + 1;
+    if (state.revealedHints[qId] > 3) state.revealedHints[qId] = 3;
+    saveState();
+
+    const hintList = document.getElementById(`revealedHints-${qId}`);
+    const btnLabel = document.getElementById(`hintBtnLabel-${qId}`);
+    const allQuestions = window.INTERVIEW_QUESTIONS || [];
+    const q = allQuestions.find(item => item.id === qId);
+
+    if (q && hintList) {
+      hintList.innerHTML = renderRevealedHintsHtml(q, state.revealedHints[qId]);
+      window.SoundEngine.playChime();
+    }
+    if (btnLabel) {
+      const count = state.revealedHints[qId];
+      if (count === 1) btnLabel.textContent = '💡 Next Hint (2 of 3)';
+      else if (count === 2) btnLabel.textContent = '💡 Final Solution (3 of 3)';
+      else btnLabel.textContent = '✓ All 3 Hints Revealed';
+    }
+  }
+
+  function switchQuestionTab(qId, tab) {
+    const card = document.getElementById(`card-${qId}`);
+    if (!card) return;
+
+    card.querySelectorAll('.khan-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+
+    const sectionsWrap = document.getElementById(`sections-${qId}`);
+    if (!sectionsWrap) return;
+
+    if (tab === 'all') {
+      sectionsWrap.querySelectorAll('.section-box, .code-box').forEach(el => {
+        el.style.display = 'block';
+      });
+    } else {
+      sectionsWrap.querySelectorAll('.section-box, .code-box').forEach(el => {
+        if (el.classList.contains(`tab-section-${tab}`)) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  function rateQuestionMastery(qId, rating) {
+    state.questionMastery = state.questionMastery || {};
+    const previous = state.questionMastery[qId];
+    state.questionMastery[qId] = rating;
+
+    if (rating === 'mastered') {
+      state.completedQuestions[qId] = true;
+      if (previous !== 'mastered') {
+        addXp(50, 'Mastered Lesson');
+        window.SoundEngine.playLevelUp();
+        showNotification('⭐ Topic Mastered! (+50 XP)', 'success');
+      }
+    } else if (rating === 'practiced') {
+      state.completedQuestions[qId] = true;
+      if (!previous) {
+        addXp(25, 'Practiced Lesson');
+        window.SoundEngine.playChime();
+        showNotification('🟡 Marked as Practiced! (+25 XP)', 'success');
+      }
+    } else if (rating === 'review') {
+      state.reviewCards[qId] = true;
+      window.SoundEngine.playFlip();
+      showNotification('🔴 Added to Review Queue.', 'info');
+    }
+
+    saveState();
+    updateHudUI();
+    renderAllUnitMastery();
+
+    const card = document.getElementById(`card-${qId}`);
+    if (card) {
+      const pill = card.querySelector('.q-mastery-status-pill');
+      if (pill) {
+        if (rating === 'mastered') {
+          pill.className = 'q-mastery-status-pill pill-mastered';
+          pill.textContent = '⭐ Mastered';
+        } else if (rating === 'practiced') {
+          pill.className = 'q-mastery-status-pill pill-practiced';
+          pill.textContent = '🟡 Practiced';
+        } else {
+          pill.className = 'q-mastery-status-pill pill-review';
+          pill.textContent = '🔴 Needs Review';
+        }
+      }
+      card.querySelectorAll('.khan-rate-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.rating === rating);
+      });
+    }
+  }
+
+  function stepToQuestion(currentId, direction) {
+    const allQuestions = window.INTERVIEW_QUESTIONS || [];
+    const { search, pillar, seniority, bookmarkedOnly, completedOnly } = state.vaultFilters;
+
+    const filtered = allQuestions.filter(q => {
+      if (pillar !== 'all' && q.pillar !== pillar) return false;
+      if (seniority !== 'all' && q.seniority !== seniority) return false;
+      if (bookmarkedOnly && !state.bookmarkedQuestions[q.id]) return false;
+      if (completedOnly && !state.completedQuestions[q.id]) return false;
+      if (search) {
+        const term = search.toLowerCase();
+        return q.title.toLowerCase().includes(term) || q.pitch.toLowerCase().includes(term);
+      }
+      return true;
+    });
+
+    const currentIndex = filtered.findIndex(q => q.id === currentId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= filtered.length) return;
+
+    const targetQ = filtered[targetIndex];
+
+    const curCard = document.getElementById(`card-${currentId}`);
+    if (curCard) curCard.classList.remove('expanded');
+
+    const targetCard = document.getElementById(`card-${targetQ.id}`);
+    if (targetCard) {
+      targetCard.classList.add('expanded');
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.SoundEngine.playFlip();
+
+      const bTitle = document.getElementById('breadcrumbQuestionTitle');
+      const bSep = document.getElementById('breadcrumbQuestionSep');
+      if (bTitle && bSep) {
+        bSep.style.display = 'inline';
+        bTitle.style.display = 'inline';
+        bTitle.textContent = targetQ.title;
+      }
+    }
   }
 
   // --- VIEW 1: QUESTION VAULT ---
@@ -338,6 +659,27 @@
 
     const allQuestions = window.INTERVIEW_QUESTIONS || [];
     const { search, pillar, seniority, bookmarkedOnly, completedOnly } = state.vaultFilters;
+
+    // Update Khan Academy Breadcrumbs
+    const bUnit = document.getElementById('breadcrumbUnitName');
+    const bTitle = document.getElementById('breadcrumbQuestionTitle');
+    const bSep = document.getElementById('breadcrumbQuestionSep');
+    if (bUnit) {
+      const pNames = {
+        all: 'All Curriculum Modules',
+        csharp: '⚡ C# & OOP Fundamentals',
+        aspnet: '🌐 ASP.NET Core & Web APIs',
+        efcore: '🗄️ EF Core & LINQ',
+        sql: '💾 SQL Server & Relational DB',
+        ui: '⚛️ React & TypeScript UI',
+        cloud: '☁️ Azure DevOps, Docker & CI/CD'
+      };
+      bUnit.textContent = pNames[pillar] || 'All Curriculum Modules';
+    }
+    if (bTitle && bSep) {
+      bTitle.style.display = 'none';
+      bSep.style.display = 'none';
+    }
 
     const filtered = allQuestions.filter(q => {
       if (pillar !== 'all' && q.pillar !== pillar) return false;
@@ -379,9 +721,26 @@
       return;
     }
 
-    container.innerHTML = filtered.map(q => {
+    container.innerHTML = filtered.map((q, idx) => {
       const isBookmarked = !!state.bookmarkedQuestions[q.id];
-      const isCompleted = !!state.completedQuestions[q.id];
+      const mastery = state.questionMastery[q.id] || (state.completedQuestions[q.id] ? 'practiced' : 'unstarted');
+      const hintsCount = state.revealedHints[q.id] || 0;
+
+      let masteryBadgeHtml = '';
+      if (mastery === 'mastered') {
+        masteryBadgeHtml = `<span class="q-mastery-status-pill pill-mastered">⭐ Mastered</span>`;
+      } else if (mastery === 'practiced') {
+        masteryBadgeHtml = `<span class="q-mastery-status-pill pill-practiced">🟡 Practiced</span>`;
+      } else if (mastery === 'review') {
+        masteryBadgeHtml = `<span class="q-mastery-status-pill pill-review">🔴 Needs Review</span>`;
+      } else {
+        masteryBadgeHtml = `<span class="q-mastery-status-pill pill-unstarted">⚪ Not Started</span>`;
+      }
+
+      let hintBtnLabel = '💡 Need a hint? (1 of 3)';
+      if (hintsCount === 1) hintBtnLabel = '💡 Next Hint (2 of 3)';
+      else if (hintsCount === 2) hintBtnLabel = '💡 Final Solution (3 of 3)';
+      else if (hintsCount >= 3) hintBtnLabel = '✓ All 3 Hints Revealed';
 
       const pillarClass = `pillar-${q.pillar}`;
       const pillarLabel = {
@@ -395,6 +754,9 @@
         cloud: 'Azure & DevOps'
       }[q.pillar] || q.pillar;
 
+      const isFirst = idx === 0;
+      const isLast = idx === filtered.length - 1;
+
       return `
         <article class="q-card" id="card-${q.id}">
           <div class="q-card-header" onclick="window.AppController.toggleQuestion('${q.id}')">
@@ -402,6 +764,8 @@
               <div class="q-badges">
                 <span class="pillar-badge ${pillarClass}">${pillarLabel}</span>
                 <span class="seniority-badge ${q.seniority}">${q.seniority}</span>
+                ${masteryBadgeHtml}
+                <span class="q-xp-bounty">+50 XP</span>
                 ${q.tags.map(t => `<span class="seniority-badge">${t}</span>`).join('')}
               </div>
               <h2 class="q-title">${q.title}</h2>
@@ -412,71 +776,143 @@
                 title="${isBookmarked ? 'Remove Bookmark' : 'Bookmark Question'}">
                 ${isBookmarked ? '★' : '☆'}
               </button>
-              <button class="check-btn ${isCompleted ? 'completed' : ''}" 
+              <button class="check-btn ${mastery === 'mastered' || state.completedQuestions[q.id] ? 'completed' : ''}" 
                 onclick="window.AppController.toggleComplete('${q.id}')" 
-                title="${isCompleted ? 'Mark Incomplete' : 'Mark Completed (+25 XP)'}">
-                ${isCompleted ? '✓' : '○'}
+                title="${state.completedQuestions[q.id] ? 'Mark Incomplete' : 'Quick Check (+25 XP)'}">
+                ${state.completedQuestions[q.id] ? '✓' : '○'}
               </button>
               <span class="expand-chevron">▼</span>
             </div>
           </div>
 
           <div class="q-card-body">
-            <!-- 20-Second Direct Answer ("Say It") -->
-            <div class="section-box pitch-box">
-              <span class="section-box-title">🎯 20-Second Direct Answer ("Say It")</span>
-              <p class="pitch-content">${escapeHtml(q.pitch)}</p>
-            </div>
-
-            ${q.analogy ? `
-            <!-- The Teenager Analogy -->
-            <div class="section-box analogy-box">
-              <span class="section-box-title">💡 The Teenager Analogy (Mental Model)</span>
-              <p class="analogy-content">${escapeHtml(q.analogy)}</p>
-            </div>
-            ` : ''}
-
-            ${q.visualDiagram ? `
-            <!-- Visual Architecture Blueprint & Mental Model -->
-            <div class="section-box visual-box">
-              <span class="section-box-title">📐 Visual Architecture Blueprint &amp; Mental Model</span>
-              <div class="visual-diagram-container">
-                <pre class="visual-diagram-ascii">${escapeHtml(q.visualDiagram)}</pre>
-              </div>
-            </div>
-            ` : ''}
-
-            <!-- Technical Deep Dive -->
-            <div class="section-box deepdive-box">
-              <span class="section-box-title">🔬 Technical Deep Dive & Under the Hood</span>
-              <p class="deepdive-content">${escapeHtml(q.deepDive)}</p>
-            </div>
-
-            <!-- Production Code Snippet -->
-            <div class="code-box">
-              <div class="code-header">
-                <span>PRODUCTION ARCHITECTURE CODE</span>
-                <button class="copy-code-btn" onclick="window.AppController.copyCode('${q.id}')">
-                  📋 Copy Code
+            <!-- Khan Academy Active Recall Mode (Progressive Hint Ladder) -->
+            <div class="khan-hint-accordion">
+              <div class="khan-hint-prompt-bar">
+                <div class="khan-hint-prompt-left">
+                  <span class="hint-lamp-icon">💡</span>
+                  <div>
+                    <strong class="hint-title-text">Active Recall Practice</strong>
+                    <span class="hint-prompt-sub">Try explaining this out loud to yourself before reading the solution.</span>
+                  </div>
+                </div>
+                <button class="btn-khan-hint" onclick="window.AppController.revealHint('${q.id}')">
+                  <span id="hintBtnLabel-${q.id}">${hintBtnLabel}</span>
                 </button>
               </div>
-              <pre class="code-pre" id="snippet-${q.id}">${highlightSyntax(q.codeSnippet)}</pre>
+              <div class="khan-revealed-hints" id="revealedHints-${q.id}">
+                ${renderRevealedHintsHtml(q, hintsCount)}
+              </div>
             </div>
 
-            <!-- Junior Red Flags -->
-            <div class="section-box redflags-box">
-              <span class="section-box-title">⚠️ Junior Red Flags (What candidates say that hurts them)</span>
-              <ul class="bullet-list">
-                ${q.redFlags.map(rf => `<li>${escapeHtml(rf)}</li>`).join('')}
-              </ul>
+            <!-- Khan Academy Section Tabs Switcher -->
+            <div class="khan-card-tabs" onclick="event.stopPropagation()">
+              <button class="khan-tab-btn active" data-tab="all" onclick="window.AppController.switchQuestionTab('${q.id}', 'all')">📖 Full Breakdown</button>
+              <button class="khan-tab-btn" data-tab="pitch" onclick="window.AppController.switchQuestionTab('${q.id}', 'pitch')">🎯 20s Say It</button>
+              ${q.analogy ? `<button class="khan-tab-btn" data-tab="analogy" onclick="window.AppController.switchQuestionTab('${q.id}', 'analogy')">💡 Mental Model</button>` : ''}
+              ${q.visualDiagram ? `<button class="khan-tab-btn" data-tab="visual" onclick="window.AppController.switchQuestionTab('${q.id}', 'visual')">📐 Blueprint</button>` : ''}
+              <button class="khan-tab-btn" data-tab="deepdive" onclick="window.AppController.switchQuestionTab('${q.id}', 'deepdive')">🔬 Deep Dive</button>
+              <button class="khan-tab-btn" data-tab="code" onclick="window.AppController.switchQuestionTab('${q.id}', 'code')">💻 Code</button>
+              <button class="khan-tab-btn" data-tab="tips" onclick="window.AppController.switchQuestionTab('${q.id}', 'tips')">⚠️ Red Flags</button>
             </div>
 
-            <!-- Senior Pro-Tips -->
-            <div class="section-box protips-box">
-              <span class="section-box-title">💡 Senior Pro-Tips & Architecture Nuances</span>
-              <ul class="protips-list">
-                ${q.proTips.map(pt => `<li>${escapeHtml(pt)}</li>`).join('')}
-              </ul>
+            <div class="q-sections-wrap" id="sections-${q.id}">
+              <!-- 20-Second Direct Answer ("Say It") -->
+              <div class="section-box pitch-box tab-section-pitch">
+                <span class="section-box-title">🎯 20-Second Direct Answer ("Say It")</span>
+                <p class="pitch-content">${escapeHtml(q.pitch)}</p>
+              </div>
+
+              ${q.analogy ? `
+              <!-- The Teenager Analogy -->
+              <div class="section-box analogy-box tab-section-analogy">
+                <span class="section-box-title">💡 The Teenager Analogy (Mental Model)</span>
+                <p class="analogy-content">${escapeHtml(q.analogy)}</p>
+              </div>
+              ` : ''}
+
+              ${q.visualDiagram ? `
+              <!-- Visual Architecture Blueprint & Mental Model -->
+              <div class="section-box visual-box tab-section-visual">
+                <span class="section-box-title">📐 Visual Architecture Blueprint &amp; Mental Model</span>
+                <div class="visual-diagram-container">
+                  <pre class="visual-diagram-ascii">${escapeHtml(q.visualDiagram)}</pre>
+                </div>
+              </div>
+              ` : ''}
+
+              <!-- Technical Deep Dive -->
+              <div class="section-box deepdive-box tab-section-deepdive">
+                <span class="section-box-title">🔬 Technical Deep Dive &amp; Under the Hood</span>
+                <p class="deepdive-content">${escapeHtml(q.deepDive)}</p>
+              </div>
+
+              <!-- Production Code Snippet -->
+              <div class="code-box tab-section-code">
+                <div class="code-header">
+                  <span>PRODUCTION ARCHITECTURE CODE</span>
+                  <button class="copy-code-btn" onclick="window.AppController.copyCode('${q.id}')">
+                    📋 Copy Code
+                  </button>
+                </div>
+                <pre class="code-pre" id="snippet-${q.id}">${highlightSyntax(q.codeSnippet)}</pre>
+              </div>
+
+              <!-- Junior Red Flags & Senior Pro-Tips -->
+              <div class="section-box redflags-box tab-section-tips">
+                <span class="section-box-title">⚠️ Junior Red Flags (What candidates say that hurts them)</span>
+                <ul class="bullet-list">
+                  ${q.redFlags.map(rf => `<li>${escapeHtml(rf)}</li>`).join('')}
+                </ul>
+              </div>
+
+              <div class="section-box protips-box tab-section-tips">
+                <span class="section-box-title">💡 Senior Pro-Tips &amp; Architecture Nuances</span>
+                <ul class="protips-list">
+                  ${q.proTips.map(pt => `<li>${escapeHtml(pt)}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+
+            <!-- Khan Academy 3-Tier Mastery Self-Assessment Bar -->
+            <div class="khan-mastery-footer" onclick="event.stopPropagation()">
+              <div class="khan-mastery-callout">
+                <span class="mastery-callout-icon">🎓</span>
+                <span class="mastery-prompt-text">Calibrate your mastery for this topic:</span>
+              </div>
+              <div class="khan-mastery-buttons">
+                <button class="khan-rate-btn rate-review ${mastery === 'review' ? 'active' : ''}" 
+                  data-rating="review"
+                  onclick="window.AppController.rateQuestionMastery('${q.id}', 'review')" 
+                  title="Needs more review">
+                  <span>🔴 Needs Review</span>
+                </button>
+                <button class="khan-rate-btn rate-practiced ${mastery === 'practiced' ? 'active' : ''}" 
+                  data-rating="practiced"
+                  onclick="window.AppController.rateQuestionMastery('${q.id}', 'practiced')" 
+                  title="Practiced and understood (+25 XP)">
+                  <span>🟡 Practiced (+25 XP)</span>
+                </button>
+                <button class="khan-rate-btn rate-mastered ${mastery === 'mastered' ? 'active' : ''}" 
+                  data-rating="mastered"
+                  onclick="window.AppController.rateQuestionMastery('${q.id}', 'mastered')" 
+                  title="Completely mastered (+50 XP)">
+                  <span>⭐ Mastered (+50 XP)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Khan Academy Sequential Question Stepper -->
+            <div class="khan-question-stepper-bar" onclick="event.stopPropagation()">
+              <button class="stepper-nav-btn" onclick="window.AppController.stepToQuestion('${q.id}', -1)" ${isFirst ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : ''}>
+                <span>← Previous Lesson</span>
+              </button>
+              <div class="stepper-dots-wrap">
+                <span class="stepper-counter-text">Lesson ${idx + 1} of ${filtered.length}</span>
+              </div>
+              <button class="stepper-nav-btn" onclick="window.AppController.stepToQuestion('${q.id}', 1)" ${isLast ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : ''}>
+                <span>Next Lesson →</span>
+              </button>
             </div>
           </div>
         </article>
@@ -1101,7 +1537,45 @@
       if (card) {
         card.classList.toggle('expanded');
         window.SoundEngine.playFlip();
+
+        const bTitle = document.getElementById('breadcrumbQuestionTitle');
+        const bSep = document.getElementById('breadcrumbQuestionSep');
+        if (card.classList.contains('expanded')) {
+          const q = (window.INTERVIEW_QUESTIONS || []).find(item => item.id === qId);
+          if (q && bTitle && bSep) {
+            bSep.style.display = 'inline';
+            bTitle.style.display = 'inline';
+            bTitle.textContent = q.title;
+          }
+        } else if (bTitle && bSep) {
+          bSep.style.display = 'none';
+          bTitle.style.display = 'none';
+        }
       }
+    },
+
+    toggleUnitSyllabus: function (pillar) {
+      toggleUnitSyllabus(pillar);
+    },
+
+    jumpToSyllabusQuestion: function (pillar, qId) {
+      jumpToSyllabusQuestion(pillar, qId);
+    },
+
+    revealHint: function (qId) {
+      revealHint(qId);
+    },
+
+    switchQuestionTab: function (qId, tab) {
+      switchQuestionTab(qId, tab);
+    },
+
+    rateQuestionMastery: function (qId, rating) {
+      rateQuestionMastery(qId, rating);
+    },
+
+    stepToQuestion: function (qId, direction) {
+      stepToQuestion(qId, direction);
     },
 
     toggleBookmark: function (qId) {

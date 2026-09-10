@@ -2615,3 +2615,543 @@ body {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   KHAN ACADEMY ENTERPRISE EDUCATIONAL UI PATTERNS
+   ========================================================================== */
+
+/* Breadcrumbs Trail */
+.khan-breadcrumbs-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.55rem 0.95rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.breadcrumb-link {
+  color: #818cf8;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-link:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.breadcrumb-item {
+  color: #cbd5e1;
+}
+
+.breadcrumb-current {
+  color: #f8fafc;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}
+
+/* Unit Mastery Strip in Module Cards */
+.khan-unit-mastery-strip {
+  margin: 1rem 0 0.75rem 0;
+  padding: 0.75rem;
+  background: rgba(10, 15, 28, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+}
+
+.khan-mastery-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+}
+
+.khan-mastery-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.khan-mastery-level-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-notstarted {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.badge-practicing {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+
+.badge-proficient {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.badge-mastered {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.khan-mastery-score {
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.khan-mastery-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.khan-mastery-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #06b6d4);
+  border-radius: 999px;
+  transition: width 0.5s ease-out;
+}
+
+/* Syllabus Toggle Button */
+.khan-syllabus-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.khan-syllabus-toggle-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #fff;
+}
+
+.syllabus-arrow {
+  font-size: 0.7rem;
+  transition: transform var(--transition-fast);
+}
+
+/* Syllabus Drawer */
+.khan-syllabus-drawer {
+  background: rgba(8, 12, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.4rem;
+}
+
+.syllabus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.syllabus-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  background: rgba(255, 255, 255, 0.02);
+  gap: 0.5rem;
+}
+
+.syllabus-item:hover {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.syllabus-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.syllabus-status-dot {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.syllabus-lesson-num {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.syllabus-lesson-title {
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.syllabus-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.syllabus-jump-arrow {
+  color: #818cf8;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Question Mastery Status Pill */
+.q-mastery-status-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pill-unstarted {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.pill-practiced {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+}
+
+.pill-mastered {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.pill-review {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.q-xp-bounty {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* Khan Academy Active Recall Hint Accordion */
+.khan-hint-accordion {
+  margin-bottom: 1.25rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.khan-hint-prompt-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.khan-hint-prompt-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.hint-lamp-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.hint-title-text {
+  color: #fef08a;
+  font-size: 0.88rem;
+  display: block;
+}
+
+.hint-prompt-sub {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  display: block;
+}
+
+.btn-khan-hint {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.3));
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: #fef08a;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-khan-hint:hover {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.35), rgba(202, 138, 4, 0.5));
+  border-color: rgba(234, 179, 8, 0.6);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.khan-revealed-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.khan-hint-box {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid;
+  background: rgba(10, 15, 26, 0.85);
+  animation: fadeIn 0.3s ease;
+}
+
+.hint-badge-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+  font-family: var(--font-display);
+}
+
+.hint-level-1 {
+  border-left-color: #38bdf8;
+}
+.hint-level-1 .hint-badge-tag {
+  color: #38bdf8;
+}
+
+.hint-level-2 {
+  border-left-color: #a855f7;
+}
+.hint-level-2 .hint-badge-tag {
+  color: #c084fc;
+}
+
+.hint-level-3 {
+  border-left-color: #10b981;
+}
+.hint-level-3 .hint-badge-tag {
+  color: #34d399;
+}
+
+.hint-text {
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Card Learning Section Tabs */
+.khan-card-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: none;
+}
+
+.khan-card-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.khan-tab-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.khan-tab-btn:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.khan-tab-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #818cf8;
+  font-weight: 700;
+}
+
+/* Mastery Self-Assessment Rating Footer */
+.khan-mastery-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+}
+
+.khan-mastery-callout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mastery-callout-icon {
+  font-size: 1.15rem;
+}
+
+.mastery-prompt-text {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.khan-mastery-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.khan-rate-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+}
+
+.khan-rate-btn:hover {
+  transform: translateY(-1px);
+}
+
+.khan-rate-btn.rate-review:hover,
+.khan-rate-btn.rate-review.active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+.khan-rate-btn.rate-practiced:hover,
+.khan-rate-btn.rate-practiced.active {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: rgba(234, 179, 8, 0.5);
+  color: #facc15;
+}
+
+.khan-rate-btn.rate-mastered:hover,
+.khan-rate-btn.rate-mastered.active {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fbbf24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+/* Sequential Question Stepper Bar */
+.khan-question-stepper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stepper-nav-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.stepper-nav-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #fff;
+}
+
+.stepper-counter-text {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
